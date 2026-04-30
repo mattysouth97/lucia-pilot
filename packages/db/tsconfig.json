@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "paths": {
+      "@lucia/contracts": ["../contracts/src/index.ts"],
+      "@lucia/contracts/*": ["../contracts/src/*.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../contracts" }
+  ]
+}

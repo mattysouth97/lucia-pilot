@@ -1,0 +1,192 @@
+name: lucia
+
+# ADR-0002: LevelDB (goleveldb) is used as the Fabric state DB.
+# CouchDB is intentionally absent — it would saturate the 16 GB demo laptop
+# alongside Postgres+TimescaleDB+Redis+Mosquitto+Fabric (see ADR-0002 rationale).
+# NFR-7: stack must boot in ≤5 min on 16 GB RAM.
+
+networks:
+  lucia_default:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  fabric_data:
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # TimescaleDB (Postgres 16 + TimescaleDB 2.15 OSS)
+  # Stores generation_events hypertable and settlement records (§11.1).
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: timescale/timescaledb:2.15.0-pg16-oss
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lucia
+      POSTGRES_PASSWORD: lucia_pilot
+      POSTGRES_DB: lucia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lucia_default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lucia -d lucia"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Mosquitto MQTT broker
+  # Simulator publishes to site/{building_id}/generation (QoS 1).
+  # Engine subscribes to site/+/generation (ADR-0003).
+  # Port 1883: plain MQTT; port 9001: WebSocket (browser demo UI).
+  # ---------------------------------------------------------------------------
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/data:/mosquitto/data
+    networks:
+      - lucia_default
+    healthcheck:
+      # Publish to a $SYS topic to verify the broker is accepting connections.
+      test:
+        - "CMD-SHELL"
+        - "mosquitto_pub -h localhost -p 1883 -t '$$SYS/healthcheck' -n -q 0 || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Redis 7 (Alpine)
+  # BullMQ uses Redis for per-building named queues (ADR-0003).
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lucia_default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Hyperledger Fabric Orderer 2.5 — Solo consensus for demo.
+  # Solo is appropriate for a single-node demo laptop environment.
+  # Production would use Raft (Phase 2 ADR amendment required).
+  # ---------------------------------------------------------------------------
+  fabric-orderer:
+    image: hyperledger/fabric-orderer:2.5
+    restart: unless-stopped
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/genesis.block
+      - ORDERER_GENERAL_LEDGERTYPE=file
+      - ORDERER_FILELEDGER_LOCATION=/var/hyperledger/production/orderer
+      - ORDERER_GENERAL_TLS_ENABLED=false
+    ports:
+      - "7050:7050"
+    volumes:
+      - ./fabric/orderer:/var/hyperledger/orderer
+      - fabric_data:/var/hyperledger/production
+    networks:
+      - lucia_default
+    healthcheck:
+      test: ["CMD-SHELL", "grpc_health_probe -addr=localhost:7050 2>/dev/null || curl -sf http://localhost:7050 2>/dev/null || exit 0"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # Hyperledger Fabric Peer 2.5
+  # ADR-0002: CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+  # LevelDB is Fabric's built-in key-value store — no separate CouchDB container.
+  # All chain operations (Settle/Verify/History) are key-based; LevelDB handles
+  # them natively and avoids the memory overhead of CouchDB on the 16 GB laptop.
+  # ---------------------------------------------------------------------------
+  fabric-peer:
+    image: hyperledger/fabric-peer:2.5
+    restart: unless-stopped
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.org1.lucia.com
+      - CORE_PEER_ADDRESS=peer0.org1.lucia.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org1.lucia.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/var/hyperledger/peer/msp
+      # ADR-0002: LevelDB state DB — built into the peer binary, no external service.
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      # Must match the compose stack network name so chaincode containers join it.
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=lucia_default
+      - CORE_PEER_FILESYSTEMPATH=/var/hyperledger/production
+    ports:
+      - "7051:7051"
+      - "7052:7052"
+    volumes:
+      - ./fabric/peer:/var/hyperledger/peer
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - fabric_data:/var/hyperledger/production
+    networks:
+      - lucia_default
+    depends_on:
+      fabric-orderer:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "grpc_health_probe -addr=localhost:7051 2>/dev/null || curl -sf http://localhost:7051 2>/dev/null || exit 0"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Hyperledger Fabric CA 1.5
+  # Issues MSP identities for orderer, peer, and engine SDK client.
+  # TLS is disabled for the local demo (Phase 2 must enable TLS — see Phase 2 ADR).
+  # ---------------------------------------------------------------------------
+  fabric-ca:
+    image: hyperledger/fabric-ca:1.5
+    restart: unless-stopped
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-org1
+      - FABRIC_CA_SERVER_PORT=7054
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+    ports:
+      - "7054:7054"
+    volumes:
+      - ./fabric/ca:/etc/hyperledger/fabric-ca-server
+    networks:
+      - lucia_default
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:7054/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s

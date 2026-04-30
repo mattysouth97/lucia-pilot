@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Cancel in-progress runs for the same PR or branch on new pushes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.10"
+  PNPM_VERSION: "9"
+  GO_VERSION: "1.22"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # setup — install dependencies and populate pnpm cache
+  # All TypeScript jobs depend on this job.
+  # ---------------------------------------------------------------------------
+  setup:
+    name: Setup (pnpm install)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+  # ---------------------------------------------------------------------------
+  # typecheck — strict TypeScript across all packages
+  # Validates packages/contracts shapes match engine and web usage (ADR-0001).
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Typecheck
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+  # ---------------------------------------------------------------------------
+  # lint — ESLint across all packages
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+  # ---------------------------------------------------------------------------
+  # test — unit + integration tests (vitest) and fixture validation gate
+  # pnpm test:fixtures validates packages/contracts/fixtures/ against engine
+  # response schemas — coherence guard per RALPLAN-DR principle 5.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Test (unit + fixtures)
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Run fixture validation
+        run: pnpm test:fixtures
+
+  # ---------------------------------------------------------------------------
+  # build — production build for all apps
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+  # ---------------------------------------------------------------------------
+  # chain-test — Go chaincode unit tests
+  # Runs in parallel with TypeScript jobs (no dependency on setup).
+  # Tests the dumb-persistence + hash-chain Go chaincode (ADR-0002).
+  # ---------------------------------------------------------------------------
+  chain-test:
+    name: Chain test (Go)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: chain/chaincode/go.sum
+
+      - name: Run Go tests
+        working-directory: chain/chaincode
+        run: go test ./...

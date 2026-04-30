@@ -1,0 +1,155 @@
+# Hyperledger Fabric CA server configuration — Lucia Pilot (demo laptop)
+#
+# Issues MSP identities for: orderer, peer (Org1MSP), and engine SDK client.
+# TLS is disabled for the local demo pilot (NFR-4 requires HTTPS only at the
+# engine boundary, not within the local Docker network).
+# Phase 2 production MUST enable TLS and use a proper password store.
+#
+# Bootstrap admin credentials (demo only — change before any production use):
+#   User: admin
+#   Pass: adminpw
+#
+# The CA container writes generated keys and certificates under
+# /etc/hyperledger/fabric-ca-server (bind-mounted from ./fabric/ca/).
+
+version: 1.5.7
+
+port: 7054
+
+debug: false
+
+crlsizelimit: 512000
+
+tls:
+  # Disabled for local demo. Phase 2: set enabled: true and provide cert/key.
+  enabled: false
+  certfile:
+  keyfile:
+  clientauth:
+    type: noclientcert
+    certfiles:
+
+ca:
+  name: ca-org1
+  keyfile:
+  certfile:
+  chainfile:
+
+crl:
+  expiry: 24h
+
+registry:
+  # Maximum number of failed login attempts before lockout.
+  maxenrollments: -1
+  identities:
+    - name: admin
+      pass: adminpw
+      type: client
+      affiliation: ""
+      attrs:
+        hf.Registrar.Roles: "*"
+        hf.Registrar.DelegateRoles: "*"
+        hf.Revoker: true
+        hf.IntermediateCA: true
+        hf.GenCRL: true
+        hf.Registrar.Attributes: "*"
+        hf.AffiliationMgr: true
+
+db:
+  type: sqlite3
+  datasource: fabric-ca-server.db
+  tls:
+    enabled: false
+    certfiles:
+    client:
+      certfile:
+      keyfile:
+
+ldap:
+  enabled: false
+
+affiliations:
+  org1:
+    - department1
+    - department2
+
+signing:
+  default:
+    usage:
+      - digital signature
+    expiry: 8760h
+  profiles:
+    ca:
+      usage:
+        - cert sign
+        - crl sign
+      expiry: 43800h
+      caconstraint:
+        isca: true
+        maxpathlen: 0
+    tls:
+      usage:
+        - signing
+        - key encipherment
+        - server auth
+        - client auth
+        - key agreement
+      expiry: 8760h
+
+csr:
+  cn: ca-org1
+  keyrequest:
+    algo: ecdsa
+    size: 256
+  names:
+    - C: KR
+      ST: Seoul
+      L:
+      O: Org1MSP
+      OU:
+  hosts:
+    - localhost
+    - fabric-ca
+  ca:
+    expiry: 131400h
+    pathlength: 1
+
+idemix:
+  rhpoolsize: 1000
+  nonceexpiration: 15s
+  noncesweepinterval: 15m
+
+bccsp:
+  default: SW
+  sw:
+    hash: SHA2
+    security: 256
+    filekeystore:
+      keystore: msp/keystore
+
+cacount:
+
+cafiles:
+
+intermediate:
+  parentserver:
+    url:
+    caname:
+  enrollment:
+    hosts:
+    profile:
+    label:
+  tls:
+    certfiles:
+    client:
+      certfile:
+      keyfile:
+
+cfg:
+  identities:
+    passwordattempts: 10
+
+operations:
+  listenAddress: 0.0.0.0:9454
+  tls:
+    enabled: false

@@ -1,0 +1,141 @@
+:root {
+  --bg: #F4F5F7;
+  --panel: #FFFFFF;
+  --ink: #0E1116;
+  --ink-2: #2A2F3A;
+  --muted: #6B7280;
+  --muted-2: #9AA0AB;
+  --line: #ECEEF1;
+  --line-2: #E2E5EA;
+  --chip: #F1F3F5;
+  --green: #10B981;
+  --green-2: #34D399;
+  --green-3: #6EE7B7;
+  --green-soft: #ECFDF5;
+  --teal: #06B6A2;
+  --rose: #F43F5E;
+  --rose-soft: #FFF1F3;
+  --amber: #F59E0B;
+  --amber-soft: #FFF7E6;
+  --indigo: #4F46E5;
+  --indigo-soft: #EEF0FF;
+  --sky: #38BDF8;
+  --shadow-sm: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.04);
+  --shadow-md: 0 4px 18px rgba(16,24,40,0.06), 0 2px 6px rgba(16,24,40,0.04);
+  --shadow-lg: 0 12px 40px rgba(16,24,40,0.08), 0 4px 12px rgba(16,24,40,0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", sans-serif;
+  font-feature-settings: "ss01", "tnum";
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-feature-settings: "tnum";
+}
+
+.num {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.scroll-x {
+  overflow-x: auto;
+}
+
+.scroll-x::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scroll-x::-webkit-scrollbar-thumb {
+  background: #d6d8de;
+  border-radius: 4px;
+}
+
+::selection {
+  background: #d1fae5;
+}
+
+/* Subtle dotted bg in canvas */
+.app-shell {
+  background:
+    radial-gradient(1200px 600px at 80% -200px, rgba(16,185,129,0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(56,189,248,0.05), transparent 60%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+/* Recharts overrides */
+.recharts-cartesian-axis-tick-value {
+  fill: #9AA0AB;
+  font-size: 11px;
+}
+
+.recharts-default-tooltip {
+  border-radius: 12px !important;
+  border: 1px solid var(--line-2) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 10px 12px !important;
+}
+
+/* Pulse */
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
+
+.pulse-dot {
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes flowIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.flow-in {
+  animation: flowIn 380ms cubic-bezier(0.2,0.8,0.2,1) both;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Card */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-hover:hover {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-md);
+}

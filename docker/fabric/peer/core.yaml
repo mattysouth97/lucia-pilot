@@ -1,0 +1,223 @@
+# Hyperledger Fabric Peer configuration — Lucia Pilot (demo laptop)
+#
+# ADR-0002 (State DB choice): CORE_LEDGER_STATE_STATEDATABASE is set to
+# "goleveldb" here and also enforced via the environment variable
+# CORE_LEDGER_STATE_STATEDATABASE=goleveldb in docker-compose.yml.
+# LevelDB is Fabric's built-in embedded key-value store; it requires no
+# separate container and satisfies all M+3 query patterns (Settle/Verify/
+# History are key-based lookups). CouchDB is reserved for Phase 2 production
+# where rich ad-hoc JSON queries justify its memory and operational cost.
+# See ADR-0002 in .omc/plans/lucia-pilot-implementation.md for full rationale.
+#
+# TLS: disabled for local demo. Phase 2 must enable TLS on all listeners.
+#
+# This file is bind-mounted into the fabric-peer container at
+# /var/hyperledger/peer/core.yaml. Environment variables in docker-compose.yml
+# take precedence over fields in this file.
+
+peer:
+  id: peer0.org1.lucia.com
+  networkId: lucia
+
+  listenAddress: 0.0.0.0:7051
+  chaincodeListenAddress: 0.0.0.0:7052
+  address: peer0.org1.lucia.com:7051
+
+  # Comma-separated list of additional peer addresses to expose (leave blank for demo).
+  addressAutoDetect: false
+
+  # Gateway service (Fabric 2.4+) — used by fabric-network SDK v2.
+  gateway:
+    enabled: true
+    endorsementTimeout: 30s
+    dialTimeout: 2m
+
+  keepalive:
+    interval: 7200s
+    timeout: 20s
+    client:
+      interval: 60s
+      timeout: 20s
+    deliveryClient:
+      interval: 60s
+      timeout: 20s
+
+  gossip:
+    bootstrap: peer0.org1.lucia.com:7051
+    useLeaderElection: true
+    orgLeader: false
+    membershipTrackerInterval: 5s
+    maxBlockCountToStore: 100
+    maxPropagationBurstLatency: 10ms
+    maxPropagationBurstSize: 10
+    propagateIterations: 1
+    propagatePeerNum: 3
+    pullInterval: 4s
+    pullPeerNum: 3
+    requestStateInfoInterval: 4s
+    publishStateInfoInterval: 4s
+    stateInfoRetentionInterval:
+    publishCertPeriod: 10s
+    skipBlockVerification: false
+    dialTimeout: 3s
+    connTimeout: 2s
+    recvBuffSize: 20
+    sendBuffSize: 200
+    digestWaitTime: 1s
+    requestWaitTime: 1500ms
+    responseWaitTime: 2s
+    aliveTimeInterval: 5s
+    aliveExpirationTimeout: 25s
+    reconnectInterval: 25s
+    externalEndpoint: peer0.org1.lucia.com:7051
+    election:
+      startupGracePeriod: 15s
+      membershipSampleInterval: 1s
+      leaderAliveThreshold: 10s
+      leaderElectionDuration: 5s
+    pvtData:
+      pullRetryThreshold: 60s
+      transientstoreMaxBlockRetention: 1000
+      pushAckTimeout: 3s
+      btlPullMargin: 10
+      reconcileBatchSize: 10
+      reconcileSleepInterval: 1m
+      reconciliationEnabled: true
+      skipPullingInvalidTransactionsDuringCommit: false
+
+  tls:
+    # Disabled for local demo. Phase 2: set enabled: true.
+    enabled: false
+    clientAuthRequired: false
+    cert:
+      file: /var/hyperledger/peer/tls/server.crt
+    key:
+      file: /var/hyperledger/peer/tls/server.key
+    rootcert:
+      file: /var/hyperledger/peer/tls/ca.crt
+
+  authentication:
+    timewindow: 15m
+
+  fileSystemPath: /var/hyperledger/production
+
+  BCCSP:
+    Default: SW
+    SW:
+      Hash: SHA2
+      Security: 256
+      FileKeyStore:
+        KeyStore:
+
+  mspConfigPath: /var/hyperledger/peer/msp
+  localMspId: Org1MSP
+
+  client:
+    connTimeout: 3s
+
+  deliveryclient:
+    reconnectTotalTimeThreshold: 3600s
+    connTimeout: 3s
+    reConnectBackoffThreshold: 3600s
+    addressOverrides:
+
+  localMspType: bccsp
+
+  profile:
+    enabled: false
+    listenAddress: 0.0.0.0:6060
+
+  handlers:
+    authFilters:
+      - name: DefaultAuth
+      - name: ExpirationCheck
+    decorators:
+      - name: DefaultDecorator
+    endorsers:
+      escc:
+        name: DefaultEndorsement
+        library:
+    validators:
+      vscc:
+        name: DefaultValidation
+        library:
+
+  validatorPoolSize:
+
+  discovery:
+    enabled: true
+    authCacheEnabled: true
+    authCacheMaxSize: 1000
+    authCachePurgeRetentionRatio: 0.75
+    orgMembersAllowedAccess: false
+
+vm:
+  endpoint: unix:///host/var/run/docker.sock
+  docker:
+    tls:
+      enabled: false
+    attachStdout: false
+    hostConfig:
+      # Must match the compose stack network so chaincode containers can reach the peer.
+      NetworkMode: lucia_default
+      Dns:
+      LogConfig:
+        Type: json-file
+        Config:
+          max-size: "50m"
+          max-file: "5"
+      Memory: 2147483648
+
+chaincode:
+  pull: false
+  externalBuilders: []
+  installTimeout: 300s
+  startuptimeout: 300s
+  executetimeout: 30s
+  mode: net
+  keepalive: 0
+  system:
+    _lifecycle: enable
+    cscc: enable
+    lscc: enable
+    qscc: enable
+  logging:
+    level: info
+    shim: warning
+    format: '%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] %{shortfunc} -> %{level:.4s} %{id:03x}%{color:reset} %{message}'
+
+ledger:
+  blockchain:
+  state:
+    # ADR-0002: LevelDB (goleveldb) — built into the peer binary.
+    # No CouchDB service required. Key-based lookups (Settle/Verify/History)
+    # are fully supported. CouchDB swap-in for Phase 2 is a config change only.
+    stateDatabase: goleveldb
+    totalQueryLimit: 100000
+    couchDBConfig:
+      # CouchDB settings intentionally left unconfigured for demo.
+      # Phase 2: populate these when switching to CouchDB.
+      couchDBAddress:
+      username:
+      password:
+      maxRetries: 3
+      maxRetriesOnStartup: 12
+      requestTimeout: 35s
+      internalQueryLimit: 1000
+      maxBatchUpdateSize: 1000
+      createGlobalChangesDB: false
+      redoLogPath: /var/hyperledger/production/ledgersData/couchdbRedoLogs
+  history:
+    enableHistoryDatabase: true
+  pvtdataStore:
+    collElgProcMaxDbBatchSize: 5000
+    collElgProcDbBatchesInterval: 1000
+    deprioritizedDataReconcilerInterval: 60m
+
+operations:
+  listenAddress: 0.0.0.0:9443
+  tls:
+    enabled: false
+
+metrics:
+  provider: disabled

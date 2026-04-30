@@ -1,0 +1,76 @@
+# Hyperledger Fabric Orderer configuration — Lucia Pilot (demo laptop)
+# Consensus: Solo (single-node, sufficient for M+3 demo; Phase 2 → Raft).
+# Ledger type: file (persistent block storage on disk).
+# TLS: disabled for local demo. Phase 2 must enable TLS.
+#
+# This file is bind-mounted into the fabric-orderer container at
+# /var/hyperledger/orderer/orderer.yaml (overrides the image default).
+# Environment variables in docker-compose.yml take precedence over this file.
+
+General:
+  ListenAddress: 0.0.0.0
+  ListenPort: 7050
+
+  # TLS disabled for demo laptop. Phase 2: set Enabled: true and provide certs.
+  TLS:
+    Enabled: false
+    PrivateKey:
+    Certificate:
+    RootCAs: []
+
+  Keepalive:
+    ServerMinInterval: 60s
+    ServerInterval: 7200s
+    ServerTimeout: 20s
+
+  # Bootstrap from the genesis block produced by configtxgen.
+  # Run chain/network/scripts/network-up.sh before docker compose up to
+  # generate this file (see docker/fabric/README.md).
+  BootstrapMethod: file
+  BootstrapFile: /var/hyperledger/orderer/genesis.block
+
+  LocalMSPDir: /var/hyperledger/orderer/msp
+  LocalMSPID: OrdererMSP
+
+  # Logging
+  LogLevel: info
+  LogFormat: '%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] %{shortfunc} -> %{level:.4s} %{id:03x}%{color:reset} %{message}'
+
+  # BCCSP: software-based crypto (no HSM needed for pilot)
+  BCCSP:
+    Default: SW
+    SW:
+      Hash: SHA2
+      Security: 256
+      FileKeyStore:
+        KeyStore:
+
+  # Address that clients (peer, SDK) use to reach this orderer.
+  # Override via ORDERER_GENERAL_EXTERNALENDPOINT env var if needed.
+  ExternalEndpoint: ""
+
+FileLedger:
+  Location: /var/hyperledger/production/orderer
+
+# Solo consensus — single orderer, no Raft quorum required.
+# Phase 2: replace with Raft + multiple orderer nodes.
+Consensus:
+  Type: solo
+
+# Channel participation API (Fabric 2.x) — disabled for genesis-block bootstrap.
+ChannelParticipation:
+  Enabled: false
+  MaxRequestBodySize: 1 MB
+
+Admin:
+  ListenAddress: 0.0.0.0:7053
+  TLS:
+    Enabled: false
+
+Operations:
+  ListenAddress: 0.0.0.0:8443
+  TLS:
+    Enabled: false
+
+Metrics:
+  Provider: disabled

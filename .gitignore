@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Test artifacts
+coverage/
+.nyc_output/
+playwright-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OMC state (preserve plans/specs/research, drop runtime state)
+.omc/state/
+.omc/logs/
+.omc/sessions/
+
+# IDE
+.idea/
+.vscode/
+!.vscode/settings.example.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hyperledger Fabric crypto materials — NEVER commit
+chain/network/crypto-config/
+chain/network/channel-artifacts/
+chain/network/organizations/
+chain/network/system-genesis-block/
+chain/network/*.block
+chain/network/*.tx
+chain/network/wallet/
+
+# AWS / infra secrets
+infra/aws/terraform/.terraform/
+infra/aws/terraform/terraform.tfstate*
+infra/aws/terraform/*.tfvars
+!infra/aws/terraform/example.tfvars
+
+# Drizzle
+packages/db/drizzle/
