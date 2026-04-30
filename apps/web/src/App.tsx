@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+
 import { AppShell } from '@/components/AppShell';
-import { Dashboard } from '@/routes/Dashboard';
-import { BuildingDetail } from '@/routes/BuildingDetail';
-import { ResidentPortal } from '@/routes/ResidentPortal';
-import { AdminConsole } from '@/routes/AdminConsole';
-import { ModalProvider } from '@/lib/modals';
 import { DemoProvider } from '@/demo/DemoController';
+import { ModalProvider } from '@/lib/modals';
+import { AdminConsole } from '@/routes/AdminConsole';
+import { BuildingDetail } from '@/routes/BuildingDetail';
+import { Dashboard } from '@/routes/Dashboard';
+import { ResidentPortal } from '@/routes/ResidentPortal';
 
 // FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
 //   개요         → /

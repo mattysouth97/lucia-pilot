@@ -4,8 +4,9 @@
 // Tamper banner (FR-S-008) opens ULJN-042 building detail on click.
 
 import { useState, useEffect } from 'react';
-import { Pill, Btn } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Pill, Btn } from '@/components/atoms';
 import { useLuciaModals } from '@/lib/modals';
 import { useLuciaStream } from '@/lib/useLuciaStream';
 

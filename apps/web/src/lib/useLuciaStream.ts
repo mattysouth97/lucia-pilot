@@ -4,10 +4,10 @@
 // against TxStreamMessage (from @lucia/contracts), then invalidates
 // TanStack Query cache so LiveTxStream card re-renders.
 
-import { useEffect } from 'react';
 import type { TxStreamMessage } from '@lucia/contracts';
+import { useEffect } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export function useLuciaStream(): void {
   useEffect(() => {
     // B7.3 — full WebSocket reconnect logic not yet implemented.

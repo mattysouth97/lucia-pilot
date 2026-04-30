@@ -16,8 +16,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Pill, Btn, fmt } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Pill, Btn, fmt } from '@/components/atoms';
 
 const RANGES = ['시간', '주', '월'] as const;
 type Range = (typeof RANGES)[number];

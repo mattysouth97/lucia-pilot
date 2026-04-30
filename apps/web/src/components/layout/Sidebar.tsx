@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pill } from '@/components/atoms/Pill';
-import { Btn } from '@/components/atoms/Btn';
+
 import { Icons } from '@/components/Icons';
+import { Btn } from '@/components/atoms/Btn';
+import { Pill } from '@/components/atoms/Pill';
 
 interface Step {
   t: string;

@@ -7,8 +7,9 @@
 
 import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { Pill, Btn, fmt } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Pill, Btn, fmt } from '@/components/atoms';
 import { useDemoController } from '@/demo/DemoController';
 
 interface BuildingRow {

@@ -2,6 +2,7 @@
 // FR-M-007 · mock identity 홍*동 / ULJN-001
 
 import { Link } from 'react-router-dom';
+
 import { Pill, Btn } from '@/components/atoms';
 
 export function ResidentCard() {

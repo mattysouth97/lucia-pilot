@@ -1,8 +1,8 @@
 // DistributionCard — 1 kWh 발전 → 9개 화폐 흐름
 // FR-S-004 가상공유거래 3-way split + 28-item settlement breakdown
 
-import { Pill, Btn, fmt } from '@/components/atoms';
 import { Icons } from '@/components/Icons';
+import { Pill, Btn, fmt } from '@/components/atoms';
 
 interface SettlementItem {
   label: string;
@@ -104,8 +104,10 @@ export function DistributionCard({ data }: DistributionCardProps) {
         </div>
       </div>
 
-      {/* Breakdown rows */}
-      <div style={{ display: 'grid', gap: 8 }}>
+      {/* Breakdown rows — horizontal scroll on narrow widths so the
+          fixed-px columns don't overflow the card. */}
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ display: 'grid', gap: 8, minWidth: 380 }}>
         {items.map((it, i) => {
           const pct = Math.abs(it.value) / Math.max(totalIn, totalOut) * 100;
           const pos = it.type === 'income';
@@ -142,6 +144,7 @@ export function DistributionCard({ data }: DistributionCardProps) {
             </div>
           );
         })}
+      </div>
       </div>
 
       {/* Beneficiary breakdown */}

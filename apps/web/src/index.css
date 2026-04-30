@@ -54,7 +54,16 @@ html, body {
   font-feature-settings: "ss01", "tnum";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  width: 100%;
+  /* `clip` (not `hidden`) so sticky positioning on the topbar still works.
+     This is the page-level safety net: any overflowing component is clipped
+     at the viewport edge instead of blowing the page horizontally. Cards
+     that need to expose hidden content do so via their own scroll-x
+     wrappers (`.card-scroll-x`, `.ledger-table-wrap`, etc.). */
+  overflow-x: clip;
 }
+
+img, video { max-width: 100%; height: auto; }
 
 .mono {
   font-family: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -240,19 +249,24 @@ a { color: inherit; text-decoration: none; }
 .grid-card-pair {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 768px) {
-  .grid-card-pair { grid-template-columns: 1.15fr 1fr; }
+  .grid-card-pair { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
 }
 .grid-card-pair-eq {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 768px) {
-  .grid-card-pair-eq { grid-template-columns: 1fr 1fr; }
+  .grid-card-pair-eq { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
+
+/* Defensive min-width: 0 on children of grid-dashboard so charts inside can
+   shrink. Without this, ResponsiveContainer's intrinsic width can blow out
+   the grid track. */
+.grid-dashboard > * { min-width: 0; }
 
 .card-scroll-x {
   overflow-x: auto;
@@ -340,3 +354,467 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: 1fr;
 }
 @media (min-width: 768px) { .grid-three { grid-template-columns: repeat(3, 1fr); } }
+
+/* === Dark hero band — Mpos-reference pattern ============================== */
+/* A single dark surface containing the greeting + 4 nested KPI tiles. Echoes
+   the topbar's authority and collapses two visual zones (hero + KPI row) into
+   one breathing block. Tiles sit on a slightly lighter dark surface so they
+   read as contained without needing borders. */
+
+.hero-band {
+  position: relative;
+  background: #0E5E42;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding: 28px 28px 22px;
+  overflow: hidden;
+  isolation: isolate;
+  margin-bottom: 28px;
+}
+@media (max-width: 640px) { .hero-band { padding: 22px 18px 18px; border-radius: 8px; } }
+
+/* Faint 1px inner highlight on the top edge — gives the band a subtle "lit
+   from above" quality without resorting to box-shadow. */
+.hero-band::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+  pointer-events: none;
+}
+
+.hero-band-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+.hero-band-greeting {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8FB8A6;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.hero-band-title {
+  font-size: 30px;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  font-weight: 700;
+  color: #FFFFFF;
+  max-width: 28ch;
+}
+@media (min-width: 1280px) { .hero-band-title { font-size: 34px; } }
+@media (max-width: 768px)  { .hero-band-title { font-size: 22px; max-width: none; } }
+
+.hero-band-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #C8DCD2;
+  align-items: center;
+}
+.hero-band-meta .num { color: #FFFFFF; font-weight: 600; }
+.hero-band-meta .sep { color: #1A5340; }
+
+.hero-band-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.hero-band-cta {
+  background: #FFFFFF;
+  color: #0E5E42;
+  border: 1px solid #FFFFFF;
+  border-radius: 6px;
+  height: 38px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.hero-band-cta:hover { background: #DCEDE5; border-color: #DCEDE5; }
+
+.hero-band-ghost {
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid #10583F;
+  border-radius: 6px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color .15s, border-color .15s;
+}
+.hero-band-ghost:hover { background: #0A4937; border-color: #1A6B50; }
+
+/* Period chip inside green band */
+.hero-band-period {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #0A4937; border: 1px solid #10583F;
+  border-radius: 6px; height: 32px; padding: 0 12px;
+  font-size: 12px; color: #C8DCD2;
+}
+.hero-band-period .num { color: #FFFFFF; font-weight: 600; }
+
+/* Tile grid — left: container-less headline figure; right: 2 tiles */
+.hero-band-tiles {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+@media (max-width: 900px) { .hero-band-tiles { grid-template-columns: 1fr; gap: 14px; } }
+
+/* Container-less headline figure — sits directly on the green band */
+.hero-headline-figure {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 0;
+  min-width: 0;
+}
+.hero-headline-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8FB8A6;
+  margin-bottom: 14px;
+}
+.hero-headline-value {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(28px, 5.2vw, 60px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+  word-break: keep-all;
+}
+.hero-headline-value-delta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  padding: 4px 9px;
+  border-radius: 5px;
+  background: rgba(52, 211, 153, 0.18);
+  color: #34D399;
+}
+.hero-headline-meta {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: #8FB8A6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+.hero-headline-meta .num { color: #DCEDE5; font-weight: 600; font-family: "Geist Mono", ui-monospace, monospace; }
+.hero-headline-meta .sep { color: #1A5340; }
+
+/* Inner tiles — slightly lighter green surface */
+.hero-tile {
+  background: #0A4937;
+  border: 1px solid #10583F;
+  border-radius: 6px;
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+  transition: border-color .15s ease;
+}
+.hero-tile:hover { border-color: #1A6B50; }
+
+.hero-tile-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #C8DCD2; font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.hero-tile-head-icon {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 5px;
+  background: #10583F;
+  color: #DCEDE5;
+}
+.hero-tile-head-icon svg { width: 13px; height: 13px; stroke-width: 1.7; }
+
+.hero-tile-value {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: #FFFFFF;
+  line-height: 1;
+  margin-top: 2px;
+  display: flex; align-items: baseline; gap: 6px;
+  flex-wrap: wrap;
+}
+.hero-tile-value-unit { font-size: 13px; color: #8FB8A6; font-weight: 500; letter-spacing: 0; font-family: inherit; }
+.hero-tile-delta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.hero-tile-delta-up   { color: #34D399; background: rgba(52, 211, 153, 0.14); }
+.hero-tile-delta-down { color: #FB7185; background: rgba(251, 113, 133, 0.14); }
+
+.hero-tile-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid #10583F;
+  padding-top: 10px;
+  margin-top: auto;
+  font-size: 11.5px;
+  color: #8FB8A6;
+}
+.hero-tile-foot-meta { font-family: "Geist Mono", ui-monospace, monospace; }
+.hero-tile-link {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: #C8DCD2; font-weight: 500; font-size: 11.5px;
+  letter-spacing: -0.005em;
+  transition: color .12s;
+}
+.hero-tile-link:hover { color: #FFFFFF; }
+.hero-tile-link svg { width: 11px; height: 11px; }
+
+/* === Activity zone (ledger table + income chart side by side) ============= */
+
+.dash-activity {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  margin-bottom: 28px;
+}
+@media (min-width: 1024px) {
+  .dash-activity { grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; }
+}
+
+.ledger-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.ledger-chip-group { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.ledger-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--panel); border: 1px solid var(--line);
+  height: 30px; padding: 0 12px; border-radius: 999px;
+  font-size: 12px; color: var(--ink-2); font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: border-color .12s, background-color .12s, color .12s;
+  white-space: nowrap;
+}
+.ledger-chip:hover { border-color: var(--line-2); background: var(--chip); }
+.ledger-chip.is-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.ledger-search {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line);
+  height: 32px; padding: 0 12px; border-radius: 8px;
+  font-size: 12.5px; color: var(--muted);
+  min-width: 220px;
+}
+.ledger-search input {
+  border: none; outline: none; background: transparent;
+  font-size: 12.5px; color: var(--ink); flex: 1;
+  font-family: inherit;
+}
+.ledger-search input::placeholder { color: var(--muted-2); }
+
+.ledger-section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ledger-section-title {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.ledger-section-link {
+  font-size: 12px; color: var(--accent-ink); font-weight: 600;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.ledger-section-link:hover { color: var(--ink); }
+
+.ledger-table-wrap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ledger-table-wrap::-webkit-scrollbar { height: 8px; }
+.ledger-table-wrap::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+.ledger-table th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 13px 18px 11px;
+  border-bottom: 1px solid var(--line);
+  background: #FAFAFA;
+}
+.ledger-table th.t-right { text-align: right; }
+.ledger-table td {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  letter-spacing: -0.005em;
+}
+.ledger-table td.t-right { text-align: right; }
+.ledger-table tr:last-child td { border-bottom: none; }
+.ledger-table tbody tr { transition: background-color .12s; }
+.ledger-table tbody tr:hover { background: #FAFAFA; }
+
+.ledger-id { font-family: "Geist Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink); font-weight: 500; }
+.ledger-bldg { display: inline-flex; align-items: center; gap: 8px; }
+.ledger-bldg-dot {
+  width: 6px; height: 6px; border-radius: 999px; background: var(--accent); display: inline-block;
+}
+.ledger-bldg-dot.is-warn { background: var(--amber); }
+.ledger-bldg-dot.is-bad  { background: var(--rose); }
+.ledger-bldg-id { font-size: 11.5px; color: var(--muted); font-family: "Geist Mono", ui-monospace, monospace; }
+
+.status-pill-good {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--accent-soft); color: var(--accent-ink);
+  border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0;
+}
+.status-pill-bad {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--rose-soft); color: var(--rose);
+  border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600;
+}
+.status-pill-warn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--amber-soft); color: var(--amber);
+  border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600;
+}
+
+.ledger-row-action {
+  font-size: 12px;
+  color: var(--accent-ink);
+  font-weight: 600;
+  display: inline-flex; align-items: center; gap: 3px;
+  transition: color .12s;
+}
+.ledger-row-action:hover { color: var(--ink); }
+
+/* Income chart card (right rail) */
+.income-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 22px 22px 18px;
+  align-self: start;
+}
+.income-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.income-card-title { font-size: 14px; font-weight: 700; letter-spacing: -0.015em; color: var(--ink); }
+.income-card-toggle {
+  display: inline-flex;
+  background: var(--chip);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 0;
+}
+.income-card-toggle button {
+  font-size: 11px; padding: 4px 10px; border-radius: 999px;
+  font-weight: 600; color: var(--muted);
+  letter-spacing: -0.005em;
+  transition: background-color .12s, color .12s;
+}
+.income-card-toggle button.is-on {
+  background: var(--ink); color: #fff;
+}
+.income-card-balance-label {
+  font-size: 10.5px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  margin-top: 14px;
+}
+.income-card-balance-value {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-top: 4px;
+  line-height: 1;
+}
+.income-card-balance-meta {
+  font-size: 11.5px;
+  color: var(--accent-ink);
+  font-weight: 600;
+  margin-top: 6px;
+}
+.income-card-chart-wrap {
+  margin-top: 14px;
+  height: 160px;
+  min-width: 0;
+  overflow: hidden;
+}
+.income-card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px;
+  font-size: 11.5px; color: var(--muted);
+}
+.income-card-foot .num { color: var(--ink); font-weight: 600; }
+
+/* === Operations zone heading (separates secondary cards from primary) ===== */
+.ops-zone-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: 8px 0 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ops-zone-title {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ops-zone-meta {
+  font-size: 11.5px; color: var(--muted-2);
+  font-family: "Geist Mono", ui-monospace, monospace;
+}

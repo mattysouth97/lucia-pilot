@@ -5,8 +5,9 @@
 
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Pill, Btn, fmt } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Pill, Btn, fmt } from '@/components/atoms';
 
 interface Resident {
   id: string;
