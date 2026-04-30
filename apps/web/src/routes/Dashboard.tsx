@@ -5,7 +5,6 @@
 // income chart). Operational cards (FR-S-004, FR-S-007, FR-M-006, etc.) live
 // in a secondary "operations" zone below the fold.
 
-import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -23,11 +22,11 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { useLuciaModals } from '@/lib/modals';
 
 export function Dashboard() {
-  const { openTamper, openReport } = useLuciaModals();
+  const { openReport } = useLuciaModals();
 
   return (
     <>
-      <HeroBand onTamper={openTamper} onReport={openReport} />
+      <HeroBand onReport={openReport} />
 
       <ActivityZone />
 
@@ -97,51 +96,31 @@ export function Dashboard() {
 }
 
 /* ===================================================================== *
- * Hero band — dark surface with greeting, primary CTAs, and 4 KPI tiles  *
+ * Hero band — dark surface with net-profit hero number                   *
  * ===================================================================== */
 
+/** Public boundary of the hero band — kept as a named interface for callsite clarity. */
 interface HeroBandProps {
-  onTamper: () => void;
   onReport: () => void;
 }
 
-function HeroBand({ onTamper, onReport }: HeroBandProps) {
+function HeroBand({ onReport }: HeroBandProps) {
   return (
     <section className="hero-band">
-      {/* Top row — greeting + title + meta on the left, period + actions on the right */}
+      {/* Top strip — timestamp + live status on the left, single CTA on the right */}
       <div className="hero-band-top">
-        <div style={{ minWidth: 0 }}>
-          <div className="hero-band-greeting">안녕하세요, 김지호 처장님</div>
-          <div className="hero-band-title">
-            LH옥상 사이트-A, 오늘도 잘 발전 중입니다
-          </div>
-          <div className="hero-band-meta">
-            <span className="num">2026.04.30</span>
-            <span className="sep">·</span>
-            <span className="num">14:24 KST</span>
-            <span className="sep">·</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span className="live-dot" />
-              <span>현재 발전 중</span>
-              <span className="num" style={{ color: '#34D399' }}>112동</span>
-              <span style={{ color: '#6B7180' }}>/ 116동</span>
-            </span>
-            <span className="sep">·</span>
-            <span>일조 양호 · 25.4°C</span>
-          </div>
+        <div className="hero-band-meta">
+          <span className="num">2026.04.30 · 14:24 KST</span>
+          <span className="sep">·</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="live-dot" />
+            <span>현재 발전</span>
+            <span className="num" style={{ color: '#34D399' }}>112동</span>
+            <span style={{ color: '#6B7180' }}>/ 116동</span>
+          </span>
         </div>
 
         <div className="hero-band-actions">
-          <button type="button" className="hero-band-period">
-            <span style={{ display: 'inline-flex', color: '#6B7180' }}>{Icons.Clock}</span>
-            <span>기간</span>
-            <span className="num">2026.04</span>
-            <span style={{ display: 'inline-flex', color: '#6B7180' }}>{Icons.Caret}</span>
-          </button>
-          <button type="button" className="hero-band-ghost" onClick={onTamper}>
-            <span style={{ display: 'inline-flex' }}>{Icons.Lock}</span>
-            변조 시도 데모
-          </button>
           <button type="button" className="hero-band-cta" onClick={onReport}>
             <span style={{ display: 'inline-flex' }}>{Icons.Doc}</span>
             감사 보고서 생성
@@ -149,28 +128,8 @@ function HeroBand({ onTamper, onReport }: HeroBandProps) {
         </div>
       </div>
 
-      {/* Container-less headline figure (left) + 2 KPI tiles (right) */}
-      <div className="hero-band-tiles">
-        <HeadlineFigure />
-        <HeroTile
-          icon={Icons.Sun}
-          label="현재 발전"
-          value="112"
-          unit="동 · 11,852 kWh"
-          delta={{ dir: 'up', value: '+4.2%' }}
-          footMeta="14:24 · MQTT 수신"
-          link="동별 모니터"
-        />
-        <HeroTile
-          icon={Icons.Coin}
-          label="금일 정산 완료"
-          value="1,422"
-          unit="건 · ₩14.89M"
-          delta={{ dir: 'up', value: '+0.5%' }}
-          footMeta="2026.04.30"
-          link="정산 원장"
-        />
-      </div>
+      {/* Headline figure — uncontested hero number */}
+      <HeadlineFigure />
     </section>
   );
 }
@@ -197,43 +156,6 @@ function HeadlineFigure() {
           <span className="num">2,839</span>
           <span style={{ marginLeft: 3 }}>세대 분배</span>
         </span>
-      </div>
-    </div>
-  );
-}
-
-interface HeroTileProps {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  unit: string;
-  delta: { dir: 'up' | 'down'; value: string };
-  footMeta: string;
-  link: string;
-}
-
-function HeroTile({ icon, label, value, unit, delta, footMeta, link }: HeroTileProps) {
-  return (
-    <div className="hero-tile">
-      <div className="hero-tile-head">
-        <span className="hero-tile-head-icon">{icon}</span>
-        <span>{label}</span>
-      </div>
-      <div className="hero-tile-value">
-        <span>{value}</span>
-        <span
-          className={delta.dir === 'up' ? 'hero-tile-delta hero-tile-delta-up' : 'hero-tile-delta hero-tile-delta-down'}
-        >
-          {delta.value}
-        </span>
-      </div>
-      <div className="hero-tile-value-unit" style={{ marginTop: -2 }}>{unit}</div>
-      <div className="hero-tile-foot">
-        <span className="hero-tile-foot-meta">{footMeta}</span>
-        <a href="#" className="hero-tile-link" onClick={(e) => e.preventDefault()}>
-          {link}
-          {Icons.Arrow}
-        </a>
       </div>
     </div>
   );

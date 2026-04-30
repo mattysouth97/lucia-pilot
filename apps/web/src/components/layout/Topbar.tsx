@@ -51,7 +51,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
         </div>
       </div>
 
-      {/* Tabs — text + underline indicator. */}
+      {/* Tabs — text + underline indicator. Hidden on mobile (<768px) — bottom nav takes over. */}
       <div className="topbar-tabs" style={{ marginLeft: 12 }}>
         {TABS.map((t) => {
           const active = tab === t;

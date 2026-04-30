@@ -67,6 +67,8 @@ export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 18,
+          flexWrap: 'wrap',
+          gap: 12,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -137,7 +139,7 @@ export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
           <span
             className="display-metric"
-            style={{ fontSize: 'clamp(48px, 6vw, 72px)' }}
+            style={{ fontSize: 'clamp(36px, 9vw, 72px)' }}
           >
             11,852.4
           </span>
