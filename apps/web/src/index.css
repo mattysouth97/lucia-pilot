@@ -101,7 +101,17 @@ a { color: inherit; text-decoration: none; }
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
+  /* Allow cards to shrink below intrinsic content width when inside flex/grid
+     parents. Without this, recharts ResponsiveContainer (and other measured
+     children) report an intrinsic min-content size that bubbles up and blows
+     out the card's grid track on narrow viewports. */
+  min-width: 0;
 }
+
+/* Recharts ResponsiveContainer is the most common culprit — without an
+   explicit constraint, its ResizeObserver loop latches at the chart's own
+   intrinsic minimum on small screens. Pin it to its parent. */
+.recharts-responsive-container { min-width: 0 !important; max-width: 100%; }
 
 .card-hover:hover {
   border-color: var(--line-2);
@@ -240,7 +250,10 @@ a { color: inherit; text-decoration: none; }
 .grid-dashboard {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr;
+  /* `minmax(0, 1fr)` (vs plain `1fr` = `minmax(auto, 1fr)`) — the auto floor
+     lets recharts/SVG content blow the track out wider than the viewport on
+     narrow screens. Clamping to 0 forces children to fit their track. */
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 1024px) {
   .grid-dashboard { grid-template-columns: minmax(0, 1fr) 360px; }

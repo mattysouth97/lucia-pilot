@@ -37,16 +37,16 @@ export function Dashboard() {
       </div>
 
       <div className="grid-dashboard">
-        <div style={{ display: 'grid', gap: 16 }}>
+        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr)' }}>
           <GenerationCard />
-          <div id="sankey-card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div id="sankey-card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', minWidth: 0 }}>
             <SankeyCard />
           </div>
           <div className="grid-card-pair" id="distribution-blockchain-row">
             <div id="distribution-card">
               <DistributionCard />
             </div>
-            <div id="blockchain-card" style={{ display: 'grid', gap: 16 }}>
+            <div id="blockchain-card" style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr)' }}>
               <BlockchainCard />
             </div>
           </div>
@@ -61,7 +61,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
+        <div style={{ display: 'grid', gap: 16, alignContent: 'start', gridTemplateColumns: 'minmax(0, 1fr)' }}>
           <Sidebar />
           <AnomalyCard />
           <ResidentCard />
