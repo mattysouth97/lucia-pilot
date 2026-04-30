@@ -8,3 +8,4 @@ export * from './blockchain-txs.js';
 export * from './subsidies.js';
 export * from './anomalies.js';
 export * from './audit-logs.js';
+export * from './seed-config.js';

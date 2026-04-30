@@ -1,5 +1,7 @@
 name: lucia
 
+# Ports bound to 127.0.0.1 only — defense in depth for the demo laptop. Phase 2: re-evaluate per-environment.
+
 # ADR-0002: LevelDB (goleveldb) is used as the Fabric state DB.
 # CouchDB is intentionally absent — it would saturate the 16 GB demo laptop
 # alongside Postgres+TimescaleDB+Redis+Mosquitto+Fabric (see ADR-0002 rationale).
@@ -28,7 +30,7 @@ services:
       POSTGRES_PASSWORD: lucia_pilot
       POSTGRES_DB: lucia
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -50,8 +52,8 @@ services:
     image: eclipse-mosquitto:2.0
     restart: unless-stopped
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:9001:9001"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./mosquitto/data:/mosquitto/data
@@ -75,7 +77,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -107,7 +109,7 @@ services:
       - ORDERER_FILELEDGER_LOCATION=/var/hyperledger/production/orderer
       - ORDERER_GENERAL_TLS_ENABLED=false
     ports:
-      - "7050:7050"
+      - "127.0.0.1:7050:7050"
     volumes:
       - ./fabric/orderer:/var/hyperledger/orderer
       - fabric_data:/var/hyperledger/production
@@ -147,8 +149,8 @@ services:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=lucia_default
       - CORE_PEER_FILESYSTEMPATH=/var/hyperledger/production
     ports:
-      - "7051:7051"
-      - "7052:7052"
+      - "127.0.0.1:7051:7051"
+      - "127.0.0.1:7052:7052"
     volumes:
       - ./fabric/peer:/var/hyperledger/peer
       - /var/run/docker.sock:/host/var/run/docker.sock
@@ -179,7 +181,7 @@ services:
       - FABRIC_CA_SERVER_PORT=7054
       - FABRIC_CA_SERVER_TLS_ENABLED=false
     ports:
-      - "7054:7054"
+      - "127.0.0.1:7054:7054"
     volumes:
       - ./fabric/ca:/etc/hyperledger/fabric-ca-server
     networks:

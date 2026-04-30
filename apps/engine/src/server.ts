@@ -70,6 +70,8 @@ export async function buildServer(opts: BuildServerOptions = {}): Promise<Fastif
     return { data: null, message: 'stub — wk4' };
   });
 
+  // TODO(wk3): FR-O-003 admin auth middleware — block /api/admin/* until enforcement lands per ADR-0004 review.
+
   // FR-M-008: WebSocket transaction stream (wk5)
   // Registered as a websocket route — no handler body yet.
   app.get('/ws/transactions', { websocket: true }, (socket, _req) => {

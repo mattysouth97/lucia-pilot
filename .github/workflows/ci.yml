@@ -151,6 +151,27 @@ jobs:
         run: pnpm build
 
   # ---------------------------------------------------------------------------
+  # commit-msg — FR-ID enforcement gate (Coherence Guard 5).
+  # Every commit on a PR must reference an FR-ID (FR-[A-Z]-NNN).
+  # Scaffolding commits (^chore), merge commits (^Merge), and reverts (^Revert)
+  # are exempt — e.g. the initial P0 scaffolding commit uses the ^chore allowlist.
+  # Runs only on pull_request events (push to main is trusted post-review).
+  # ---------------------------------------------------------------------------
+  commit-msg:
+    name: Commit FR-ID check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check all PR commits reference an FR-ID
+        run: |
+          git log --format=%s origin/main..HEAD | grep -vE 'FR-[A-Z]-[0-9]{3}|^Merge|^Revert|^chore' && exit 1 || exit 0
+
+  # ---------------------------------------------------------------------------
   # chain-test — Go chaincode unit tests
   # Runs in parallel with TypeScript jobs (no dependency on setup).
   # Tests the dumb-persistence + hash-chain Go chaincode (ADR-0002).

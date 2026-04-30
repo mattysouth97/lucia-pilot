@@ -138,7 +138,8 @@ These are non-negotiable.  Every PR that violates one must be revised before mer
    or conventions change.
 
 5. **Commit references FR-ID**: commit message includes the FR-ID it satisfies,
-   e.g. `feat(engine): FR-S-004 가상공유거래 split`.
+   e.g. `feat(engine): FR-S-004 가상공유거래 split`.  This is enforced automatically
+   by the `commit-msg` CI job in `.github/workflows/ci.yml` on every PR (chore/Merge/Revert commits are exempt).
 
 ---
 

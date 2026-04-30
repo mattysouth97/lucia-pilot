@@ -219,6 +219,12 @@ func (c *LuciaContract) Verify(
 	return string(recordBytes), nil
 }
 
+// TODO(wk2 / A2.6): Replace full-range scan with composite keys.
+// Use stub.CreateCompositeKey("building~settlement", []string{buildingID, settlementID})
+// + GetStateByPartialCompositeKey to scope the scan to one building.
+// Required before wk7 A7.1 100 TPS verification, before any production data lands.
+// Reference: Architect Phase 4 review, concern #1.
+
 // History returns settlement records for a building within a time range.
 // fromTs and toTs are RFC3339 strings. Returns JSON array of record strings.
 //

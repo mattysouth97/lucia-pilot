@@ -15,7 +15,6 @@
  */
 
 import 'dotenv/config';
-import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema/index.js';
@@ -276,20 +275,12 @@ async function seed(): Promise<void> {
     })),
   };
 
-  // Persist KIE-REMS seed as a config row in a plain key-value query
-  // (avoids adding a new table; engine reads via SELECT value FROM seed_config WHERE key = 'kie_rems')
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS seed_config (
-      key   text PRIMARY KEY,
-      value jsonb NOT NULL
-    )
-  `);
-
-  await db.execute(sql`
-    INSERT INTO seed_config (key, value)
-    VALUES ('kie_rems', ${JSON.stringify(kieRemsSeed)}::jsonb)
-    ON CONFLICT (key) DO NOTHING
-  `);
+  // Persist KIE-REMS seed as a config row via Drizzle (seed_config table is managed
+  // by migration 0003_seed_config.sql; engine reads via SELECT value FROM seed_config WHERE key = 'kie_rems').
+  await db
+    .insert(schema.seedConfig)
+    .values({ key: 'kie_rems', value: kieRemsSeed })
+    .onConflictDoNothing();
 
   console.log(
     `[seed]   KIE-REMS seed stored: ${kieRemsSeed.regions.length} regions, ${kieRemsSeed.inverters.length} inverters`,

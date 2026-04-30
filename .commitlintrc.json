@@ -1,0 +1,3 @@
+{
+  "_comment": "FR-ID enforcement is handled by the commit-msg CI job in .github/workflows/ci.yml. This file is a placeholder for future commitlint integration if the team adopts the commitlint toolchain."
+}
