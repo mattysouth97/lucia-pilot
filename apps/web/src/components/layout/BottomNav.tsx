@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: '정산 원장',  icon: Icons['Coin'] },
   { label: '동별 모니터', icon: Icons['Map'] },
   { label: '감사·보고',  icon: Icons['Chain'] },
+  { label: '후보지 지도', icon: Icons['Search'] },
   { label: '관리자',     icon: Icons['Settings'] },
 ];
 

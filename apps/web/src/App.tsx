@@ -7,16 +7,22 @@ import { ModalProvider } from '@/lib/modals';
 import { AdminConsole } from '@/routes/AdminConsole';
 import { BuildingDetail } from '@/routes/BuildingDetail';
 import { Dashboard } from '@/routes/Dashboard';
+import { InstallSimulator } from '@/routes/InstallSimulator';
+import { MapExplorer } from '@/routes/MapExplorer';
 import { ResidentPortal } from '@/routes/ResidentPortal';
 
 // FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
-//   개요         → /
-//   정산 원장    → / (anchor scroll)
-//   동별 모니터   → / (anchor scroll, BuildingsCard)
-//   감사·보고    → / (anchor scroll, BlockchainCard)
-//   관리자       → /admin
+//   개요             → /
+//   정산 원장        → / (anchor scroll)
+//   동별 모니터       → / (anchor scroll, BuildingsCard)
+//   감사·보고        → / (anchor scroll, BlockchainCard)
+//   후보지 지도       → /map
+//   투자 시뮬레이터    → /simulator
+//   관리자           → /admin
 const TAB_TO_PATH: Record<string, string> = {
   관리자: '/admin',
+  '투자 시뮬레이터': '/simulator',
+  '후보지 지도': '/map',
 };
 
 const TAB_TO_ANCHOR: Record<string, string> = {
@@ -27,6 +33,8 @@ const TAB_TO_ANCHOR: Record<string, string> = {
 
 function tabFromPath(path: string): string {
   if (path.startsWith('/admin')) return '관리자';
+  if (path.startsWith('/simulator')) return '투자 시뮬레이터';
+  if (path.startsWith('/map')) return '후보지 지도';
   return '개요';
 }
 
@@ -64,6 +72,8 @@ function AppInner() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/buildings/:id" element={<BuildingDetail />} />
         <Route path="/portal/:user_id" element={<ResidentPortal />} />
+        <Route path="/simulator" element={<InstallSimulator />} />
+        <Route path="/map" element={<MapExplorer />} />
         <Route path="/admin" element={<AdminConsole />} />
       </Routes>
     </AppShell>

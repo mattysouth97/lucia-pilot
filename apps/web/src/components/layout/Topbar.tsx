@@ -5,7 +5,7 @@ interface TopbarProps {
   setTab: (t: string) => void;
 }
 
-const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '투자 시뮬레이터', '관리자'];
+const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '후보지 지도', '투자 시뮬레이터', '관리자'];
 
 // Topbar — Lucia 정산 dark horizon line.
 // See DESIGN.md "Topbar" section. Black surface, white type, underline tab indicator,
