@@ -19,6 +19,30 @@ const PERIODS = [
   '2026년 1월',
 ] as const;
 
+const REGION_SCOPES = [
+  '전체 (116개 건물)',
+  '울진군',
+  '의정부시',
+  '광명시',
+  '평택시',
+  '시흥시',
+  '의왕시',
+  '화성시',
+] as const;
+type RegionScope = (typeof REGION_SCOPES)[number];
+
+// Mock building counts per region (shown as confirmation subtitle)
+const REGION_COUNTS: Record<RegionScope, number | null> = {
+  '전체 (116개 건물)': null,
+  '울진군': 23,
+  '의정부시': 18,
+  '광명시': 15,
+  '평택시': 14,
+  '시흥시': 17,
+  '의왕시': 12,
+  '화성시': 17,
+};
+
 const BUILDING_GROUPS = [
   { id: 'all', label: '전체 116동', count: 116 },
   { id: 'region-a', label: '울진 1구역 (1~40동)', count: 40 },
@@ -68,6 +92,7 @@ export function ReportModal({ onClose }: ReportModalProps) {
   const [step, setStep] = useState<Step>('period');
   const [selectedPeriod, setSelectedPeriod] = useState<Period>(PERIODS[0]);
   const [selectedGroup, setSelectedGroup] = useState<GroupId>(BUILDING_GROUPS[0].id);
+  const [regionScope, setRegionScope] = useState<RegionScope>(REGION_SCOPES[0]);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -118,9 +143,24 @@ export function ReportModal({ onClose }: ReportModalProps) {
             {DocIcon}
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>감사 보고서 생성</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>감사 보고서 생성</span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '2px 8px',
+                borderRadius: 999,
+                background: '#ECFDF5',
+                border: '1px solid #6EE7B7',
+                color: '#047857',
+                fontSize: 10.5, fontWeight: 700,
+                letterSpacing: '0.02em',
+                lineHeight: 1.4,
+              }}>
+                ✓ CBAM 대응
+              </span>
+            </div>
             <div style={{ fontSize: 11.5, color: '#6B7280' }}>
-              FR-O-002 · LH ESG 경영실 양식 · 변조 불가 원장 첨부
+              FR-O-002 · LH ESG 경영실 양식 · 변조 불가 원장 첨부 · EU 탄소국경조정제도 양식 호환
             </div>
           </div>
         </div>
@@ -207,6 +247,46 @@ export function ReportModal({ onClose }: ReportModalProps) {
                   {p}
                 </button>
               ))}
+            </div>
+
+            {/* Region scope picker */}
+            <div style={{ marginTop: 22 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                보고서 범위
+              </div>
+              <select
+                value={regionScope}
+                onChange={(e) => setRegionScope(e.target.value as RegionScope)}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: 10,
+                  border: '1.5px solid #E2E5EA',
+                  background: '#fff',
+                  color: '#0E1116',
+                  fontSize: 13.5, fontWeight: 500,
+                  cursor: 'pointer',
+                  appearance: 'auto',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {REGION_SCOPES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              {regionScope !== '전체 (116개 건물)' && (
+                <div style={{
+                  marginTop: 8,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  background: '#F0F9FF',
+                  border: '1px solid #BAE6FD',
+                  fontSize: 12, color: '#0369A1', fontWeight: 500,
+                }}>
+                  해당 지역의 {REGION_COUNTS[regionScope]}개 건물만 포함
+                </div>
+              )}
             </div>
           </div>
         )}

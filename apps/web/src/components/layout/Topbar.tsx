@@ -5,12 +5,14 @@ interface TopbarProps {
   setTab: (t: string) => void;
 }
 
-const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '관리자'];
+const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '투자 시뮬레이터', '관리자'];
 
 // Topbar — Lucia 정산 dark horizon line.
 // See DESIGN.md "Topbar" section. Black surface, white type, underline tab indicator,
 // no pill chrome, no gradient logo, no gradient avatar.
 export function Topbar({ tab, setTab }: TopbarProps) {
+  const unreadAnomalies = 3; // Hardcoded for now; will wire to real data later
+
   return (
     <div
       className="topbar-shell"
@@ -155,9 +157,9 @@ export function Topbar({ tab, setTab }: TopbarProps) {
         </span>
       </div>
 
-      {/* Bell — flat icon button, dot indicator only when unread. */}
+      {/* Bell — flat icon button, numeric badge indicator when unread. */}
       <button
-        aria-label="알림"
+        aria-label={`알림 ${unreadAnomalies}건`}
         style={{
           width: 32,
           height: 32,
@@ -172,19 +174,31 @@ export function Topbar({ tab, setTab }: TopbarProps) {
         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
       >
         {Icons.Bell}
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: 6,
-            right: 7,
-            width: 6,
-            height: 6,
-            borderRadius: 999,
-            background: 'var(--rose)',
-            border: '1.5px solid var(--bar)',
-          }}
-        />
+        {unreadAnomalies > 0 && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 7,
+              minWidth: 16,
+              height: 16,
+              padding: '0 4px',
+              borderRadius: 999,
+              background: 'var(--rose)',
+              border: '1.5px solid var(--bar)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 9.5,
+              fontWeight: 700,
+              lineHeight: 1,
+              color: 'white',
+            }}
+          >
+            {unreadAnomalies > 9 ? '9+' : unreadAnomalies}
+          </span>
+        )}
       </button>
 
       {/* User — flat square initial, plain text. */}

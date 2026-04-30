@@ -28,6 +28,8 @@ export function Dashboard() {
     <>
       <HeroBand onReport={openReport} />
 
+      <BlockchainIntegrityStrip />
+
       <ActivityZone />
 
       {/* Operations zone — secondary, denser cards retain their per-FR design */}
@@ -162,10 +164,60 @@ function HeadlineFigure() {
 }
 
 /* ===================================================================== *
+ * Blockchain integrity strip — thin band below hero, above activity zone *
+ * ===================================================================== */
+
+function BlockchainIntegrityStrip() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 10px',
+        borderBottom: '1px solid var(--line)',
+        background: 'var(--bg)',
+        fontSize: 12,
+        color: 'var(--ink-2)',
+      }}
+    >
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+        <span className="live-dot" />
+        <span style={{ color: 'var(--accent-ink, #10B981)' }}>블록체인 검증 완료</span>
+      </span>
+
+      <span style={{ color: 'var(--muted)' }}>·</span>
+
+      <span className="mono" style={{ fontSize: 10.5, whiteSpace: 'nowrap' }}>Block #847,231</span>
+
+      <span style={{ color: 'var(--muted)' }}>·</span>
+
+      <span style={{ whiteSpace: 'nowrap' }}>0 변조 시도</span>
+
+      <span style={{ color: 'var(--muted)' }}>·</span>
+
+      <span className="mono" style={{ fontSize: 10.5, whiteSpace: 'nowrap' }}>Hyperledger Fabric 2.5 · LevelDB</span>
+
+      <a
+        href="#blockchain-card"
+        style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: 12, color: 'var(--ink-2)', textDecoration: 'none' }}
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('blockchain-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+      >
+        세부 검증 →
+      </a>
+    </div>
+  );
+}
+
+/* ===================================================================== *
  * Activity zone — recent-settlement ledger + this-month income chart     *
  * ===================================================================== */
 
-const FILTER_CHIPS = ['전체 정산', '일일 정산', 'REC 발급', '가상공유거래', '주거비 환원'] as const;
+const FILTER_CHIPS = ['전체 정산', '일일 정산', 'REC 발급', 'PPA 정산', '가상공유거래', '주거비 환원'] as const;
 type FilterChip = (typeof FILTER_CHIPS)[number];
 
 type LedgerStatus = 'good' | 'warn' | 'bad';
@@ -178,26 +230,33 @@ interface LedgerRow {
   amount: string;
   status: LedgerStatus;
   statusLabel: string;
+  city: string;
+  district?: string;
 }
 
 const LEDGER_ROWS: LedgerRow[] = [
-  { id: 'TX-89A2F1B', buildingName: '울진 옥상-A',  buildingId: 'ULJN-001', service: '일일 정산',     amount: '₩148,920',    status: 'good', statusLabel: '완료' },
-  { id: 'TX-7C8E219', buildingName: '울진 옥상-B',  buildingId: 'ULJN-002', service: '일일 정산',     amount: '₩142,380',    status: 'good', statusLabel: '완료' },
-  { id: 'TX-6F1A308', buildingName: '의정부 양주-D', buildingId: 'UJBU-018', service: 'REC 발급',      amount: '₩98,400',     status: 'good', statusLabel: '완료' },
-  { id: 'TX-4D9B0E3', buildingName: '화성 방교-G',  buildingId: 'HSNG-027', service: '가상공유거래',   amount: '₩61,520',     status: 'warn', statusLabel: '검증중' },
-  { id: 'TX-3A82C77', buildingName: '광명 철산-K',  buildingId: 'GMNG-041', service: '일일 정산',     amount: '₩151,210',    status: 'good', statusLabel: '완료' },
-  { id: 'TX-2E1980D', buildingName: '평택 안중-N',  buildingId: 'PYTK-056', service: '주거비 환원',    amount: '₩1,489,000',  status: 'good', statusLabel: '완료' },
-  { id: 'TX-1B70F94', buildingName: '의왕 부곡-P',  buildingId: 'UWAW-072', service: '일일 정산',     amount: '₩7,820',      status: 'bad',  statusLabel: '거부' },
-  { id: 'TX-0C5832B', buildingName: '시흥 대야-S',  buildingId: 'SHNG-088', service: '일일 정산',     amount: '₩142,860',    status: 'good', statusLabel: '완료' },
+  { id: 'TX-89A2F1B', buildingName: '울진 옥상-A',  buildingId: 'ULJN-001', service: '일일 정산',   amount: '₩148,920',   status: 'good', statusLabel: '완료',   city: '울진군' },
+  { id: 'TX-7C8E219', buildingName: '울진 옥상-B',  buildingId: 'ULJN-002', service: '일일 정산',   amount: '₩142,380',   status: 'good', statusLabel: '완료',   city: '울진군' },
+  { id: 'TX-6F1A308', buildingName: '의정부 양주-D', buildingId: 'UJBU-018', service: 'REC 발급',    amount: '₩98,400',    status: 'good', statusLabel: '완료',   city: '의정부시', district: '양주동' },
+  { id: 'TX-4D9B0E3', buildingName: '화성 방교-G',  buildingId: 'HSNG-027', service: '가상공유거래', amount: '₩61,520',    status: 'warn', statusLabel: '검증중', city: '화성시',   district: '방교동' },
+  { id: 'TX-3A82C77', buildingName: '광명 철산-K',  buildingId: 'GMNG-041', service: '일일 정산',   amount: '₩151,210',   status: 'good', statusLabel: '완료',   city: '광명시',   district: '철산동' },
+  { id: 'TX-2E1980D', buildingName: '평택 안중-N',  buildingId: 'PYTK-056', service: '주거비 환원',  amount: '₩1,489,000', status: 'good', statusLabel: '완료',   city: '평택시',   district: '안중동' },
+  { id: 'TX-1B70F94', buildingName: '의왕 부곡-P',  buildingId: 'UWAW-072', service: '일일 정산',   amount: '₩7,820',     status: 'bad',  statusLabel: '거부',   city: '의왕시',   district: '부곡동' },
+  { id: 'TX-0C5832B', buildingName: '시흥 대야-S',  buildingId: 'SHNG-088', service: '일일 정산',   amount: '₩142,860',   status: 'good', statusLabel: '완료',   city: '시흥시',   district: '대야동' },
+  { id: 'TX-PPA-A12', buildingName: '울진 옥상-A',  buildingId: 'ULJN-001', service: 'PPA 정산',    amount: '₩412,800',   status: 'good', statusLabel: '완료',   city: '울진군' },
+  { id: 'TX-PPA-B07', buildingName: '광명 철산-K',  buildingId: 'GMNG-041', service: 'PPA 정산',    amount: '₩398,150',   status: 'good', statusLabel: '완료',   city: '광명시',   district: '철산동' },
 ];
+
+const REGIONS = ['전체 지역', ...Array.from(new Set(LEDGER_ROWS.map((r) => r.city)))] as const;
+type Region = (typeof REGIONS)[number];
 
 function ActivityZone() {
   const [activeChip, setActiveChip] = useState<FilterChip>('전체 정산');
+  const [activeRegion, setActiveRegion] = useState<Region>('전체 지역');
 
-  const filtered =
-    activeChip === '전체 정산'
-      ? LEDGER_ROWS
-      : LEDGER_ROWS.filter((r) => r.service === activeChip);
+  const filtered = LEDGER_ROWS
+    .filter((r) => activeChip === '전체 정산' || r.service === activeChip)
+    .filter((r) => activeRegion === '전체 지역' || r.city === activeRegion);
 
   return (
     <div className="dash-activity">
@@ -216,6 +275,28 @@ function ActivityZone() {
               </button>
             ))}
           </div>
+
+          <select
+            value={activeRegion}
+            onChange={(e) => setActiveRegion(e.target.value as Region)}
+            style={{
+              border: '1px solid var(--line)',
+              height: 30,
+              padding: '0 12px',
+              borderRadius: 999,
+              fontSize: 12,
+              background: 'var(--panel)',
+              color: 'var(--ink)',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            {REGIONS.map((region) => (
+              <option key={region} value={region}>
+                {region}
+              </option>
+            ))}
+          </select>
 
           <label className="ledger-search">
             <span style={{ display: 'inline-flex', color: 'var(--muted-2)' }}>{Icons.Search}</span>

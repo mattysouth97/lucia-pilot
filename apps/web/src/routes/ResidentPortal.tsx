@@ -9,6 +9,13 @@ import { Link, useParams } from 'react-router-dom';
 import { Icons } from '@/components/Icons';
 import { Pill, Btn, fmt } from '@/components/atoms';
 
+interface BuildingContribution {
+  code: string;
+  name: string;
+  contribPct: number;
+  amountKrw: number;
+}
+
 interface Resident {
   id: string;
   maskedName: string;
@@ -24,6 +31,7 @@ interface Resident {
   buildingMonthlyRevenueKrw: number;
   reservationKrw: number;
   groupShareKrw: number;
+  buildingContributions: readonly BuildingContribution[];
 }
 
 const MOCK_RESIDENTS: Record<string, Resident> = {
@@ -42,6 +50,13 @@ const MOCK_RESIDENTS: Record<string, Resident> = {
     buildingMonthlyRevenueKrw: 16432180,
     reservationKrw: 6737194,
     groupShareKrw: 4325278,
+    buildingContributions: [
+      { code: 'ULJN-001', name: '울진 1단지 옥상', contribPct: 31.4, amountKrw: 2016 },
+      { code: 'ULJN-002', name: '울진 2단지 옥상', contribPct: 23.1, amountKrw: 1483 },
+      { code: 'ULJN-003', name: '울진 3단지 옥상', contribPct: 18.7, amountKrw: 1200 },
+      { code: 'ULJN-007', name: '울진 7단지 옥상', contribPct: 15.2, amountKrw: 976 },
+      { code: 'ULJN-012', name: '울진 12단지 옥상', contribPct: 11.6, amountKrw: 745 },
+    ] as const,
   },
   k0014: {
     id: 'k0014',
@@ -58,6 +73,12 @@ const MOCK_RESIDENTS: Record<string, Resident> = {
     buildingMonthlyRevenueKrw: 10812040,
     reservationKrw: 4432936,
     groupShareKrw: 483090,
+    buildingContributions: [
+      { code: 'YESN-014', name: '예산 14단지 옥상', contribPct: 42.3, amountKrw: 3139 },
+      { code: 'YESN-015', name: '예산 15단지 옥상', contribPct: 27.8, amountKrw: 2063 },
+      { code: 'YESN-016', name: '예산 16단지 옥상', contribPct: 18.4, amountKrw: 1365 },
+      { code: 'YESN-022', name: '예산 22단지 옥상', contribPct: 11.5, amountKrw: 853 },
+    ] as const,
   },
   e0042: {
     id: 'e0042',
@@ -74,6 +95,13 @@ const MOCK_RESIDENTS: Record<string, Resident> = {
     buildingMonthlyRevenueKrw: 21940220,
     reservationKrw: 8995490,
     groupShareKrw: 3220385,
+    buildingContributions: [
+      { code: 'BSAN-042', name: '봉산 42단지 옥상', contribPct: 36.2, amountKrw: 6587 },
+      { code: 'BSAN-043', name: '봉산 43단지 옥상', contribPct: 28.5, amountKrw: 5186 },
+      { code: 'BSAN-047', name: '봉산 47단지 옥상', contribPct: 19.8, amountKrw: 3603 },
+      { code: 'BSAN-051', name: '봉산 51단지 옥상', contribPct: 9.7, amountKrw: 1765 },
+      { code: 'BSAN-058', name: '봉산 58단지 옥상', contribPct: 5.8, amountKrw: 1054 },
+    ] as const,
   },
 };
 
@@ -276,6 +304,51 @@ export function ResidentPortal() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 산정 근거 — building × share % breakdown */}
+      <div className="card" style={{ padding: 22, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', marginBottom: 14, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+          산정 근거 — 발전소별 기여도
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--line)' }}>
+              <th style={{ textAlign: 'left', fontWeight: 600, color: '#6B7280', paddingBottom: 8, fontSize: 11.5 }}>발전소</th>
+              <th style={{ textAlign: 'right', fontWeight: 600, color: '#6B7280', paddingBottom: 8, fontSize: 11.5 }}>기여도</th>
+              <th style={{ textAlign: 'right', fontWeight: 600, color: '#6B7280', paddingBottom: 8, fontSize: 11.5 }}>정산 금액</th>
+            </tr>
+          </thead>
+          <tbody>
+            {resident.buildingContributions.map((c) => (
+              <tr key={c.code} style={{ borderBottom: '1px solid var(--line)' }}>
+                <td style={{ padding: '9px 0', verticalAlign: 'middle' }}>
+                  <span className="mono" style={{ fontSize: 11.5, color: '#4F46E5', fontWeight: 700, marginRight: 6 }}>{c.code}</span>
+                  <span style={{ color: '#6B7280', fontSize: 12.5 }}>{c.name}</span>
+                </td>
+                <td style={{ padding: '9px 0', textAlign: 'right', verticalAlign: 'middle' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 60, height: 5, background: 'var(--line)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${c.contribPct}%`, height: '100%', background: 'var(--accent)', borderRadius: 999 }} />
+                    </div>
+                    <span className="num" style={{ fontSize: 12.5, fontWeight: 600, color: '#0E1116', minWidth: 38, textAlign: 'right' }}>{c.contribPct}%</span>
+                  </div>
+                </td>
+                <td style={{ padding: '9px 0', textAlign: 'right', verticalAlign: 'middle' }}>
+                  <span className="num" style={{ fontWeight: 600 }}>{fmt.won(c.amountKrw)}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={2} style={{ paddingTop: 10, color: '#6B7280', fontSize: 12.5, fontWeight: 600 }}>합계</td>
+              <td style={{ paddingTop: 10, textAlign: 'right' }}>
+                <span className="num" style={{ fontWeight: 700, color: '#047857', fontSize: 13 }}>{fmt.won(resident.monthlySubsidyKrw)}</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
 
       {/* Chain proof card */}
