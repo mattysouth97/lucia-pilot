@@ -87,6 +87,12 @@ untitled/         — Claude Design prototype handoff (REFERENCE ONLY — see be
 
 ## How to run
 
+> **Windows + Korean path users**: every `pnpm` command below MUST run from
+> the ASCII build mirror, not this directory.  See "Build workflow (Windows
+> + Korean path)" below.  Replace `pnpm <cmd>` with
+> `./sync-to-build-mirror.sh exec pnpm <cmd>`.  On macOS/Linux/ASCII paths,
+> run them directly here.
+
 ```bash
 # Install dependencies
 pnpm install
@@ -123,22 +129,36 @@ Makefile targets mirror the above commands.  See `Makefile` at the repo root.
 ## Build workflow (Windows + Korean path)
 
 This repo lives at `C:\Users\Nam\Downloads\정산-handoff` — a path containing
-Korean characters.  Rollup 4's native Windows binding (`rollup-win32-x64-msvc`)
-calls `__fastfail()` and crashes with `0xC0000409` when run from a non-ASCII
-cwd, killing `pnpm build` after vite finishes the JS-only transform pass.
-This is a defensive bail inside the native binding, not a memory bug.
+Korean characters.  This causes two known native-tooling failures on
+Windows:
+
+1. **`pnpm install` partially fails silently** — many packages don't extract
+   into `node_modules/`.  The install reports success and a package count,
+   but key deps (e.g., `fastify`, `typescript`) end up missing on disk,
+   producing baffling type errors in unrelated files later.
+2. **Rollup 4 native binding (`rollup-win32-x64-msvc`)** calls `__fastfail()`
+   and crashes with `0xC0000409` when run from a non-ASCII cwd, killing
+   `pnpm build` after vite finishes the JS-only transform pass.  Defensive
+   bail inside the native binding, not a memory bug.
 
 The pragmatic workaround is a **build mirror at an ASCII path**.  Editing,
-git, planning, and `pnpm install` all run in this Korean-path repo as the
-single source of truth.  The web app's build and dev server run from the
-ASCII mirror.  A sync script keeps them in step.
+git, planning, and code review all happen in this Korean-path repo as the
+single source of truth for code.  Every `pnpm` invocation — install, build,
+dev, test, typecheck — runs from the ASCII mirror.  A sync script bridges
+the two.
 
 ```bash
 # Sync changes from this repo to the ASCII mirror
-./sync-to-build-mirror.sh           # sync only
-./sync-to-build-mirror.sh diff      # show what's out of sync (read-only)
-./sync-to-build-mirror.sh build     # sync + pnpm --filter web build
-./sync-to-build-mirror.sh dev       # sync + start dev server
+./sync-to-build-mirror.sh                 # sync only
+./sync-to-build-mirror.sh diff            # show what's out of sync (read-only)
+./sync-to-build-mirror.sh build           # sync + full repo build (pnpm build)
+./sync-to-build-mirror.sh dev             # sync + start the web dev server
+./sync-to-build-mirror.sh exec <cmd...>   # sync + run any command from the mirror
+
+# Examples:
+./sync-to-build-mirror.sh exec pnpm install                       # after package.json change
+./sync-to-build-mirror.sh exec pnpm --filter @lucia/engine build  # single package
+./sync-to-build-mirror.sh exec pnpm test                          # full test suite
 
 # Mirror path defaults to C:/Users/Nam/lucia-build; override per machine:
 LUCIA_BUILD_MIRROR=/c/path/to/your/mirror ./sync-to-build-mirror.sh build
@@ -150,18 +170,19 @@ LUCIA_BUILD_MIRROR=/c/path/to/your/mirror ./sync-to-build-mirror.sh build
 - The mirror is generated from this repo via `sync-to-build-mirror.sh`.  Do
   NOT edit the mirror directly — those changes will be overwritten on the
   next sync.
+- **Do NOT run `pnpm install`, `pnpm build`, or any `pnpm` command directly
+  from this directory.**  Use the script's `exec` mode (which runs from the
+  mirror).  Direct `pnpm` runs from the Korean cwd produce silent install
+  corruption that's painful to diagnose.
 - The script syncs `apps/{web,engine,simulator}/{src,configs,package.json}`,
   `packages/{contracts,db}/{src,fixtures,package.json}`, and root configs.
   Add new paths to the `PATHS` array if you create them.
-- The mirror needs its own `pnpm install` run when `package.json`s change
-  (the script doesn't auto-run install — too slow to be in the hot path).
 
-When the dual-tree drifts (the mirror has files this repo doesn't, or vice
-versa), `./sync-to-build-mirror.sh diff` reports the gap.  Source wins on
-conflict; the mirror is regenerated.
+When the dual-tree drifts, `./sync-to-build-mirror.sh diff` reports the gap.
+Source wins on conflict; the mirror is regenerated.
 
 This workaround is Windows-+-Korean-path-specific.  On macOS/Linux or with
-an ASCII repo path, build directly: `pnpm --filter web build`.
+an ASCII repo path, build directly: `pnpm build`.
 
 ---
 

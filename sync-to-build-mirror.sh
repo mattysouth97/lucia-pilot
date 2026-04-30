@@ -9,10 +9,16 @@
 # See CLAUDE.md → "Build workflow (Windows + Korean path)" for context.
 #
 # Usage:
-#   ./sync-to-build-mirror.sh           # sync only
-#   ./sync-to-build-mirror.sh build     # sync, then build the web app
-#   ./sync-to-build-mirror.sh dev       # sync, then start the dev server
-#   ./sync-to-build-mirror.sh diff      # report what's out of sync, no copy
+#   ./sync-to-build-mirror.sh                # sync only
+#   ./sync-to-build-mirror.sh diff           # report what's out of sync (read-only)
+#   ./sync-to-build-mirror.sh build          # sync, then full repo build (web+engine+...)
+#   ./sync-to-build-mirror.sh dev            # sync, then start the web dev server
+#   ./sync-to-build-mirror.sh exec <cmd...>  # sync, then run any command from mirror
+#
+# Examples:
+#   ./sync-to-build-mirror.sh exec pnpm install
+#   ./sync-to-build-mirror.sh exec pnpm --filter @lucia/engine build
+#   ./sync-to-build-mirror.sh exec pnpm test
 #
 # Configuration:
 #   LUCIA_BUILD_MIRROR — override mirror path (default: C:/Users/Nam/lucia-build)
@@ -88,19 +94,28 @@ done
 
 case "$cmd" in
   sync|"")
-    echo "✓ Sync complete. Try: ./sync-to-build-mirror.sh build  (or dev)"
+    echo "✓ Sync complete. Try: ./sync-to-build-mirror.sh build  (or dev / exec ...)"
     ;;
   build)
-    echo "→ Building web from mirror"
-    cd "$MIRROR" && pnpm --filter web build
+    echo "→ Building full repo from mirror"
+    cd "$MIRROR" && pnpm build
     ;;
   dev)
-    echo "→ Starting dev server from mirror (Ctrl+C to stop)"
+    echo "→ Starting web dev server from mirror (Ctrl+C to stop)"
     cd "$MIRROR" && pnpm --filter web dev
+    ;;
+  exec)
+    shift  # drop the "exec" arg, pass the rest verbatim
+    if [ "$#" -eq 0 ]; then
+      echo "exec needs a command. Example: $0 exec pnpm install" >&2
+      exit 1
+    fi
+    echo "→ Running from mirror: $*"
+    cd "$MIRROR" && "$@"
     ;;
   *)
     echo "Unknown command: $cmd" >&2
-    echo "Usage: $0 [sync|build|dev|diff]" >&2
+    echo "Usage: $0 [sync|diff|build|dev|exec <cmd...>]" >&2
     exit 1
     ;;
 esac
