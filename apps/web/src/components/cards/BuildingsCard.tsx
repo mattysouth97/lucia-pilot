@@ -92,6 +92,9 @@ export function BuildingsCard({ buildings }: BuildingsCardProps) {
         </div>
       </div>
 
+      {/* scrollable table wrapper */}
+      <div className="card-scroll-x">
+
       {/* column headers */}
       <div style={{
         display: 'grid',
@@ -185,6 +188,8 @@ export function BuildingsCard({ buildings }: BuildingsCardProps) {
           );
         })}
       </div>
+
+      </div>{/* end card-scroll-x */}
 
       {/* footer */}
       <div style={{

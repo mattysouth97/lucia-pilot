@@ -14,7 +14,7 @@ export function AppShell({ children, tab, setTab }: AppShellProps) {
   return (
     <div className="app-shell">
       <Topbar tab={tab} setTab={setTab} />
-      <div style={{ padding: '24px 28px 60px' }}>{children}</div>
+      <div className="container-x">{children}</div>
     </div>
   );
 }

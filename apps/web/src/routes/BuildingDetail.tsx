@@ -104,14 +104,7 @@ export function BuildingDetail() {
   return (
     <>
       {/* Header — back link, building meta, action buttons */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginBottom: 22,
-        }}
-      >
+      <div className="hero-header">
         <div>
           <Link
             to="/"
@@ -252,7 +245,7 @@ export function BuildingDetail() {
       </div>
 
       {/* Inverter + household breakdown row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="grid-card-pair" style={{ marginBottom: 16 }}>
         <div className="card" style={{ padding: 22 }}>
           <div
             style={{
@@ -373,7 +366,7 @@ export function BuildingDetail() {
       </div>
 
       {/* Recent settlements table */}
-      <div className="card" style={{ padding: 22 }}>
+      <div className="card card-pad">
         <div
           style={{
             display: 'flex',

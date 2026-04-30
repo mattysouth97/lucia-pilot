@@ -117,14 +117,7 @@ export function ResidentPortal() {
   return (
     <>
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginBottom: 22,
-        }}
-      >
+      <div className="hero-header">
         <div>
           <Link
             to="/"

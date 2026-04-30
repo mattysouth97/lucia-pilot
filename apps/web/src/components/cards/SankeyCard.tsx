@@ -104,8 +104,8 @@ export function SankeyCard({ data }: SankeyCardProps) {
       </div>
 
       {/* SVG Sankey */}
-      <div style={{ overflow: 'hidden' }}>
-        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+      <div className="card-scroll-x" style={{ overflow: 'auto' }}>
+        <svg width="100%" height="auto" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', minWidth: 600 }}>
           <defs>
             {FLOW_COLORS.map((cl, i) => (
               <linearGradient key={i} id={`flow-${i}`} x1="0" x2="1" y1="0" y2="0">

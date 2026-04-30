@@ -22,14 +22,7 @@ export function Dashboard() {
   return (
     <>
       {/* Header — greeting, hero title, meta line, period chip + buttons */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginBottom: 22,
-        }}
-      >
+      <div className="hero-header">
         <div>
           <div
             style={{
@@ -41,25 +34,10 @@ export function Dashboard() {
           >
             안녕하세요, 김지호 처장님
           </div>
-          <div
-            style={{
-              fontSize: 32,
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
-            }}
-          >
+          <div className="hero-title">
             LH옥상 사이트-A, 오늘도 잘 발전 중입니다
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 14,
-              marginTop: 8,
-              fontSize: 13,
-              color: '#6B7280',
-            }}
-          >
+          <div className="hero-meta">
             <span>2026년 4월 30일 (목) · 14:24 KST</span>
             <span style={{ color: '#E2E5EA' }}>·</span>
             <span>
@@ -73,7 +51,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="hero-actions">
           <div
             style={{
               display: 'inline-flex',
@@ -104,27 +82,14 @@ export function Dashboard() {
       <StatsRow />
 
       {/* Two-column main grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 360px',
-          gap: 16,
-          marginTop: 16,
-        }}
-      >
+      <div className="grid-dashboard" style={{ marginTop: 16 }}>
         {/* Left column */}
         <div style={{ display: 'grid', gap: 16 }}>
           <GenerationCard />
           <div id="sankey-card">
             <SankeyCard />
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.15fr 1fr',
-              gap: 16,
-            }}
-          >
+          <div className="grid-card-pair" id="distribution-blockchain-row">
             <div id="distribution-card">
               <DistributionCard />
             </div>
@@ -135,7 +100,7 @@ export function Dashboard() {
           <div id="buildings-card">
             <BuildingsCard />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="grid-card-pair-eq">
             <RE100Card />
             <div id="load-test-card">
               <LoadTestCard />
@@ -159,6 +124,8 @@ export function Dashboard() {
           borderTop: '1px solid var(--line)',
           display: 'flex',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px 16px',
           fontSize: 11.5,
           color: '#9AA0AB',
         }}

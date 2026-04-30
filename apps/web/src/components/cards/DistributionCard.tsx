@@ -149,7 +149,7 @@ export function DistributionCard({ data }: DistributionCardProps) {
         <div style={{ fontSize: 12.5, fontWeight: 600, color: '#6B7280', marginBottom: 10 }}>
           주거비 환원 41% — 2,839세대 분배
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div className="grid-three">
           {groups.map(g => (
             <div
               key={g.id}

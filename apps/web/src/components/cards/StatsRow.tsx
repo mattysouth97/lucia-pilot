@@ -98,11 +98,7 @@ export function StatsRow({ data }: StatsRowProps) {
   });
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
-      gap: 16,
-    }}>
+    <div className="grid-stats">
       {items.map((it, i) => (
         <div
           key={i}

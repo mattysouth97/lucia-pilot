@@ -139,3 +139,123 @@ a {
   border-color: var(--line-2);
   box-shadow: var(--shadow-md);
 }
+
+/* ============== Responsive layout helpers (mobile-first) ============== */
+
+/* Container that constrains content to a max width but flexes below it */
+.container-x {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px;
+}
+@media (min-width: 768px) { .container-x { padding: 20px 24px; } }
+@media (min-width: 1024px) { .container-x { padding: 24px 28px 60px; } }
+
+/* StatsRow: 1 col mobile, 2 col tablet, 3 col small-desktop, 5 col full */
+.grid-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 480px) { .grid-stats { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
+@media (min-width: 900px) { .grid-stats { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1280px) { .grid-stats { grid-template-columns: repeat(5, 1fr); gap: 16px; } }
+
+/* Dashboard 2-col split: stacks on mobile, splits at 1024px+ */
+.grid-dashboard {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .grid-dashboard { grid-template-columns: minmax(0, 1fr) 360px; }
+}
+
+/* Two-card pair (e.g. Distribution+Blockchain, RE100+LoadTest): stacks on mobile */
+.grid-card-pair {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .grid-card-pair { grid-template-columns: 1.15fr 1fr; }
+}
+.grid-card-pair-eq {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .grid-card-pair-eq { grid-template-columns: 1fr 1fr; }
+}
+
+/* Card content overflow guard for wide tables (e.g., BuildingsCard) */
+.card-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.card-scroll-x > * { min-width: 720px; } /* table keeps prototype-faithful column widths */
+
+/* Topbar: stack/wrap on mobile, original layout 1024+ */
+.topbar-shell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  height: 56px;
+}
+@media (min-width: 1024px) {
+  .topbar-shell { padding: 0 28px; gap: 28px; height: 64px; }
+}
+.topbar-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.topbar-tabs::-webkit-scrollbar { display: none; }
+.topbar-search { display: none; }
+@media (min-width: 1024px) { .topbar-search { display: flex; } }
+.topbar-status { display: none; }
+@media (min-width: 768px) { .topbar-status { display: inline-flex; } }
+.topbar-user-meta { display: none; }
+@media (min-width: 768px) { .topbar-user-meta { display: block; } }
+
+/* Hero header (Dashboard.tsx) — wraps on mobile */
+.hero-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+@media (min-width: 768px) {
+  .hero-header { flex-direction: row; justify-content: space-between; align-items: flex-end; }
+}
+.hero-title { font-size: 22px; line-height: 1.15; letter-spacing: -0.025em; font-weight: 700; }
+@media (min-width: 768px) { .hero-title { font-size: 28px; } }
+@media (min-width: 1280px) { .hero-title { font-size: 32px; letter-spacing: -0.03em; } }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; font-size: 12.5px; color: #6B7280; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Card padding scales down on mobile */
+.card-pad { padding: 16px; }
+@media (min-width: 640px) { .card-pad { padding: 20px; } }
+@media (min-width: 1024px) { .card-pad { padding: 24px; } }
+
+/* Hide on mobile, show on desktop */
+.show-md\+ { display: none !important; }
+@media (min-width: 768px) { .show-md\+ { display: revert !important; } }
+@media (min-width: 1024px) { .show-md\+ { display: revert !important; } }
+
+/* Show on mobile only */
+.show-mobile { display: revert; }
+@media (min-width: 768px) { .show-mobile { display: none !important; } }
+
+/* Three-column beneficiary grid: 1 col mobile, 3 col 768+ */
+.grid-three {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) { .grid-three { grid-template-columns: repeat(3, 1fr); } }

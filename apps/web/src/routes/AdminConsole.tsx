@@ -97,7 +97,7 @@ export function AdminConsole() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="grid-card-pair-eq" style={{ marginBottom: 16 }}>
         {/* 동 관리 */}
         <div className="card" style={{ padding: 22 }}>
           <SectionHeader
@@ -191,7 +191,7 @@ export function AdminConsole() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="grid-card-pair-eq">
         {/* 이상 상황 주입 */}
         <div className="card" style={{ padding: 22 }}>
           <SectionHeader

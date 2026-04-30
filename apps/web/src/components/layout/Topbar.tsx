@@ -9,18 +9,16 @@ const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '
 
 export function Topbar({ tab, setTab }: TopbarProps) {
   return (
-    <div style={{
-      height: 64,
-      background: '#fff',
-      borderBottom: '1px solid var(--line)',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 28px',
-      gap: 28,
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-    }}>
+    <div
+      className="topbar-shell"
+      style={{
+        background: '#fff',
+        borderBottom: '1px solid var(--line)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+      }}
+    >
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
@@ -54,7 +52,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginLeft: 16 }}>
+      <div className="topbar-tabs" style={{ marginLeft: 16 }}>
         {TABS.map((t) => (
           <button
             key={t}
@@ -78,8 +76,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
       <div style={{ flex: 1 }} />
 
       {/* Search */}
-      <div style={{
-        display: 'flex',
+      <div className="topbar-search" style={{
         alignItems: 'center',
         gap: 8,
         background: '#F4F5F7',
@@ -96,7 +93,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
       </div>
 
       {/* Status pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="topbar-status" style={{ alignItems: 'center', gap: 8 }}>
         <span
           style={{ width: 8, height: 8, borderRadius: 999, background: '#10B981' }}
           className="pulse-dot"
@@ -151,7 +148,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
         }}>
           김ESG
         </div>
-        <div>
+        <div className="topbar-user-meta">
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.015em' }}>김지호 처장</div>
           <div style={{ fontSize: 11, color: '#9AA0AB', marginTop: -1 }}>LH ESG 경영실</div>
         </div>
