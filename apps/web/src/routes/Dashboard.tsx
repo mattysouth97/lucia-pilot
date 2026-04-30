@@ -1,18 +1,20 @@
-// FR-M-001 main dashboard — prototype composition ported to production stack.
-// See untitled/project/src/app.jsx for the original layout reference.
+// FR-M-001 main dashboard.
+// Utilitarian refinement — see DESIGN.md "Hero header" and PRODUCT.md
+// "strategic principles". Original prototype layout in untitled/project/src/app.jsx
+// is preserved structurally; styling is rewritten for the audit-grade register.
 
-import { Btn } from '@/components/atoms';
 import { Icons } from '@/components/Icons';
-import { StatsRow } from '@/components/cards/StatsRow';
-import { GenerationCard } from '@/components/cards/GenerationCard';
-import { DistributionCard } from '@/components/cards/DistributionCard';
-import { SankeyCard } from '@/components/cards/SankeyCard';
-import { BuildingsCard } from '@/components/cards/BuildingsCard';
-import { BlockchainCard } from '@/components/cards/BlockchainCard';
+import { Btn } from '@/components/atoms';
 import { AnomalyCard } from '@/components/cards/AnomalyCard';
+import { BlockchainCard } from '@/components/cards/BlockchainCard';
+import { BuildingsCard } from '@/components/cards/BuildingsCard';
+import { DistributionCard } from '@/components/cards/DistributionCard';
+import { GenerationCard } from '@/components/cards/GenerationCard';
+import { LoadTestCard } from '@/components/cards/LoadTestCard';
 import { RE100Card } from '@/components/cards/RE100Card';
 import { ResidentCard } from '@/components/cards/ResidentCard';
-import { LoadTestCard } from '@/components/cards/LoadTestCard';
+import { SankeyCard } from '@/components/cards/SankeyCard';
+import { StatsRow } from '@/components/cards/StatsRow';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useLuciaModals } from '@/lib/modals';
 
@@ -21,15 +23,17 @@ export function Dashboard() {
 
   return (
     <>
-      {/* Header — greeting, hero title, meta line, period chip + buttons */}
+      {/* Hero header — greeting, title, period meta, primary actions */}
       <div className="hero-header">
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
-              fontSize: 13,
-              color: '#6B7280',
-              marginBottom: 6,
-              fontWeight: 500,
+              fontSize: 11,
+              color: 'var(--muted)',
+              marginBottom: 10,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
             }}
           >
             안녕하세요, 김지호 처장님
@@ -38,37 +42,51 @@ export function Dashboard() {
             LH옥상 사이트-A, 오늘도 잘 발전 중입니다
           </div>
           <div className="hero-meta">
-            <span>2026년 4월 30일 (목) · 14:24 KST</span>
-            <span style={{ color: '#E2E5EA' }}>·</span>
-            <span>
-              현재 발전 중{' '}
-              <span className="num" style={{ color: '#047857', fontWeight: 700 }}>
+            <span className="num" style={{ color: 'var(--ink-2)' }}>
+              2026.04.30
+            </span>
+            <span style={{ color: 'var(--line-2)' }}>·</span>
+            <span className="num" style={{ color: 'var(--ink-2)' }}>14:24 KST</span>
+            <span style={{ color: 'var(--line-2)' }}>·</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span className="live-dot" />
+              <span>현재 발전 중</span>
+              <span
+                className="num"
+                style={{ color: 'var(--accent-ink)', fontWeight: 700 }}
+              >
                 112동
               </span>
+              <span style={{ color: 'var(--muted-2)' }}>/ 116동</span>
             </span>
-            <span style={{ color: '#E2E5EA' }}>·</span>
+            <span style={{ color: 'var(--line-2)' }}>·</span>
             <span>일조 양호 · 25.4°C</span>
           </div>
         </div>
 
         <div className="hero-actions">
-          <div
+          <button
+            type="button"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: '#fff',
+              background: 'var(--panel)',
               border: '1px solid var(--line-2)',
-              padding: '8px 14px',
-              borderRadius: 999,
-              height: 40,
+              padding: '8px 12px',
+              borderRadius: 'var(--r-md)',
+              height: 34,
+              fontSize: 12.5,
+              color: 'var(--ink-2)',
             }}
           >
-            {Icons.Clock}
-            <span style={{ fontSize: 12.5, color: '#6B7280' }}>기간</span>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>2026년 4월</span>
-            {Icons.Caret}
-          </div>
+            <span style={{ color: 'var(--muted)' }}>{Icons.Clock}</span>
+            <span style={{ color: 'var(--muted)' }}>기간</span>
+            <span className="num" style={{ fontWeight: 600, color: 'var(--ink)' }}>
+              2026.04
+            </span>
+            <span style={{ color: 'var(--muted-2)' }}>{Icons.Caret}</span>
+          </button>
           <Btn variant="secondary" icon={Icons.Lock} onClick={openTamper}>
             변조 시도 데모
           </Btn>
@@ -116,26 +134,29 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer — terminal-ledger feel */}
       <div
         style={{
-          marginTop: 30,
-          paddingTop: 18,
+          marginTop: 32,
+          paddingTop: 16,
           borderTop: '1px solid var(--line)',
           display: 'flex',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '8px 16px',
-          fontSize: 11.5,
-          color: '#9AA0AB',
+          gap: '6px 16px',
+          fontSize: 11,
+          color: 'var(--muted-2)',
+          letterSpacing: '-0.005em',
         }}
       >
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
           <span>FRD-2026-001 v1.0 · MVP 22/22</span>
           <span>Hyperledger Fabric 2.5 · Local Network</span>
           <span>KIE-REMS Lite · TheKIE Digital Platform</span>
         </div>
-        <div className="mono">build 1.0.4 · 2026-04-30 · M+3 demo-ready</div>
+        <div className="mono" style={{ fontSize: 10.5 }}>
+          build 1.0.4 · 2026-04-30 · M+3 demo-ready
+        </div>
       </div>
     </>
   );

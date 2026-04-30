@@ -1,9 +1,10 @@
 // NOTE(wk2): demo prop shape is BuildingLike (prototype demo data), not the FRD-spec Building.
 // Phase 2 will replace this with @lucia/contracts Building once real engine endpoints land
 // and the dashboard rows derive from generation_events + buildings join (FR-M-002 backend wiring).
-import type { BuildingLike } from '@/lib/modals';
 import { Modal } from './Modal.js';
+
 import { Pill, Btn, fmt } from '@/components/atoms';
+import type { BuildingLike } from '@/lib/modals';
 
 interface BuildingDetailModalProps {
   building: BuildingLike;
@@ -71,6 +72,17 @@ export function BuildingDetailModal({ building, onClose }: BuildingDetailModalPr
   const statusLabel = STATUS_LABEL[b.status] ?? b.status;
   const statusTone = STATUS_TONE[b.status] ?? 'neutral';
 
+  // Coalesce prototype-extended demo fields from the trimmed BuildingLike shape
+  // when not provided. See lib/modals.tsx — these become required once FR-M-002
+  // backend wiring lands.
+  const buildingId   = b.building_id ?? b.id;
+  const city         = b.city ?? b.region ?? '';
+  const district     = b.district ?? '';
+  const installedKw  = b.installed_kw ?? b.capacity;
+  const inverterCnt  = b.inverter_count ?? Math.max(1, Math.round(installedKw / 12));
+  const lat          = b.lat ?? 0;
+  const lng          = b.lng ?? 0;
+
   const inverterRows = [
     { lbl: '효율',       val: '94.8%',      color: sevColor },
     { lbl: '온도',       val: b.status === 'alert' ? '84.2°C' : '42.1°C', color: b.status === 'alert' ? '#F43F5E' : '#0E1116' },
@@ -91,18 +103,18 @@ export function BuildingDetailModal({ building, onClose }: BuildingDetailModalPr
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <Pill tone={statusTone} dot>{statusLabel}</Pill>
             <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#9AA0AB' }}>
-              FR-M-002 · /buildings/{b.building_id}
+              FR-M-002 · /buildings/{buildingId}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-            <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em' }}>{b.building_id}</span>
-            <span style={{ fontSize: 14, color: '#6B7280' }}>{b.city} {b.district}</span>
+            <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em' }}>{buildingId}</span>
+            <span style={{ fontSize: 14, color: '#6B7280' }}>{city} {district}</span>
           </div>
           <div style={{ fontSize: 12.5, color: '#6B7280', marginTop: 4 }}>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{b.installed_kw} kW</span>
+            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{installedKw} kW</span>
             {' '}설치 · 옥상 태양광 ·{' '}
             <span style={{ marginLeft: 6, fontVariantNumeric: 'tabular-nums' }}>
-              {b.lat.toFixed(4)}°N, {b.lng.toFixed(4)}°E
+              {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
             </span>
           </div>
         </div>
@@ -120,14 +132,14 @@ export function BuildingDetailModal({ building, onClose }: BuildingDetailModalPr
           {[
             {
               lbl: '오늘 발전량',
-              val: fmt.kwh(b.installed_kw * 4.2),
+              val: fmt.kwh(installedKw * 4.2),
               unit: 'kWh',
               color: sevColor,
               delta: b.status === 'alert' ? '▼ 67.6%' : '▲ 4.2%',
               deltaC: b.status === 'alert' ? '#BE123C' : '#047857',
             },
             { lbl: '현재 효율', val: b.status === 'alert' ? '28.4' : '94.8', unit: '%', color: sevColor },
-            { lbl: '환원 세대', val: fmt.n(b.inverter_count * 24), unit: '세대', color: '#06B6A2' },
+            { lbl: '환원 세대', val: fmt.n(inverterCnt * 24), unit: '세대', color: '#06B6A2' },
             { lbl: '누적 매출 (4월)', val: '16,432', unit: '천원', color: '#0E1116' },
           ].map((k, i) => (
             <div key={i} style={{

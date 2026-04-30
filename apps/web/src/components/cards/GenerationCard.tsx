@@ -1,5 +1,9 @@
-// GenerationCard — Hero generation chart, today vs 30-day avg + SMP
-// FR-M-001 · recharts ComposedChart
+// GenerationCard — hero generation chart, today vs 30-day avg + SMP.
+// FR-M-001 · recharts ComposedChart.
+//
+// Per DESIGN.md "the number is the hero" — the daily-kWh figure is the
+// monumental display metric on the dashboard. Time-range selector is a
+// minimal underline group, not a pill switcher.
 
 import { useState } from 'react';
 import {
@@ -12,6 +16,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+
 import { Pill } from '@/components/atoms';
 
 export interface HourlyDataPoint {
@@ -45,7 +50,7 @@ const DEFAULT_DATA: HourlyDataPoint[] = [
 const RANGES = ['시간', '일', '주', '월', '연'] as const;
 type Range = typeof RANGES[number];
 
-export function GenerationCard({ hourlyData }: GenerationCardProps) {
+export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
   const [range, setRange] = useState<Range>('일');
   const data = hourlyData ?? DEFAULT_DATA;
 
@@ -54,63 +59,129 @@ export function GenerationCard({ hourlyData }: GenerationCardProps) {
   const delta = ((total - yest) / yest * 100).toFixed(1);
 
   return (
-    <div className="card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <Pill tone="green" dot>실시간</Pill>
-            <span style={{ fontSize: 12, color: '#9AA0AB', fontWeight: 500 }}>
-              업데이트 26초 전 · MQTT 수신
-            </span>
-          </div>
-          <div style={{ fontSize: 14, color: '#6B7280', marginBottom: 6, fontWeight: 500 }}>
-            오늘 발전량 · Uljin 116동
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span
-              className="num"
-              style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1 }}
-            >
-              11,852.4
-            </span>
-            <span style={{ fontSize: 16, color: '#9AA0AB', fontWeight: 500 }}>kWh</span>
-            <span style={{
-              marginLeft: 8, color: '#059669', fontWeight: 700, fontSize: 13,
-              background: '#ECFDF5', padding: '4px 10px', borderRadius: 999,
-            }}>
-              ▲ {delta}% 전일 평균
-            </span>
-          </div>
-          <div style={{ fontSize: 13, color: '#6B7280', marginTop: 10 }}>
-            총 SMP 매출{' '}
-            <span className="num" style={{ color: '#0E1116', fontWeight: 700 }}>1,490,210원</span>
-            <span style={{ margin: '0 8px', color: '#E2E5EA' }}>·</span>
-            REC 적립{' '}
-            <span className="num" style={{ color: '#0E1116', fontWeight: 700 }}>14.22 REC</span>
-            <span style={{ margin: '0 8px', color: '#E2E5EA' }}>·</span>
-            CO₂ 감축{' '}
-            <span className="num" style={{ color: '#0E1116', fontWeight: 700 }}>5,413 kg</span>
-          </div>
+    <div className="card" style={{ padding: '24px 24px 20px' }}>
+      {/* Top meta row — overline + range selector */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Pill tone="green" dot>실시간</Pill>
+          <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 500 }}>
+            업데이트 26초 전 · MQTT 수신
+          </span>
         </div>
 
-        {/* Time-range pills */}
-        <div style={{ display: 'flex', gap: 6, background: '#F4F5F7', padding: 4, borderRadius: 999 }}>
-          {RANGES.map(r => (
-            <button
-              key={r}
-              onClick={() => setRange(r)}
-              style={{
-                padding: '6px 14px', borderRadius: 999,
-                fontSize: 12.5, fontWeight: 600,
-                background: range === r ? '#fff' : 'transparent',
-                color: range === r ? '#0E1116' : '#6B7280',
-                boxShadow: range === r ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-                border: 'none', cursor: 'pointer',
-              }}
-            >
-              {r}
-            </button>
-          ))}
+        {/* Range selector — text + underline indicator, no pill */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 0,
+            borderBottom: '1px solid var(--line)',
+          }}
+        >
+          {RANGES.map((r) => {
+            const active = range === r;
+            return (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? 'var(--ink)' : 'var(--muted)',
+                  letterSpacing: '-0.005em',
+                  position: 'relative',
+                  transition: 'color .12s',
+                }}
+              >
+                {r}
+                {active && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: -1,
+                      height: 2,
+                      background: 'var(--ink)',
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Display block — overline + monumental number + supporting ledger row */}
+      <div style={{ marginBottom: 22 }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: 'var(--muted)',
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            marginBottom: 12,
+          }}
+        >
+          오늘 발전량 · Uljin 116동
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <span
+            className="display-metric"
+            style={{ fontSize: 'clamp(48px, 6vw, 72px)' }}
+          >
+            11,852.4
+          </span>
+          <span
+            style={{
+              fontSize: 16,
+              color: 'var(--muted)',
+              fontWeight: 500,
+              letterSpacing: '-0.005em',
+            }}
+          >
+            kWh
+          </span>
+          <span
+            className="num"
+            style={{
+              marginLeft: 4,
+              color: 'var(--accent-ink)',
+              fontWeight: 700,
+              fontSize: 13,
+            }}
+          >
+            ↑ {delta}%
+            <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 6 }}>
+              전일 평균
+            </span>
+          </span>
+        </div>
+
+        {/* Ledger row — three flat figures separated by hairline dots */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 24,
+            marginTop: 16,
+            flexWrap: 'wrap',
+            alignItems: 'baseline',
+          }}
+        >
+          <LedgerFigure label="총 SMP 매출" value="1,490,210" unit="원" />
+          <span style={{ color: 'var(--line-2)' }}>·</span>
+          <LedgerFigure label="REC 적립" value="14.22" unit="REC" />
+          <span style={{ color: 'var(--line-2)' }}>·</span>
+          <LedgerFigure label="CO₂ 감축" value="5,413" unit="kg" />
         </div>
       </div>
 
@@ -120,28 +191,33 @@ export function GenerationCard({ hourlyData }: GenerationCardProps) {
           <ComposedChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="todayGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.35} />
+                <stop offset="0%" stopColor="#10B981" stopOpacity={0.16} />
                 <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#F1F3F5" vertical={false} />
+            <CartesianGrid stroke="#E8EAEE" vertical={false} />
             <XAxis
               dataKey="h"
               axisLine={false}
               tickLine={false}
               tickMargin={10}
-              style={{ fontSize: 12, fill: '#9AA0AB' }}
+              style={{ fontSize: 11, fill: '#8A93A0' }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
               tickMargin={6}
               width={40}
-              style={{ fontSize: 12, fill: '#9AA0AB' }}
+              style={{ fontSize: 11, fill: '#8A93A0' }}
             />
             <Tooltip
               cursor={{ stroke: '#10B981', strokeWidth: 1, strokeDasharray: '3 3' }}
-              contentStyle={{ borderRadius: 12, border: '1px solid #E2E5EA', fontSize: 12 }}
+              contentStyle={{
+                borderRadius: 4,
+                border: '1px solid #D5D9DF',
+                fontSize: 11.5,
+                boxShadow: 'none',
+              }}
               labelFormatter={(l: unknown) => `${l}:00`}
               formatter={(v: unknown, k: unknown) => [
                 `${(v as number)?.toLocaleString()} ${k === 'smp' ? '원/kWh' : 'kWh'}`,
@@ -152,15 +228,15 @@ export function GenerationCard({ hourlyData }: GenerationCardProps) {
               type="monotone"
               dataKey="today"
               stroke="#10B981"
-              strokeWidth={2.5}
+              strokeWidth={2}
               fill="url(#todayGrad)"
             />
             <Line
               type="monotone"
               dataKey="avg"
-              stroke="#9AA0AB"
-              strokeWidth={1.8}
-              strokeDasharray="4 4"
+              stroke="#8A93A0"
+              strokeWidth={1.5}
+              strokeDasharray="3 3"
               dot={false}
             />
           </ComposedChart>
@@ -168,19 +244,75 @@ export function GenerationCard({ hourlyData }: GenerationCardProps) {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 18, marginTop: 8, fontSize: 12, color: '#6B7280' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 18,
+          marginTop: 10,
+          fontSize: 11.5,
+          color: 'var(--muted)',
+        }}
+      >
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: 3, background: '#10B981', display: 'inline-block' }} />
+          <span
+            style={{
+              width: 10,
+              height: 2,
+              background: 'var(--accent)',
+              display: 'inline-block',
+            }}
+          />
           오늘
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 12, height: 2, background: '#9AA0AB', display: 'inline-block' }} />
+          <span
+            style={{
+              width: 12,
+              height: 2,
+              background: 'var(--muted-2)',
+              display: 'inline-block',
+              borderRadius: 1,
+            }}
+          />
           30일 평균
         </span>
         <span style={{ marginLeft: 'auto' }} className="num">
           피크 12:00 · 1,680 kWh
         </span>
       </div>
+    </div>
+  );
+}
+
+// LedgerFigure — small inline metric for the supporting row under the hero.
+function LedgerFigure({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <span
+        style={{
+          fontSize: 10.5,
+          color: 'var(--muted)',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        <span className="num" style={{ fontSize: 16, color: 'var(--ink)', fontWeight: 700 }}>
+          {value}
+        </span>
+        <span style={{ fontSize: 11.5, color: 'var(--muted-2)' }}>{unit}</span>
+      </span>
     </div>
   );
 }

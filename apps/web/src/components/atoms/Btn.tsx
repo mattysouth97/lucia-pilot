@@ -13,17 +13,52 @@ interface BtnProps {
   children?: ReactNode;
 }
 
+// Btn — utilitarian rectangle, 6px radius. Not a pill.
+// See DESIGN.md "Components > Btn" for the variant matrix.
+
 const sizes: Record<Size, { pad: string; fs: number; h: number }> = {
   sm: { pad: '6px 10px',  fs: 12.5, h: 28 },
-  md: { pad: '8px 14px',  fs: 13.5, h: 36 },
-  lg: { pad: '10px 18px', fs: 14,   h: 42 },
+  md: { pad: '7px 14px',  fs: 13,   h: 34 },
+  lg: { pad: '9px 18px',  fs: 13.5, h: 40 },
 };
 
-const variants: Record<Variant, { bg: string; fg: string; bd: string; hover: string }> = {
-  primary:   { bg: '#0E1116', fg: '#fff',     bd: '#0E1116', hover: '#1F2937' },
-  secondary: { bg: '#fff',    fg: '#0E1116',  bd: '#E2E5EA', hover: '#F4F5F7' },
-  ghost:     { bg: 'transparent', fg: '#374151', bd: 'transparent', hover: '#F1F3F5' },
-  accent:    { bg: '#10B981', fg: '#fff',     bd: '#10B981', hover: '#059669' },
+interface VariantSpec {
+  bg: string;
+  fg: string;
+  bd: string;
+  hoverBg: string;
+  hoverBd: string;
+}
+
+const variants: Record<Variant, VariantSpec> = {
+  primary: {
+    bg: 'var(--ink)',
+    fg: '#fff',
+    bd: 'var(--ink)',
+    hoverBg: 'var(--ink-2)',
+    hoverBd: 'var(--ink-2)',
+  },
+  secondary: {
+    bg: 'var(--panel)',
+    fg: 'var(--ink)',
+    bd: 'var(--line-2)',
+    hoverBg: 'var(--chip)',
+    hoverBd: 'var(--line-2)',
+  },
+  ghost: {
+    bg: 'transparent',
+    fg: 'var(--ink-2)',
+    bd: 'transparent',
+    hoverBg: 'var(--chip)',
+    hoverBd: 'transparent',
+  },
+  accent: {
+    bg: 'var(--accent)',
+    fg: '#fff',
+    bd: 'var(--accent)',
+    hoverBg: 'var(--accent-ink)',
+    hoverBd: 'var(--accent-ink)',
+  },
 };
 
 export function Btn({
@@ -37,27 +72,38 @@ export function Btn({
 }: BtnProps) {
   const sz = sizes[size];
   const v = variants[variant];
+  const activeBg = active ? 'var(--ink)' : v.bg;
+  const activeFg = active ? '#fff' : v.fg;
+  const activeBd = active ? 'var(--ink)' : v.bd;
 
   return (
     <button
       onClick={onClick}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8,
-        background: active ? '#0E1116' : v.bg,
-        color: active ? '#fff' : v.fg,
-        border: `1px solid ${active ? '#0E1116' : v.bd}`,
-        borderRadius: 999,
-        padding: sz.pad, height: sz.h,
-        fontSize: sz.fs, fontWeight: 600,
-        letterSpacing: '-0.01em',
-        transition: 'all .15s ease',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 7,
+        background: activeBg,
+        color: activeFg,
+        border: `1px solid ${activeBd}`,
+        borderRadius: 'var(--r-md)',
+        padding: sz.pad,
+        height: sz.h,
+        fontSize: sz.fs,
+        fontWeight: 600,
+        letterSpacing: '-0.005em',
+        transition: 'background-color .12s ease, border-color .12s ease, color .12s ease',
         ...style,
       }}
       onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.background = v.hover;
+        if (active) return;
+        e.currentTarget.style.background = v.hoverBg;
+        e.currentTarget.style.borderColor = v.hoverBd;
       }}
       onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.background = v.bg;
+        if (active) return;
+        e.currentTarget.style.background = v.bg;
+        e.currentTarget.style.borderColor = v.bd;
       }}
     >
       {icon}

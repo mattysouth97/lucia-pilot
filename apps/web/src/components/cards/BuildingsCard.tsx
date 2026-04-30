@@ -3,8 +3,9 @@
 // Accept optional `buildings` prop for future engine integration via TanStack Query.
 
 import { useState } from 'react';
-import { Pill, SectionTitle, fmt } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Pill, SectionTitle, fmt } from '@/components/atoms';
 import { useLuciaModals } from '@/lib/modals';
 import type { BuildingLike } from '@/lib/modals';
 
@@ -176,8 +177,8 @@ export function BuildingsCard({ buildings }: BuildingsCardProps) {
               </span>
 
               <span style={{ textAlign: 'right' }}>
-                <Pill tone={STATUS_TONE[b.status]} dot>
-                  {STATUS_LABEL[b.status]}
+                <Pill tone={(b.status === 'maintenance' ? 'neutral' : STATUS_TONE[b.status])} dot>
+                  {b.status === 'maintenance' ? '점검' : STATUS_LABEL[b.status]}
                 </Pill>
               </span>
 

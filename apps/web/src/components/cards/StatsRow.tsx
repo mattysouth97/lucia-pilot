@@ -1,9 +1,15 @@
-// StatsRow — 5 KPI cards across the top of the dashboard
-// FR-M-001 · demo numbers hardcoded from LUCIA_DATA prototype
+// StatsRow — 5 KPI tiles across the top of the dashboard.
+// FR-M-001 · demo numbers hardcoded from LUCIA_DATA prototype.
+//
+// Per DESIGN.md: the parent `.grid-stats` is the single bordered surface
+// (one card frame containing five tiles divided by 1px hairlines). Per-tile
+// chrome and per-tile color tints are deliberately dropped — see
+// PRODUCT.md anti-references "identical card grids with colored icon tiles".
 
 import type { ReactNode } from 'react';
-import { Pill, Stat, Spark } from '@/components/atoms';
+
 import { Icons } from '@/components/Icons';
+import { Stat, Spark } from '@/components/atoms';
 
 interface StatItem {
   label: string;
@@ -12,9 +18,7 @@ interface StatItem {
   delta: number;
   deltaLabel?: string;
   icon: ReactNode;
-  accent: string;
   spark: number[];
-  sparkColor: string;
 }
 
 export interface StatsRowData {
@@ -36,9 +40,7 @@ const DEFAULT_ITEMS: StatItem[] = [
     unit: 'kWh',
     delta: 4.2,
     icon: Icons.Sun,
-    accent: 'linear-gradient(135deg,#10B981,#06B6A2)',
     spark: [820, 1040, 1180, 1520, 1680, 1620, 1480, 1240, 920, 540, 210, 32],
-    sparkColor: '#10B981',
   },
   {
     label: '누적 정산 매출 (4월)',
@@ -46,9 +48,7 @@ const DEFAULT_ITEMS: StatItem[] = [
     unit: '원',
     delta: 8.7,
     icon: Icons.Coin,
-    accent: '#0E1116',
     spark: [62, 68, 71, 79, 84, 88, 91, 95, 100, 108, 113, 119],
-    sparkColor: '#0E1116',
   },
   {
     label: '주거비 환원 (월)',
@@ -56,9 +56,7 @@ const DEFAULT_ITEMS: StatItem[] = [
     unit: '원',
     delta: 6.1,
     icon: Icons.Home,
-    accent: '#06B6A2',
     spark: [40, 44, 48, 52, 58, 64, 68, 72, 78, 84, 92, 98],
-    sparkColor: '#06B6A2',
   },
   {
     label: 'REC 적립',
@@ -66,9 +64,7 @@ const DEFAULT_ITEMS: StatItem[] = [
     unit: 'REC',
     delta: 3.4,
     icon: Icons.Spark,
-    accent: '#4F46E5',
     spark: [12, 18, 24, 32, 41, 52, 64, 78, 92, 108, 124, 142],
-    sparkColor: '#4F46E5',
   },
   {
     label: '이상 감지',
@@ -77,14 +73,11 @@ const DEFAULT_ITEMS: StatItem[] = [
     delta: -1.2,
     deltaLabel: '양호',
     icon: Icons.Bell,
-    accent: '#F43F5E',
     spark: [5, 4, 6, 4, 3, 5, 4, 3, 2, 4, 3, 3],
-    sparkColor: '#F43F5E',
   },
 ];
 
 export function StatsRow({ data }: StatsRowProps) {
-  // Merge optional live data into defaults (future engine wiring)
   const items: StatItem[] = DEFAULT_ITEMS.map((it, i) => {
     if (!data) return it;
     const overrides: Partial<StatItem>[] = [
@@ -99,13 +92,19 @@ export function StatsRow({ data }: StatsRowProps) {
 
   return (
     <div className="grid-stats">
-      {items.map((it, i) => (
-        <div
-          key={i}
-          className="card flow-in"
-          style={{ padding: 20, animationDelay: `${i * 60}ms` }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      {items.map((it, i) => {
+        const sparkColor =
+          it.delta >= 0 ? 'var(--accent)' : 'var(--rose)';
+        return (
+          <div
+            key={i}
+            className="flow-in"
+            style={{
+              padding: '20px 22px',
+              animationDelay: `${i * 50}ms`,
+              minWidth: 0,
+            }}
+          >
             <Stat
               label={it.label}
               value={it.value}
@@ -113,14 +112,13 @@ export function StatsRow({ data }: StatsRowProps) {
               delta={it.delta}
               deltaLabel={it.deltaLabel}
               icon={it.icon}
-              accent={it.accent}
             />
+            <div style={{ marginTop: 14 }}>
+              <Spark data={it.spark} color={sparkColor} w={150} h={26} />
+            </div>
           </div>
-          <div style={{ marginTop: 12, marginLeft: 52 }}>
-            <Spark data={it.spark} color={it.sparkColor} w={150} h={28} />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -10,14 +10,28 @@ import { ReportModal } from '@/components/modals/ReportModal';
 import { TamperModal } from '@/components/modals/TamperModal';
 
 // Minimal building shape used by cards (extended by @lucia/contracts BuildingRow later).
+//
+// The dashboard cards (`BuildingsCard`, `BlockchainCard`, `AnomalyCard`) pass the
+// trimmed shape; `BuildingDetailModal` consumes the richer prototype-extended
+// shape when drawing the detail view. Until Phase 2 wires up the engine
+// endpoints (FR-M-002 backend wiring), the prototype-extended fields are
+// optional — the modal coalesces missing values from the trimmed fields.
 export interface BuildingLike {
   id: string;
   region: string;
   today: number;
   capacity: number;
   eff: number;
-  status: 'ok' | 'warn' | 'alert';
+  status: 'ok' | 'warn' | 'alert' | 'maintenance';
   subsidy: number;
+  // Prototype-extended demo fields (optional until FR-M-002 backend lands)
+  building_id?: string;
+  city?: string;
+  district?: string;
+  installed_kw?: number;
+  inverter_count?: number;
+  lat?: number;
+  lng?: number;
 }
 
 export interface LuciaModals {

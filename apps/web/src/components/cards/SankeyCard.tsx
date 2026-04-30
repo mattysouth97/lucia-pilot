@@ -1,8 +1,8 @@
 // SankeyCard — Hand-rolled SVG Sankey flow diagram
 // FR-M-006 · 발전수익 분배 흐름 시각화
 
-import { Pill, Btn } from '@/components/atoms';
 import { Icons } from '@/components/Icons';
+import { Pill, Btn } from '@/components/atoms';
 
 interface SankeyNode {
   x: number;
@@ -57,18 +57,20 @@ const H = 280;
 // Node definitions — all coordinates match the prototype exactly
 const src: SankeyNode = { x: 0,   y: 90,  h: 100, label: '발전수익',       val: '32.4M원', color: '#0E1116' };
 
-const rev: SankeyNode[] = [
+// Tuples (fixed-length) so positional access (rev[0], dst[5], etc.) is typed
+// as SankeyNode rather than SankeyNode | undefined under noUncheckedIndexedAccess.
+const rev: readonly [SankeyNode, SankeyNode] = [
   { x: 180, y: 50,  h: 70,  label: 'SMP 매출', val: '19.4M원', color: '#10B981' },
   { x: 180, y: 140, h: 100, label: 'REC 매출', val: '13.0M원', color: '#06B6A2' },
 ];
 
-const mid: SankeyNode[] = [
+const mid: readonly [SankeyNode, SankeyNode, SankeyNode] = [
   { x: 400, y: 30,  h: 70,  label: '주거비 환원 41%', val: '13.3M원', color: '#10B981' },
   { x: 400, y: 120, h: 30,  label: 'O&M·SaaS 9%',    val: '2.9M원',  color: '#F59E0B' },
   { x: 400, y: 165, h: 100, label: 'SPC 적립 50%',   val: '16.2M원', color: '#4F46E5' },
 ];
 
-const dst: SankeyNode[] = [
+const dst: readonly [SankeyNode, SankeyNode, SankeyNode, SankeyNode, SankeyNode, SankeyNode] = [
   { x: 720, y: 10,  h: 30,  label: 'LH 매입임대 (1,643세대)', val: '8.5M원',  color: '#10B981' },
   { x: 720, y: 50,  h: 12,  label: '국민임대 (280)',          val: '1.5M원',  color: '#34D399' },
   { x: 720, y: 70,  h: 28,  label: '에너지소외 (916)',        val: '3.3M원',  color: '#06B6A2' },

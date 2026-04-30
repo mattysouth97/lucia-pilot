@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+
 import { Modal } from './Modal.js';
+
 import { Btn } from '@/components/atoms';
 
 interface ReportModalProps {
@@ -8,19 +10,21 @@ interface ReportModalProps {
 
 type Step = 'period' | 'buildings' | 'generating' | 'done';
 
+// `as const` gives these tuple typing so positional access (e.g. PERIODS[0],
+// BUILDING_GROUPS[0].id) is non-undefined under noUncheckedIndexedAccess.
 const PERIODS = [
   '2026년 4월',
   '2026년 3월',
   '2026년 2월',
   '2026년 1월',
-];
+] as const;
 
 const BUILDING_GROUPS = [
   { id: 'all', label: '전체 116동', count: 116 },
   { id: 'region-a', label: '울진 1구역 (1~40동)', count: 40 },
   { id: 'region-b', label: '울진 2구역 (41~80동)', count: 40 },
   { id: 'region-c', label: '울진 3구역 (81~116동)', count: 36 },
-];
+] as const;
 
 const DocIcon = (
   <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -57,10 +61,13 @@ const CheckIcon = (
   </svg>
 );
 
+type Period = (typeof PERIODS)[number];
+type GroupId = (typeof BUILDING_GROUPS)[number]['id'];
+
 export function ReportModal({ onClose }: ReportModalProps) {
   const [step, setStep] = useState<Step>('period');
-  const [selectedPeriod, setSelectedPeriod] = useState(PERIODS[0]);
-  const [selectedGroup, setSelectedGroup] = useState(BUILDING_GROUPS[0].id);
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>(PERIODS[0]);
+  const [selectedGroup, setSelectedGroup] = useState<GroupId>(BUILDING_GROUPS[0].id);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

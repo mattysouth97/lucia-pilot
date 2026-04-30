@@ -7,152 +7,236 @@ interface TopbarProps {
 
 const TABS = ['개요', '정산 원장', '동별 모니터', '감사·보고', '관리자'];
 
+// Topbar — Lucia 정산 dark horizon line.
+// See DESIGN.md "Topbar" section. Black surface, white type, underline tab indicator,
+// no pill chrome, no gradient logo, no gradient avatar.
 export function Topbar({ tab, setTab }: TopbarProps) {
   return (
     <div
       className="topbar-shell"
       style={{
-        background: '#fff',
-        borderBottom: '1px solid var(--line)',
         position: 'sticky',
         top: 0,
         zIndex: 50,
       }}
     >
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 32,
-          height: 32,
-          borderRadius: 9,
-          background: 'linear-gradient(135deg, #10B981 0%, #06B6A2 100%)',
-          display: 'grid',
-          placeItems: 'center',
-          boxShadow: '0 4px 12px rgba(16,185,129,0.25)',
-        }}>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      {/* Logo — single white wedge mark, no gradient, no glow. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
+        </svg>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 14.5, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            Lucia
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              color: 'var(--bar-ink-2)',
+              letterSpacing: '-0.005em',
+            }}
+            className="show-md+"
           >
-            <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
-          </svg>
-        </div>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.025em' }}>Lucia</div>
-          <div style={{ fontSize: 10.5, color: '#9AA0AB', letterSpacing: '-0.01em', marginTop: -2 }}>
             가상공유거래 정산
-          </div>
+          </span>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="topbar-tabs" style={{ marginLeft: 16 }}>
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: '9px 16px',
-              borderRadius: 999,
-              fontSize: 13.5,
-              fontWeight: 600,
-              background: tab === t ? '#0E1116' : 'transparent',
-              color: tab === t ? '#fff' : '#6B7280',
-              letterSpacing: '-0.01em',
-              transition: 'all .15s',
-            }}
-          >
-            {t}
-          </button>
-        ))}
+      {/* Tabs — text + underline indicator. */}
+      <div className="topbar-tabs" style={{ marginLeft: 12 }}>
+        {TABS.map((t) => {
+          const active = tab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                padding: '0 14px',
+                height: '100%',
+                fontSize: 13,
+                fontWeight: active ? 700 : 500,
+                color: active ? 'var(--bar-ink)' : 'var(--bar-ink-2)',
+                letterSpacing: '-0.005em',
+                position: 'relative',
+                transition: 'color .15s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => {
+                if (!active) e.currentTarget.style.color = 'var(--bar-ink)';
+              }}
+              onMouseLeave={(e) => {
+                if (!active) e.currentTarget.style.color = 'var(--bar-ink-2)';
+              }}
+            >
+              {t}
+              {active && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    right: 14,
+                    bottom: 0,
+                    height: 2,
+                    background: 'var(--accent)',
+                    borderRadius: 0,
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ flex: 1 }} />
 
-      {/* Search */}
-      <div className="topbar-search" style={{
-        alignItems: 'center',
-        gap: 8,
-        background: '#F4F5F7',
-        padding: '8px 14px',
-        borderRadius: 999,
-        width: 280,
-        color: '#9AA0AB',
-      }}>
+      {/* Search — flat field on the dark bar. */}
+      <div
+        className="topbar-search"
+        style={{
+          alignItems: 'center',
+          gap: 8,
+          background: 'transparent',
+          border: '1px solid var(--bar-line)',
+          padding: '7px 12px',
+          borderRadius: 'var(--r-sm)',
+          width: 280,
+          color: 'var(--bar-ink-2)',
+        }}
+      >
         {Icons.Search}
-        <span style={{ fontSize: 13 }}>동·정산ID·트랜잭션 검색</span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9AA0AB' }} className="mono">
+        <span style={{ fontSize: 12.5 }}>동·정산ID·트랜잭션 검색</span>
+        <span
+          className="mono"
+          style={{
+            marginLeft: 'auto',
+            fontSize: 10.5,
+            color: 'var(--bar-ink-2)',
+            border: '1px solid var(--bar-line)',
+            padding: '1px 5px',
+            borderRadius: 3,
+          }}
+        >
           ⌘K
         </span>
       </div>
 
-      {/* Status pill */}
-      <div className="topbar-status" style={{ alignItems: 'center', gap: 8 }}>
+      {/* Status — single dot + monospace version. */}
+      <div
+        className="topbar-status"
+        style={{
+          alignItems: 'center',
+          gap: 8,
+          paddingLeft: 8,
+        }}
+      >
         <span
-          style={{ width: 8, height: 8, borderRadius: 999, background: '#10B981' }}
-          className="pulse-dot"
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 999,
+            background: 'var(--accent)',
+            display: 'inline-block',
+          }}
         />
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#047857' }}>정산엔진 정상</span>
-        <span className="mono" style={{ fontSize: 11, color: '#9AA0AB' }}>v1.0.4</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--bar-ink)' }}>
+          정산엔진 정상
+        </span>
+        <span className="mono" style={{ fontSize: 10.5, color: 'var(--bar-ink-2)' }}>
+          v1.0.4
+        </span>
       </div>
 
-      {/* Bell */}
-      <button style={{
-        width: 38,
-        height: 38,
-        borderRadius: 999,
-        background: '#F4F5F7',
-        display: 'grid',
-        placeItems: 'center',
-        color: '#374151',
-        position: 'relative',
-      }}>
-        {Icons.Bell}
-        <span style={{
-          position: 'absolute',
-          top: 7,
-          right: 8,
-          width: 8,
-          height: 8,
-          borderRadius: 999,
-          background: '#F43F5E',
-          border: '2px solid #fff',
-        }} />
-      </button>
-
-      {/* User */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        paddingLeft: 14,
-        borderLeft: '1px solid var(--line-2)',
-      }}>
-        <div style={{
-          width: 36,
-          height: 36,
-          borderRadius: 999,
-          background: 'linear-gradient(135deg, #6EE7B7, #06B6A2)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 13,
+      {/* Bell — flat icon button, dot indicator only when unread. */}
+      <button
+        aria-label="알림"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 'var(--r-sm)',
+          background: 'transparent',
           display: 'grid',
           placeItems: 'center',
-          letterSpacing: '-0.02em',
-        }}>
-          김ESG
+          color: 'var(--bar-ink-2)',
+          position: 'relative',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bar-line)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      >
+        {Icons.Bell}
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 7,
+            width: 6,
+            height: 6,
+            borderRadius: 999,
+            background: 'var(--rose)',
+            border: '1.5px solid var(--bar)',
+          }}
+        />
+      </button>
+
+      {/* User — flat square initial, plain text. */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          paddingLeft: 12,
+          borderLeft: '1px solid var(--bar-line)',
+        }}
+      >
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 'var(--r-sm)',
+            background: 'var(--bar-line)',
+            color: 'var(--bar-ink)',
+            fontWeight: 600,
+            fontSize: 11,
+            display: 'grid',
+            placeItems: 'center',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          김
         </div>
         <div className="topbar-user-meta">
-          <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.015em' }}>김지호 처장</div>
-          <div style={{ fontSize: 11, color: '#9AA0AB', marginTop: -1 }}>LH ESG 경영실</div>
+          <div
+            style={{
+              fontSize: 12.5,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+              color: 'var(--bar-ink)',
+              lineHeight: 1.2,
+            }}
+          >
+            김지호 처장
+          </div>
+          <div
+            style={{
+              fontSize: 10.5,
+              color: 'var(--bar-ink-2)',
+              marginTop: 1,
+              letterSpacing: '-0.005em',
+            }}
+          >
+            LH ESG 경영실
+          </div>
         </div>
-        {Icons.Caret}
+        <span style={{ color: 'var(--bar-ink-2)' }}>{Icons.Caret}</span>
       </div>
     </div>
   );
