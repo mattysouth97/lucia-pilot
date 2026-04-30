@@ -120,6 +120,51 @@ Makefile targets mirror the above commands.  See `Makefile` at the repo root.
 
 ---
 
+## Build workflow (Windows + Korean path)
+
+This repo lives at `C:\Users\Nam\Downloads\정산-handoff` — a path containing
+Korean characters.  Rollup 4's native Windows binding (`rollup-win32-x64-msvc`)
+calls `__fastfail()` and crashes with `0xC0000409` when run from a non-ASCII
+cwd, killing `pnpm build` after vite finishes the JS-only transform pass.
+This is a defensive bail inside the native binding, not a memory bug.
+
+The pragmatic workaround is a **build mirror at an ASCII path**.  Editing,
+git, planning, and `pnpm install` all run in this Korean-path repo as the
+single source of truth.  The web app's build and dev server run from the
+ASCII mirror.  A sync script keeps them in step.
+
+```bash
+# Sync changes from this repo to the ASCII mirror
+./sync-to-build-mirror.sh           # sync only
+./sync-to-build-mirror.sh diff      # show what's out of sync (read-only)
+./sync-to-build-mirror.sh build     # sync + pnpm --filter web build
+./sync-to-build-mirror.sh dev       # sync + start dev server
+
+# Mirror path defaults to C:/Users/Nam/lucia-build; override per machine:
+LUCIA_BUILD_MIRROR=/c/path/to/your/mirror ./sync-to-build-mirror.sh build
+```
+
+**Rules**:
+- Source-of-truth = the Korean-path repo (this directory).  Commits, code
+  review, and CI all run here.
+- The mirror is generated from this repo via `sync-to-build-mirror.sh`.  Do
+  NOT edit the mirror directly — those changes will be overwritten on the
+  next sync.
+- The script syncs `apps/{web,engine,simulator}/{src,configs,package.json}`,
+  `packages/{contracts,db}/{src,fixtures,package.json}`, and root configs.
+  Add new paths to the `PATHS` array if you create them.
+- The mirror needs its own `pnpm install` run when `package.json`s change
+  (the script doesn't auto-run install — too slow to be in the hot path).
+
+When the dual-tree drifts (the mirror has files this repo doesn't, or vice
+versa), `./sync-to-build-mirror.sh diff` reports the gap.  Source wins on
+conflict; the mirror is regenerated.
+
+This workaround is Windows-+-Korean-path-specific.  On macOS/Linux or with
+an ASCII repo path, build directly: `pnpm --filter web build`.
+
+---
+
 ## Coherence Guards — 5 rules every code change must satisfy
 
 These are non-negotiable.  Every PR that violates one must be revised before merge.
