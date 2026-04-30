@@ -10,7 +10,6 @@
 // stub swaps to a real Anthropic SDK tool-use call. The visual contract
 // (map / chat / result panel) stays intact.
 
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Icons } from '@/components/Icons';
@@ -365,12 +364,7 @@ function parseUserQuery(text: string): QueryResult {
   return { filter, toolCalls, reasoning };
 }
 
-function composeAssistantResponse(
-  filter: BuildingFilter,
-  toolCalls: ToolCall[],
-  matched: MapBuilding[],
-  reasoning: string,
-): string {
+function composeAssistantResponse(matched: MapBuilding[], reasoning: string): string {
   if (matched.length === 0) {
     return `조회 결과 없음. 조건(${reasoning})에 부합하는 건물이 없습니다. 조건을 완화해보시겠어요?`;
   }
@@ -475,12 +469,7 @@ export function MapExplorer() {
     const toolCallsWithCounts: ToolCall[] = parsed.toolCalls.map((tc) =>
       tc.tool === 'query_buildings' ? { ...tc, resultCount: matched.length } : tc,
     );
-    const responseText = composeAssistantResponse(
-      parsed.filter,
-      toolCallsWithCounts,
-      matched,
-      parsed.reasoning,
-    );
+    const responseText = composeAssistantResponse(matched, parsed.reasoning);
 
     // Simulate tool-call latency (1.1s) so UI shows realistic loading shape.
     setTimeout(() => {
