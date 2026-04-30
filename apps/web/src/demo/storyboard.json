@@ -1,8 +1,56 @@
 [
   {
-    "id": "step-0-controller",
-    "label": "Demo controller boot",
-    "duration_ms": 0,
-    "action": { "type": "noop", "payload": {} }
+    "id": "step-1-dashboard",
+    "label": "대시보드 메인 + 116동 지도",
+    "duration_ms": 60000,
+    "action": { "type": "navigate", "payload": { "path": "/" } }
+  },
+  {
+    "id": "step-2-detail",
+    "label": "ULJN-001 동 상세 화면",
+    "duration_ms": 90000,
+    "action": { "type": "navigate", "payload": { "path": "/buildings/ULJN-001" } }
+  },
+  {
+    "id": "step-3-live",
+    "label": "1 kWh → 28 정산 항목 분배",
+    "duration_ms": 90000,
+    "action": { "type": "play_tx_stream", "payload": {} }
+  },
+  {
+    "id": "step-4-sankey",
+    "label": "Sankey 분배 시각화",
+    "duration_ms": 90000,
+    "action": { "type": "scroll_to", "payload": { "id": "sankey-card" } }
+  },
+  {
+    "id": "step-5-portal",
+    "label": "입주민 포털 — 홍*동",
+    "duration_ms": 60000,
+    "action": { "type": "navigate", "payload": { "path": "/portal/h0001" } }
+  },
+  {
+    "id": "step-6-tamper",
+    "label": "변조 시도 → 자동 거부",
+    "duration_ms": 60000,
+    "action": { "type": "trigger_tamper", "payload": {} }
+  },
+  {
+    "id": "step-7-anomaly",
+    "label": "ULJN-042 인버터 오류 알림",
+    "duration_ms": 60000,
+    "action": { "type": "inject_anomaly", "payload": { "building_id": "ULJN-042", "type": "inverter_fail" } }
+  },
+  {
+    "id": "step-8-load",
+    "label": "9,354동 부하 테스트",
+    "duration_ms": 60000,
+    "action": { "type": "scroll_to", "payload": { "id": "load-test-card" } }
+  },
+  {
+    "id": "step-9-pdf",
+    "label": "감사 PDF 생성 → 시연 종료",
+    "duration_ms": 30000,
+    "action": { "type": "trigger_report", "payload": {} }
   }
 ]

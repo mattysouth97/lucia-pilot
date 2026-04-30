@@ -124,32 +124,128 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 5,
-      "lastAccessed": 1777530119583,
+      "accessCount": 46,
+      "lastAccessed": 1777531647812,
       "type": "directory"
     },
     {
-      "path": "docker\\mosquitto\\mosquitto.conf",
-      "accessCount": 2,
-      "lastAccessed": 1777529989081,
-      "type": "file"
-    },
-    {
-      "path": "chain\\chaincode\\main.go",
-      "accessCount": 2,
-      "lastAccessed": 1777530017861,
+      "path": "docker\\docker-compose.yml",
+      "accessCount": 11,
+      "lastAccessed": 1777530741484,
       "type": "file"
     },
     {
       "path": "CLAUDE.md",
-      "accessCount": 2,
-      "lastAccessed": 1777530185398,
+      "accessCount": 7,
+      "lastAccessed": 1777530850109,
+      "type": "file"
+    },
+    {
+      "path": "chain\\chaincode\\main.go",
+      "accessCount": 7,
+      "lastAccessed": 1777530865287,
+      "type": "file"
+    },
+    {
+      "path": "packages\\contracts\\src\\domain\\beneficiary.ts",
+      "accessCount": 5,
+      "lastAccessed": 1777530776402,
+      "type": "file"
+    },
+    {
+      "path": "packages\\db\\src\\schema\\index.ts",
+      "accessCount": 4,
+      "lastAccessed": 1777530788391,
+      "type": "file"
+    },
+    {
+      "path": "docker\\mosquitto\\mosquitto.conf",
+      "accessCount": 3,
+      "lastAccessed": 1777530391944,
+      "type": "file"
+    },
+    {
+      "path": "docker\\fabric\\ca\\fabric-ca-server-config.yaml",
+      "accessCount": 3,
+      "lastAccessed": 1777530417149,
+      "type": "file"
+    },
+    {
+      "path": "packages\\contracts\\src\\domain\\index.ts",
+      "accessCount": 3,
+      "lastAccessed": 1777530420190,
+      "type": "file"
+    },
+    {
+      "path": "packages\\contracts\\src\\domain\\generation-event.ts",
+      "accessCount": 3,
+      "lastAccessed": 1777530425450,
+      "type": "file"
+    },
+    {
+      "path": "packages\\contracts\\src\\domain\\settlement.ts",
+      "accessCount": 3,
+      "lastAccessed": 1777530427956,
+      "type": "file"
+    },
+    {
+      "path": "packages\\db\\src\\schema\\settlements.ts",
+      "accessCount": 3,
+      "lastAccessed": 1777530487177,
       "type": "file"
     },
     {
       "path": "chain\\CLAUDE.md",
-      "accessCount": 1,
-      "lastAccessed": 1777529774050,
+      "accessCount": 3,
+      "lastAccessed": 1777530507454,
+      "type": "file"
+    },
+    {
+      "path": "docker\\fabric\\peer\\core.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1777530384400,
+      "type": "file"
+    },
+    {
+      "path": "chain\\chaincode\\main_test.go",
+      "accessCount": 2,
+      "lastAccessed": 1777530385256,
+      "type": "file"
+    },
+    {
+      "path": "packages\\contracts\\src\\domain\\resident.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777530393408,
+      "type": "file"
+    },
+    {
+      "path": "packages\\db\\drizzle.config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777530393962,
+      "type": "file"
+    },
+    {
+      "path": "apps\\simulator\\src\\index.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777530394716,
+      "type": "file"
+    },
+    {
+      "path": "apps\\simulator\\src\\mqtt.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777530397020,
+      "type": "file"
+    },
+    {
+      "path": "infra\\aws\\terraform\\main.tf",
+      "accessCount": 2,
+      "lastAccessed": 1777530397153,
+      "type": "file"
+    },
+    {
+      "path": "packages\\db\\package.json",
+      "accessCount": 2,
+      "lastAccessed": 1777530418167,
       "type": "file"
     },
     {
@@ -177,12 +273,6 @@
       "type": "file"
     },
     {
-      "path": "docker\\docker-compose.yml",
-      "accessCount": 1,
-      "lastAccessed": 1777529866830,
-      "type": "file"
-    },
-    {
       "path": "docs\\adr\\0004-mock-external-api-shapes.md",
       "accessCount": 1,
       "lastAccessed": 1777529869371,
@@ -195,33 +285,9 @@
       "type": "file"
     },
     {
-      "path": "chain\\chaincode\\main_test.go",
-      "accessCount": 1,
-      "lastAccessed": 1777529881306,
-      "type": "file"
-    },
-    {
       "path": "docker\\fabric\\orderer\\orderer.yaml",
       "accessCount": 1,
       "lastAccessed": 1777529884662,
-      "type": "file"
-    },
-    {
-      "path": "packages\\contracts\\src\\domain\\beneficiary.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529884707,
-      "type": "file"
-    },
-    {
-      "path": "packages\\contracts\\src\\domain\\resident.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529885064,
-      "type": "file"
-    },
-    {
-      "path": "packages\\contracts\\src\\domain\\index.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529885517,
       "type": "file"
     },
     {
@@ -243,39 +309,9 @@
       "type": "file"
     },
     {
-      "path": "packages\\db\\src\\schema\\index.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529889689,
-      "type": "file"
-    },
-    {
-      "path": "packages\\db\\package.json",
-      "accessCount": 1,
-      "lastAccessed": 1777529890205,
-      "type": "file"
-    },
-    {
-      "path": "packages\\db\\drizzle.config.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529890650,
-      "type": "file"
-    },
-    {
-      "path": "apps\\simulator\\src\\index.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529893496,
-      "type": "file"
-    },
-    {
       "path": "apps\\simulator\\src\\solar.ts",
       "accessCount": 1,
       "lastAccessed": 1777529894385,
-      "type": "file"
-    },
-    {
-      "path": "packages\\contracts\\src\\domain\\generation-event.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529894837,
       "type": "file"
     },
     {
@@ -294,24 +330,6 @@
       "path": "docs\\adr\\0005-frontend-state-management.md",
       "accessCount": 1,
       "lastAccessed": 1777529896011,
-      "type": "file"
-    },
-    {
-      "path": "packages\\db\\src\\schema\\settlements.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529899078,
-      "type": "file"
-    },
-    {
-      "path": "packages\\contracts\\src\\domain\\settlement.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529900901,
-      "type": "file"
-    },
-    {
-      "path": "infra\\aws\\terraform\\main.tf",
-      "accessCount": 1,
-      "lastAccessed": 1777529902994,
       "type": "file"
     },
     {
@@ -339,12 +357,6 @@
       "type": "file"
     },
     {
-      "path": "docker\\fabric\\peer\\core.yaml",
-      "accessCount": 1,
-      "lastAccessed": 1777529920147,
-      "type": "file"
-    },
-    {
       "path": "infra\\aws\\terraform\\example.tfvars",
       "accessCount": 1,
       "lastAccessed": 1777529926729,
@@ -354,18 +366,6 @@
       "path": "docs\\adr\\0006-demo-mode-automation.md",
       "accessCount": 1,
       "lastAccessed": 1777529927522,
-      "type": "file"
-    },
-    {
-      "path": "apps\\simulator\\src\\mqtt.ts",
-      "accessCount": 1,
-      "lastAccessed": 1777529936090,
-      "type": "file"
-    },
-    {
-      "path": "docker\\fabric\\ca\\fabric-ca-server-config.yaml",
-      "accessCount": 1,
-      "lastAccessed": 1777529938248,
       "type": "file"
     },
     {
