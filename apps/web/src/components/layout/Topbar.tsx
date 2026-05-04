@@ -41,7 +41,8 @@ const ROLE_TABS: Record<Role, ReadonlyArray<{ value: string; label: string }>> =
 export function Topbar({ tab, setTab }: TopbarProps) {
   const unreadAnomalies = 3;
   const { user } = useAuth();
-  const tabsForRole = user ? ROLE_TABS[user.role] : [];
+  if (!user) return null;
+  const tabsForRole = ROLE_TABS[user.role];
 
   return (
     <div
