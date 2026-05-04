@@ -18,7 +18,6 @@ export function Landing() {
       '한국토지주택공사 매입임대주택 옥상 발전소의 SMP/REC 정산 수익을 블록체인으로 검증하고 투자자에게 분배하는 햇빛 금융상품, Lucia.',
     robots: 'index, follow',
     canonical: '/invest',
-    ogImage: '/og-default.png',
   });
 
   return (
