@@ -14,5 +14,11 @@ export function RoleRedirect() {
     case 'operator': return <OperatorHome />;
     case 'resident': return <Navigate to={`/portal/${user.id}`} replace />;
     case 'investor': return <Navigate to="/invest/dashboard" replace />;
+    default: {
+      // TS-level exhaustiveness check — any new Role addition fails compilation here
+      const _exhaustive: never = user.role;
+      void _exhaustive;
+      return <Navigate to="/login" replace />;
+    }
   }
 }
