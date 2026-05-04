@@ -3,7 +3,7 @@
 // Phase-2 swaps these import call sites for engine-backed TanStack Query hooks.
 
 import type { TxStreamMessage } from '@lucia/contracts';
-import { BUILDINGS, TX_STREAM } from '@lucia/contracts/fixtures';
+import { TX_STREAM } from '@lucia/contracts/fixtures';
 
 export interface AumStat {
   readonly label: string;
@@ -57,33 +57,23 @@ export const impactSplit: ImpactSplit = {
   highlightCode: 'sowoe',
 };
 
-// Station cards — first 8 from @lucia/contracts BUILDINGS, filtered to public-fixture status set
-// (only 'ok' or 'maintenance' may appear publicly per spec §6.6). Rich operational data is mocked
-// at landing-page level (dailyKwh, cumulativeKrw) since the contracts fixture omits these.
-const STATION_OPERATIONAL = new Map<string, { dailyKwh: number; cumulativeKrw: number; status: 'ok' | 'maintenance' }>([
-  ['ULJN-001', { dailyKwh: 124.6, cumulativeKrw: 4_812_400, status: 'ok' }],
-  ['ULJN-002', { dailyKwh: 122.1, cumulativeKrw: 4_768_900, status: 'ok' }],
-  ['ULJN-007', { dailyKwh: 119.8, cumulativeKrw: 4_701_200, status: 'ok' }],
-  ['ULJN-014', { dailyKwh: 0,     cumulativeKrw: 4_690_300, status: 'maintenance' }],
-  ['ULJN-023', { dailyKwh: 125.2, cumulativeKrw: 4_854_100, status: 'ok' }],
-  ['ULJN-031', { dailyKwh: 121.4, cumulativeKrw: 4_792_600, status: 'ok' }],
-  ['ULJN-073', { dailyKwh: 123.7, cumulativeKrw: 4_823_400, status: 'ok' }],
-  ['ULJN-089', { dailyKwh: 120.5, cumulativeKrw: 4_745_800, status: 'ok' }],
-]);
-
-export const stationCards: ReadonlyArray<StationCard> = BUILDINGS
-  .filter(b => STATION_OPERATIONAL.has(b.building_id))
-  .map(b => {
-    const op = STATION_OPERATIONAL.get(b.building_id)!;
-    return {
-      buildingId: b.building_id,
-      buildingName: `${b.city} ${b.district} ${b.building_id.split('-')[1] ?? ''}동`,
-      installedKw: b.installed_kw,
-      status: op.status,
-      dailyKwh: op.dailyKwh,
-      cumulativeKrw: op.cumulativeKrw,
-    };
-  });
+// Station cards — manually projected from contracts BUILDINGS to a public-safe shape.
+// Tree-shaking does not remove sibling object fields, so importing BUILDINGS directly
+// would leak internal data (address, lat, lng, region_office, inverter_count) into the
+// public bundle. We pre-project here so only the 4 public fields are referenced.
+//
+// Source IDs intersect BUILDINGS fixture with public-fixture status constraint
+// (only 'ok' or 'maintenance' may appear publicly per spec §6.6).
+export const stationCards: ReadonlyArray<StationCard> = [
+  { buildingId: 'ULJN-001', buildingName: '울진 울진읍 001동', installedKw: 25.86, status: 'ok',          dailyKwh: 124.6, cumulativeKrw: 4_812_400 },
+  { buildingId: 'ULJN-002', buildingName: '울진 울진읍 002동', installedKw: 25.86, status: 'ok',          dailyKwh: 122.1, cumulativeKrw: 4_768_900 },
+  { buildingId: 'ULJN-007', buildingName: '울진 울진읍 007동', installedKw: 25.86, status: 'ok',          dailyKwh: 119.8, cumulativeKrw: 4_701_200 },
+  { buildingId: 'ULJN-014', buildingName: '울진 울진읍 014동', installedKw: 25.86, status: 'maintenance', dailyKwh: 0,     cumulativeKrw: 4_690_300 },
+  { buildingId: 'ULJN-023', buildingName: '울진 울진읍 023동', installedKw: 25.86, status: 'ok',          dailyKwh: 125.2, cumulativeKrw: 4_854_100 },
+  { buildingId: 'ULJN-031', buildingName: '울진 울진읍 031동', installedKw: 25.86, status: 'ok',          dailyKwh: 121.4, cumulativeKrw: 4_792_600 },
+  { buildingId: 'ULJN-073', buildingName: '울진 울진읍 073동', installedKw: 25.86, status: 'ok',          dailyKwh: 123.7, cumulativeKrw: 4_823_400 },
+  { buildingId: 'ULJN-089', buildingName: '울진 울진읍 089동', installedKw: 25.86, status: 'ok',          dailyKwh: 120.5, cumulativeKrw: 4_745_800 },
+];
 
 // Ledger snapshot — 8-row fallback when WebSocket disconnected. Reuses TX_STREAM from
 // @lucia/contracts; entry [4] in TX_STREAM is the tamper rejection (status !== 'confirmed'),
