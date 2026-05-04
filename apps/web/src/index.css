@@ -856,3 +856,8 @@ a { color: inherit; text-decoration: none; }
 .landing-section { padding: clamp(56px, 8vw, 96px) 0; }
 .landing-section--tight { padding: clamp(32px, 5vw, 56px) 0; }
 .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+.disclosure-grid { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) {
+  .disclosure-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
