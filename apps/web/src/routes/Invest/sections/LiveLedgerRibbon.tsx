@@ -27,8 +27,9 @@ export function deriveRibbonState(stream: { status: string; txs: ReadonlyArray<S
 }
 
 export function LiveLedgerRibbon() {
-  // P0 hook returns void; we still call it for side-effects (future cache priming)
-  // and synthesize the stream state until B7.3 lands the full WS shape.
+  // useLuciaStream is currently a P0 stub returning void (FR-M-008 / B7.3 wires the real
+  // WebSocket); until then we always derive 'snapshot' state and render the fixture.
+  // When B7.3 lands, replace the hardcoded shape with the hook's return value.
   useLuciaStream();
   const state = deriveRibbonState({ status: 'disconnected', txs: [] });
 
