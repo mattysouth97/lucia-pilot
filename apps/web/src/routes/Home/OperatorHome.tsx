@@ -1,7 +1,13 @@
 // apps/web/src/routes/Home/OperatorHome.tsx
 import { Dashboard } from '@/routes/Dashboard';
+import { useRouteMeta } from '@/routes/Invest/meta';
 
 export function OperatorHome() {
+  useRouteMeta({
+    title: 'Lucia — 운영팀 대시보드',
+    description: 'SPC 운영팀 대시보드 + 운영 도구',
+    robots: 'noindex, nofollow',
+  });
   return (
     <>
       <OpsToolPanel />
