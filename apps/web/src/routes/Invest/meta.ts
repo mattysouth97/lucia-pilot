@@ -47,7 +47,17 @@ function setCanonical(href: string) {
 
 export function useRouteMeta(meta: RouteMeta) {
   useEffect(() => {
-    const previousTitle = document.title;
+    // Capture previous values so we can restore on unmount (SPA nav back to a non-Invest route).
+    const prevTitle = document.title;
+    const prevDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.getAttribute('content') ?? '';
+    const prevRobots = document.querySelector<HTMLMetaElement>('meta[name="robots"]')?.getAttribute('content') ?? PREVIOUS_DEFAULTS.robots;
+    const prevOgTitle = document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.getAttribute('content') ?? '';
+    const prevOgDescription = document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.getAttribute('content') ?? '';
+    const prevOgUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.getAttribute('content') ?? '';
+    const prevOgType = document.querySelector<HTMLMetaElement>('meta[property="og:type"]')?.getAttribute('content') ?? '';
+    const prevOgImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.getAttribute('content') ?? '';
+    const prevCanonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ?? '';
+
     document.title = meta.title;
     setMetaContent('description', meta.description);
     setMetaContent('robots', meta.robots);
@@ -59,8 +69,15 @@ export function useRouteMeta(meta: RouteMeta) {
     if (meta.canonical) setCanonical(window.location.origin + meta.canonical);
 
     return () => {
-      document.title = previousTitle;
-      setMetaContent('robots', PREVIOUS_DEFAULTS.robots);
+      document.title = prevTitle;
+      setMetaContent('description', prevDescription);
+      setMetaContent('robots', prevRobots);
+      setOgContent('og:title', prevOgTitle);
+      setOgContent('og:description', prevOgDescription);
+      setOgContent('og:url', prevOgUrl);
+      setOgContent('og:type', prevOgType);
+      setOgContent('og:image', prevOgImage);
+      setCanonical(prevCanonical);
     };
   }, [meta.title, meta.description, meta.robots, meta.canonical, meta.ogImage]);
 }
