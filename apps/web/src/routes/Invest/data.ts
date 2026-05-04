@@ -63,12 +63,12 @@ export const impactSplit: ImpactSplit = {
 const STATION_OPERATIONAL = new Map<string, { dailyKwh: number; cumulativeKrw: number; status: 'ok' | 'maintenance' }>([
   ['ULJN-001', { dailyKwh: 124.6, cumulativeKrw: 4_812_400, status: 'ok' }],
   ['ULJN-002', { dailyKwh: 122.1, cumulativeKrw: 4_768_900, status: 'ok' }],
-  ['ULJN-003', { dailyKwh: 119.8, cumulativeKrw: 4_701_200, status: 'ok' }],
-  ['ULJN-004', { dailyKwh: 0,     cumulativeKrw: 4_690_300, status: 'maintenance' }],
-  ['ULJN-005', { dailyKwh: 125.2, cumulativeKrw: 4_854_100, status: 'ok' }],
-  ['ULJN-006', { dailyKwh: 121.4, cumulativeKrw: 4_792_600, status: 'ok' }],
-  ['ULJN-007', { dailyKwh: 123.7, cumulativeKrw: 4_823_400, status: 'ok' }],
-  ['ULJN-008', { dailyKwh: 120.5, cumulativeKrw: 4_745_800, status: 'ok' }],
+  ['ULJN-007', { dailyKwh: 119.8, cumulativeKrw: 4_701_200, status: 'ok' }],
+  ['ULJN-014', { dailyKwh: 0,     cumulativeKrw: 4_690_300, status: 'maintenance' }],
+  ['ULJN-023', { dailyKwh: 125.2, cumulativeKrw: 4_854_100, status: 'ok' }],
+  ['ULJN-031', { dailyKwh: 121.4, cumulativeKrw: 4_792_600, status: 'ok' }],
+  ['ULJN-073', { dailyKwh: 123.7, cumulativeKrw: 4_823_400, status: 'ok' }],
+  ['ULJN-089', { dailyKwh: 120.5, cumulativeKrw: 4_745_800, status: 'ok' }],
 ]);
 
 export const stationCards: ReadonlyArray<StationCard> = BUILDINGS
