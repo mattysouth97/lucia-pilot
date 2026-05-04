@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import { AppShell } from '@/components/AppShell';
@@ -10,6 +10,11 @@ import { Dashboard } from '@/routes/Dashboard';
 import { InstallSimulator } from '@/routes/InstallSimulator';
 import { MapExplorer } from '@/routes/MapExplorer';
 import { ResidentPortal } from '@/routes/ResidentPortal';
+
+const Landing = lazy(() => import('@/routes/Invest').then(m => ({ default: m.Landing })));
+const LandingShell = lazy(() =>
+  import('@/routes/Invest/LandingShell').then(m => ({ default: m.LandingShell })),
+);
 
 // FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
 //   개요             → /
@@ -67,16 +72,35 @@ function AppInner() {
   };
 
   return (
-    <AppShell tab={tab} setTab={setTab}>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/buildings/:id" element={<BuildingDetail />} />
-        <Route path="/portal/:user_id" element={<ResidentPortal />} />
-        <Route path="/simulator" element={<InstallSimulator />} />
-        <Route path="/map" element={<MapExplorer />} />
-        <Route path="/admin" element={<AdminConsole />} />
-      </Routes>
-    </AppShell>
+    <Routes>
+      <Route
+        path="/invest/*"
+        element={
+          <Suspense fallback={null}>
+            <LandingShell>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+              </Routes>
+            </LandingShell>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          <AppShell tab={tab} setTab={setTab}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/buildings/:id" element={<BuildingDetail />} />
+              <Route path="/portal/:user_id" element={<ResidentPortal />} />
+              <Route path="/simulator" element={<InstallSimulator />} />
+              <Route path="/map" element={<MapExplorer />} />
+              <Route path="/admin" element={<AdminConsole />} />
+            </Routes>
+          </AppShell>
+        }
+      />
+    </Routes>
   );
 }
 
