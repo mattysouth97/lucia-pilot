@@ -24,9 +24,9 @@ export function Disclosure() {
             <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', margin: '0 0 16px', letterSpacing: '-0.015em' }}>
               {FAQ_TITLE}
             </h2>
-            <div role="list">
+            <div>
               {FAQ_ITEMS.map(item => (
-                <details key={item.question} role="listitem" style={{ borderBottom: '1px solid var(--line)', padding: '12px 0' }}>
+                <details key={item.question} style={{ borderBottom: '1px solid var(--line)', padding: '12px 0' }}>
                   <summary style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', cursor: 'pointer', listStyle: 'revert', letterSpacing: '-0.005em' }}>
                     {item.question}
                   </summary>
