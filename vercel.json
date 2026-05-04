@@ -9,5 +9,8 @@
       "source": "/((?!invest($|/)).*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
+  ],
+  "rewrites": [
+    { "source": "/((?!api|_next|favicon|robots|og-default).*)", "destination": "/index.html" }
   ]
 }
