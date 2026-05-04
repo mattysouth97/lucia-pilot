@@ -8,6 +8,15 @@ import { useAuth } from '@/auth/AuthProvider';
 import { DEMO_ACCOUNTS } from '@/auth/demoAccounts';
 import type { Role } from '@/auth/types';
 
+// FR-A-001 — open-redirect guard. Only honor relative paths beginning with a
+// single "/" (rejects "//evil.com" protocol-relative and absolute URLs).
+function safeRedirect(raw: string | null): string {
+  if (!raw) return '/';
+  if (/^\/[^/\\]/.test(raw)) return raw;
+  if (raw === '/') return '/';
+  return '/';
+}
+
 export function RoleTab({ role }: { role: Role }) {
   const { login, loginAs } = useAuth();
   const navigate = useNavigate();
@@ -16,8 +25,7 @@ export function RoleTab({ role }: { role: Role }) {
 
   const onPicked = (userId: string) => {
     login(userId);
-    const redirect = params.get('redirect') ?? '/';
-    navigate(redirect);
+    navigate(safeRedirect(params.get('redirect')));
   };
 
   return (
@@ -30,7 +38,7 @@ export function RoleTab({ role }: { role: Role }) {
           type="button"
           onClick={() => {
             loginAs(role);
-            navigate(params.get('redirect') ?? '/');
+            navigate(safeRedirect(params.get('redirect')));
           }}
           style={{
             marginTop: 8, fontSize: 13, color: 'var(--accent-ink)', fontWeight: 600,
