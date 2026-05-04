@@ -5,6 +5,7 @@ import { HowItWorks } from './sections/HowItWorks';
 import { ImpactStrip } from './sections/ImpactStrip';
 import { LiveLedgerRibbon } from './sections/LiveLedgerRibbon';
 import { Disclosure } from './sections/Disclosure';
+import { PreFooterCTA } from './sections/PreFooterCTA';
 import { StationGrid } from './sections/StationGrid';
 import { TrustGrid } from './sections/TrustGrid';
 
@@ -20,6 +21,7 @@ export function Landing() {
         <StationGrid />
         <TrustGrid />
         <Disclosure />
+        <PreFooterCTA />
       </main>
     </>
   );
