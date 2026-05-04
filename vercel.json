@@ -29,5 +29,8 @@
       "source": "/map",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
+  ],
+  "rewrites": [
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
