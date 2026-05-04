@@ -5,6 +5,7 @@ import { HowItWorks } from './sections/HowItWorks';
 import { ImpactStrip } from './sections/ImpactStrip';
 import { LiveLedgerRibbon } from './sections/LiveLedgerRibbon';
 import { StationGrid } from './sections/StationGrid';
+import { TrustGrid } from './sections/TrustGrid';
 
 export function Landing() {
   return (
@@ -16,6 +17,7 @@ export function Landing() {
         <HowItWorks />
         <LiveLedgerRibbon />
         <StationGrid />
+        <TrustGrid />
       </main>
     </>
   );
