@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from './App.js';
+import { AuthProvider } from './auth/AuthProvider';
 import { queryClient } from './lib/queryClient.js';
 import './index.css';
 
@@ -15,7 +16,9 @@ ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
