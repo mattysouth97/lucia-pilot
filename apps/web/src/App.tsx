@@ -6,7 +6,6 @@ import { DemoProvider } from '@/demo/DemoController';
 import { ModalProvider } from '@/lib/modals';
 import { AdminConsole } from '@/routes/AdminConsole';
 import { BuildingDetail } from '@/routes/BuildingDetail';
-import { Dashboard } from '@/routes/Dashboard';
 import { InstallSimulator } from '@/routes/InstallSimulator';
 import { MapExplorer } from '@/routes/MapExplorer';
 import { ResidentPortal } from '@/routes/ResidentPortal';
@@ -23,6 +22,16 @@ const OnboardingPage = lazy(() =>
 );
 const DisclosurePages = lazy(() =>
   import('@/routes/Invest/placeholders/DisclosurePages').then(m => ({ default: m.DisclosurePages })),
+);
+const RoleRedirect = lazy(() =>
+  import('@/auth/RoleRedirect').then(m => ({ default: m.RoleRedirect })),
+);
+const RequireRole = lazy(() =>
+  import('@/auth/RequireRole').then(m => ({ default: m.RequireRole })),
+);
+const LoginPage = lazy(() => import('@/routes/Login').then(m => ({ default: m.LoginPage })));
+const InvestorHome = lazy(() =>
+  import('@/routes/Home/InvestorHome').then(m => ({ default: m.InvestorHome })),
 );
 
 // FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
@@ -82,6 +91,33 @@ function AppInner() {
 
   return (
     <Routes>
+      {/* Public — LandingShell */}
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={null}>
+            <LandingShell>
+              <LoginPage />
+            </LandingShell>
+          </Suspense>
+        }
+      />
+
+      {/* Logged-in investor — AppShell */}
+      <Route
+        path="/invest/dashboard"
+        element={
+          <Suspense fallback={null}>
+            <AppShell tab={tab} setTab={setTab}>
+              <RequireRole roles={['investor']}>
+                <InvestorHome />
+              </RequireRole>
+            </AppShell>
+          </Suspense>
+        }
+      />
+
+      {/* Public /invest surfaces — LandingShell */}
       <Route
         path="/invest/*"
         element={
@@ -97,17 +133,71 @@ function AppInner() {
           </Suspense>
         }
       />
+
+      {/* Everything else — AppShell with RequireRole gating */}
       <Route
         path="/*"
         element={
           <AppShell tab={tab} setTab={setTab}>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/buildings/:id" element={<BuildingDetail />} />
-              <Route path="/portal/:user_id" element={<ResidentPortal />} />
-              <Route path="/simulator" element={<InstallSimulator />} />
-              <Route path="/map" element={<MapExplorer />} />
-              <Route path="/admin" element={<AdminConsole />} />
+              <Route
+                path="/"
+                element={
+                  <Suspense fallback={null}>
+                    <RoleRedirect />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/buildings/:id"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <BuildingDetail />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/portal/:user_id"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['resident']}>
+                      <ResidentPortal />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/simulator"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <InstallSimulator />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/map"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <MapExplorer />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <AdminConsole />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
             </Routes>
           </AppShell>
         }
