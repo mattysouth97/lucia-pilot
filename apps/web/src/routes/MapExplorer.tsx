@@ -563,7 +563,7 @@ function HeroBand({
   onClear: () => void;
 }) {
   return (
-    <section className="hero-band" style={{ background: '#0E5E42' }}>
+    <section className="hero-band" style={{ background: '#0F2563' }}>
       <div className="hero-band-top">
         <div className="hero-band-meta">
           <span className="num">매입임대주택 {total}동</span>
@@ -590,7 +590,7 @@ function HeroBand({
         <div className="hero-headline-value">
           <span>
             {filteredCount.toLocaleString('ko-KR')}
-            <span style={{ fontSize: '0.5em', color: '#8FB8A6', marginLeft: 8 }}>
+            <span style={{ fontSize: '0.5em', color: '#8BB4E8', marginLeft: 8 }}>
               / {total}
             </span>
           </span>

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 // Health check result shape — real connectivity checks land in wk6.
 // P0: returns 'ok' stubs so the skeleton server test passes.

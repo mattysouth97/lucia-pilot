@@ -1,8 +1,9 @@
 import 'dotenv/config';
-import { randomUUID } from 'node:crypto';
+
+import { GenerationEventInput } from '@lucia/contracts';
 import * as mqtt from 'mqtt';
 import pino from 'pino';
-import { GenerationEventInput } from '@lucia/contracts';
+
 import { solarKwhAt } from './solar.js';
 
 // --- Configuration ---

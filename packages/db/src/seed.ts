@@ -13,12 +13,14 @@
  * Run:
  *   DATABASE_URL=postgres://... pnpm --filter @lucia/db seed
  */
+/* eslint-disable no-console */
 
 import 'dotenv/config';
+import { SHARE_RATIO_PINNED, SUBSIDY_PINNED } from '@lucia/contracts';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+
 import * as schema from './schema/index.js';
-import { SHARE_RATIO_PINNED, SUBSIDY_PINNED } from '@lucia/contracts';
 
 // ---------------------------------------------------------------------------
 // Config

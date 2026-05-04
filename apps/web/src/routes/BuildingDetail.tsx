@@ -91,7 +91,7 @@ const SETTLEMENTS: SettlementRow[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const STATUS_TONE: Record<Inverter['status'], { color: string; label: string }> = {
-  ok: { color: '#10B981', label: '정상' },
+  ok: { color: '#1264D3', label: '정상' },
   warn: { color: '#F59E0B', label: '경고' },
   alert: { color: '#F43F5E', label: '오류' },
 };
@@ -214,21 +214,21 @@ export function BuildingDetail() {
             <ComposedChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="bdGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#1264D3" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#1264D3" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#F1F3F5" vertical={false} />
               <XAxis dataKey="t" axisLine={false} tickLine={false} tickMargin={10} />
               <YAxis axisLine={false} tickLine={false} tickMargin={6} width={48} />
               <Tooltip
-                cursor={{ stroke: '#10B981', strokeWidth: 1, strokeDasharray: '3 3' }}
+                cursor={{ stroke: '#1264D3', strokeWidth: 1, strokeDasharray: '3 3' }}
                 contentStyle={{ borderRadius: 12, border: '1px solid #E2E5EA', fontSize: 12 }}
               />
               <Area
                 type="monotone"
                 dataKey="gen"
-                stroke="#10B981"
+                stroke="#1264D3"
                 strokeWidth={2.5}
                 fill="url(#bdGrad)"
               />
@@ -358,7 +358,7 @@ export function BuildingDetail() {
               }}
             >
               <span style={{ color: '#6B7280' }}>1,643세대 균등</span>
-              <span className="num" style={{ fontWeight: 700, color: '#047857' }}>
+              <span className="num" style={{ fontWeight: 700, color: '#0D4AA0' }}>
                 {fmt.won(6420)}/세대
               </span>
             </div>
@@ -414,7 +414,7 @@ export function BuildingDetail() {
                   </td>
                   <td
                     className="num"
-                    style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#047857' }}
+                    style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#0D4AA0' }}
                   >
                     {fmt.won(row.spc)}
                   </td>

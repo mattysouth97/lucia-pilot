@@ -8,33 +8,37 @@ interface BottomNavProps {
 }
 
 interface NavItem {
+  // Routing key — must match the corresponding Topbar tab value exactly.
+  value: string;
+  // Short display label — keeps each item narrow enough for a 7-up flex row on small viewports.
   label: string;
   icon: ReactNode;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: '개요',       icon: Icons['Home'] },
-  { label: '정산 원장',  icon: Icons['Coin'] },
-  { label: '동별 모니터', icon: Icons['Map'] },
-  { label: '감사·보고',  icon: Icons['Chain'] },
-  { label: '후보지 지도', icon: Icons['Search'] },
-  { label: '관리자',     icon: Icons['Settings'] },
+  { value: '개요',           label: '개요',   icon: Icons['Home'] },
+  { value: '정산 원장',      label: '원장',   icon: Icons['Coin'] },
+  { value: '동별 모니터',    label: '모니터', icon: Icons['Map'] },
+  { value: '감사·보고',      label: '보고',   icon: Icons['Chain'] },
+  { value: '후보지 지도',    label: '지도',   icon: Icons['Search'] },
+  { value: '투자 시뮬레이터', label: '시뮬',   icon: Icons['Chart'] },
+  { value: '관리자',         label: '관리',   icon: Icons['Settings'] },
 ];
 
 // BottomNav — fixed bottom navigation bar for <768 px viewports.
 // Visibility is controlled purely by CSS media query (display:none at >=768px)
 // so there is no hydration jank from a JS useMediaQuery hook.
-// Calls the same setTab callback used by the Topbar.
+// Calls the same setTab callback used by the Topbar — values must match Topbar TABS exactly.
 export function BottomNav({ tab, setTab }: BottomNavProps) {
   return (
     <nav className="bottom-nav" aria-label="하단 내비게이션">
       {NAV_ITEMS.map((item) => {
-        const active = tab === item.label;
+        const active = tab === item.value;
         return (
           <button
-            key={item.label}
+            key={item.value}
             className={`bottom-nav-item${active ? ' is-active' : ''}`}
-            onClick={() => setTab(item.label)}
+            onClick={() => setTab(item.value)}
             aria-current={active ? 'page' : undefined}
           >
             {item.icon}

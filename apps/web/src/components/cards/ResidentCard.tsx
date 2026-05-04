@@ -18,7 +18,7 @@ export function ResidentCard() {
       {/* gradient header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 60%, #fff 100%)',
+          background: 'linear-gradient(135deg, #EBF2FF 0%, #EFF5FF 60%, #fff 100%)',
           padding: '20px 22px 16px',
           borderBottom: '1px solid var(--line)',
         }}
@@ -42,7 +42,7 @@ export function ResidentCard() {
               width: 44,
               height: 44,
               borderRadius: 999,
-              background: 'linear-gradient(135deg, #6EE7B7, #06B6A2)',
+              background: 'linear-gradient(135deg, #6BA8F0, #3B82F6)',
               color: '#fff',
               fontWeight: 700,
               fontSize: 14,
@@ -63,7 +63,7 @@ export function ResidentCard() {
 
         {/* 이번 달 환원 금액 */}
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11, color: '#047857', fontWeight: 600, marginBottom: 4 }}>
+          <div style={{ fontSize: 11, color: '#0D4AA0', fontWeight: 600, marginBottom: 4 }}>
             이번 달 환원 금액
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -78,9 +78,9 @@ export function ResidentCard() {
               style={{
                 marginLeft: 6,
                 fontSize: 11,
-                color: '#059669',
+                color: '#1264D3',
                 fontWeight: 600,
-                background: '#D1FAE5',
+                background: '#DBEAFE',
                 padding: '2px 8px',
                 borderRadius: 999,
               }}
@@ -112,7 +112,7 @@ export function ResidentCard() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: '#6B7280' }}>1,643세대 균등 분배</span>
-            <span className="num" style={{ fontWeight: 700, color: '#047857' }}>
+            <span className="num" style={{ fontWeight: 700, color: '#0D4AA0' }}>
               ÷ 1,643 = 6,420원
             </span>
           </div>

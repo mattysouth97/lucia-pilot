@@ -32,6 +32,7 @@ MIRROR="${LUCIA_BUILD_MIRROR:-C:/Users/Nam/lucia-build}"
 # Excludes: node_modules, dist, .vite, .turbo, build artifacts.
 PATHS=(
   "apps/web/src"
+  "apps/web/tests"
   "apps/web/index.html"
   "apps/web/tsconfig.json"
   "apps/web/tsconfig.node.json"
@@ -50,6 +51,7 @@ PATHS=(
   "tsconfig.base.json"
   "package.json"
   "pnpm-workspace.yaml"
+  "eslint.config.js"
 )
 
 cmd="${1:-sync}"

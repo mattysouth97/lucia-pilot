@@ -28,7 +28,7 @@ function msToS(ms: number): string {
 }
 
 function passColor(ms: number, limit: number): string {
-  return ms <= limit ? '#047857' : '#BE123C';
+  return ms <= limit ? '#0D4AA0' : '#BE123C';
 }
 
 export function LoadTestCard() {
@@ -61,8 +61,8 @@ export function LoadTestCard() {
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: '#047857',
-            background: '#ECFDF5',
+            color: '#0D4AA0',
+            background: '#EBF2FF',
             padding: '4px 10px',
             borderRadius: 999,
             whiteSpace: 'nowrap',
@@ -156,7 +156,7 @@ export function LoadTestCard() {
                     style={{
                       flex: barFill,
                       background: settlePass && dashPass
-                        ? 'linear-gradient(90deg, #6EE7B7, #10B981)'
+                        ? 'linear-gradient(90deg, #6BA8F0, #1264D3)'
                         : 'linear-gradient(90deg, #FCA5A5, #F43F5E)',
                       borderRadius: '999px 0 0 999px',
                     }}
@@ -189,7 +189,7 @@ export function LoadTestCard() {
         }}
       >
         <span>AWS m6i.2xlarge · k6 + xk6-mqtt</span>
-        <span style={{ color: '#047857', fontWeight: 700 }}>
+        <span style={{ color: '#0D4AA0', fontWeight: 700 }}>
           NFR-1 통과 (4.68s · 2.94s)
         </span>
       </div>

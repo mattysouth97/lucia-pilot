@@ -76,8 +76,8 @@ export function BlockchainCard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: 999, background: '#10B981' }} />
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: '#047857' }}>Hyperledger Fabric · LIVE</span>
+            <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: 999, background: '#1264D3' }} />
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: '#0D4AA0' }}>Hyperledger Fabric · LIVE</span>
           </div>
           <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>블록체인 원장 라이브</div>
           <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>변조 불가 · 모든 정산 영구 기록</div>
@@ -140,7 +140,7 @@ export function BlockchainCard() {
                 {rejected ? 'REJECTED' : `${tx.amount?.toFixed(1)}원`}
               </span>
 
-              <span style={{ color: rejected ? '#BE123C' : '#10B981', display: 'grid', placeItems: 'center' }}>
+              <span style={{ color: rejected ? '#BE123C' : '#1264D3', display: 'grid', placeItems: 'center' }}>
                 {rejected ? Icons.Cross : Icons.Check}
               </span>
             </div>

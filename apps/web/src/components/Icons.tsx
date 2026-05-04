@@ -79,4 +79,5 @@ export const Icons: Record<string, ReactNode> = {
     </>} />
   ),
   Spark: <Icon d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z" />,
+  Chat: <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
 };

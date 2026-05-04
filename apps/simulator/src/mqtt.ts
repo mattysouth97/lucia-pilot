@@ -10,9 +10,9 @@
  * All payloads are typed via @lucia/contracts.
  */
 
+import type { GenerationEventInput } from '@lucia/contracts';
 import * as mqttLib from 'mqtt';
 import type { MqttClient } from 'mqtt';
-import type { GenerationEventInput } from '@lucia/contracts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,6 +59,7 @@ export class MqttWrapper {
         return;
       }
       const building_id = parts[1];
+      if (!building_id) return;
 
       let payload: AnomalyInjectionPayload;
       try {

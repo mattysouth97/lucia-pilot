@@ -149,9 +149,9 @@ export function ReportModal({ onClose }: ReportModalProps) {
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 padding: '2px 8px',
                 borderRadius: 999,
-                background: '#ECFDF5',
-                border: '1px solid #6EE7B7',
-                color: '#047857',
+                background: '#EBF2FF',
+                border: '1px solid #6BA8F0',
+                color: '#0D4AA0',
                 fontSize: 10.5, fontWeight: 700,
                 letterSpacing: '0.02em',
                 lineHeight: 1.4,
@@ -195,7 +195,7 @@ export function ReportModal({ onClose }: ReportModalProps) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: 999,
-                  background: isDone ? '#10B981' : isActive ? '#0E1116' : '#E2E5EA',
+                  background: isDone ? '#1264D3' : isActive ? '#0E1116' : '#E2E5EA',
                   color: isDone || isActive ? '#fff' : '#9AA0AB',
                   display: 'grid', placeItems: 'center',
                   fontSize: 11, fontWeight: 700,
@@ -205,7 +205,7 @@ export function ReportModal({ onClose }: ReportModalProps) {
                 </div>
                 <span style={{
                   fontSize: 12.5, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#0E1116' : isDone ? '#047857' : '#9AA0AB',
+                  color: isActive ? '#0E1116' : isDone ? '#0D4AA0' : '#9AA0AB',
                 }}>
                   {labels[i]}
                 </span>
@@ -334,8 +334,8 @@ export function ReportModal({ onClose }: ReportModalProps) {
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <div style={{
                 width: 44, height: 44,
-                border: '3px solid #ECFDF5',
-                borderTopColor: '#10B981',
+                border: '3px solid #EBF2FF',
+                borderTopColor: '#1264D3',
                 borderRadius: 999,
                 margin: '0 auto 16px',
                 animation: 'spin 0.8s linear infinite',
@@ -351,7 +351,7 @@ export function ReportModal({ onClose }: ReportModalProps) {
               <div style={{
                 height: '100%',
                 width: `${progress}%`,
-                background: '#10B981',
+                background: '#1264D3',
                 borderRadius: 999,
                 transition: 'width .1s linear',
               }} />
@@ -370,10 +370,10 @@ export function ReportModal({ onClose }: ReportModalProps) {
 
         {/* Step 4: Done */}
         {step === 'done' && (
-          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 14, padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ background: '#EFF5FF', border: '1px solid #BFDBFE', borderRadius: 14, padding: '28px 24px', textAlign: 'center' }}>
             <div style={{
               width: 48, height: 48, borderRadius: 999,
-              background: '#10B981', color: '#fff',
+              background: '#1264D3', color: '#fff',
               display: 'grid', placeItems: 'center',
               margin: '0 auto 16px',
             }}>
@@ -381,7 +381,7 @@ export function ReportModal({ onClose }: ReportModalProps) {
                 <path d="m5 12 5 5L20 7" />
               </svg>
             </div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#047857', marginBottom: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#0D4AA0', marginBottom: 6 }}>
               보고서 생성 완료
             </div>
             <div style={{ fontSize: 12.5, color: '#6B7280', marginBottom: 20 }}>

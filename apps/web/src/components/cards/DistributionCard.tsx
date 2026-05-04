@@ -42,9 +42,9 @@ const DEFAULT_ITEMS: SettlementItem[] = [
 ];
 
 const DEFAULT_GROUPS: DistributionGroup[] = [
-  { id: 'lh',      label: 'LH 매입임대',    households: 1643, ratio: 0.642, perHH: 6420,  color: '#10B981' },
-  { id: 'kookmin', label: '국민임대',        households: 280,  ratio: 0.109, perHH: 7420,  color: '#34D399' },
-  { id: 'energy',  label: '에너지소외계층', households: 916,  ratio: 0.358, perHH: 18195, color: '#06B6A2' },
+  { id: 'lh',      label: 'LH 매입임대',    households: 1643, ratio: 0.642, perHH: 6420,  color: '#1264D3' },
+  { id: 'kookmin', label: '국민임대',        households: 280,  ratio: 0.109, perHH: 7420,  color: '#4D91E8' },
+  { id: 'energy',  label: '에너지소외계층', households: 916,  ratio: 0.358, perHH: 18195, color: '#3B82F6' },
 ];
 
 export function DistributionCard({ data }: DistributionCardProps) {
@@ -55,7 +55,7 @@ export function DistributionCard({ data }: DistributionCardProps) {
   const totalOut = -items.filter(x => x.type === 'out').reduce((s, x) => s + x.value, 0);
 
   return (
-    <div className="card" style={{ padding: 24 }}>
+    <div className="card card-pad">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
@@ -73,32 +73,25 @@ export function DistributionCard({ data }: DistributionCardProps) {
         <Btn variant="secondary" size="sm" icon={Icons.Share}>전체 28개</Btn>
       </div>
 
-      {/* Revenue strip */}
-      <div style={{
-        background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
-        border: '1px solid #D1FAE5',
-        borderRadius: 14,
-        padding: '16px 20px',
-        marginBottom: 18,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
+      {/* Revenue strip — stacks on <520px so the 28px numerals don't overflow. */}
+      <div className="revenue-strip">
         <div>
-          <div style={{ fontSize: 11.5, color: '#047857', fontWeight: 600, marginBottom: 4 }}>총 발전수익</div>
-          <div className="num" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.025em' }}>
+          <div style={{ fontSize: 11.5, color: '#0D4AA0', fontWeight: 600, marginBottom: 4 }}>총 발전수익</div>
+          <div className="num revenue-strip-num">
             248.0<span style={{ fontSize: 14, color: '#6B7280', fontWeight: 500, marginLeft: 4 }}>원</span>
           </div>
         </div>
-        <div style={{ color: '#059669', fontSize: 22, fontWeight: 300 }}>→</div>
+        <div className="revenue-strip-op">→</div>
         <div>
           <div style={{ fontSize: 11.5, color: '#BE123C', fontWeight: 600, marginBottom: 4 }}>분배·수수료</div>
-          <div className="num" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.025em' }}>
+          <div className="num revenue-strip-num">
             -114.7<span style={{ fontSize: 14, color: '#6B7280', fontWeight: 500, marginLeft: 4 }}>원</span>
           </div>
         </div>
-        <div style={{ color: '#059669', fontSize: 22, fontWeight: 300 }}>=</div>
+        <div className="revenue-strip-op">=</div>
         <div>
           <div style={{ fontSize: 11.5, color: '#0E1116', fontWeight: 600, marginBottom: 4 }}>SPC 순적립</div>
-          <div className="num" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.025em' }}>
+          <div className="num revenue-strip-num">
             133.3<span style={{ fontSize: 14, color: '#6B7280', fontWeight: 500, marginLeft: 4 }}>원</span>
           </div>
         </div>
@@ -130,14 +123,14 @@ export function DistributionCard({ data }: DistributionCardProps) {
                 <div style={{
                   height: '100%', width: `${pct}%`,
                   background: pos
-                    ? 'linear-gradient(90deg, #34D399, #10B981)'
+                    ? 'linear-gradient(90deg, #4D91E8, #1264D3)'
                     : 'linear-gradient(90deg, #FDA4AF, #F43F5E)',
                   borderRadius: 999,
                 }} />
               </div>
               <span className="num" style={{
                 fontSize: 13.5, fontWeight: 700, textAlign: 'right',
-                color: pos ? '#047857' : '#BE123C',
+                color: pos ? '#0D4AA0' : '#BE123C',
               }}>
                 {pos ? '+' : ''}{it.value.toFixed(2)}원
               </span>

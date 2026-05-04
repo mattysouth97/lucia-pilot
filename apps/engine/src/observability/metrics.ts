@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import client from 'prom-client';
 
 // Collect default Node.js metrics (GC, memory, event loop lag…)

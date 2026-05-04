@@ -45,13 +45,13 @@ export function Sidebar() {
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
           <span className="num mono" style={{ fontSize: 11, color: '#9AA0AB' }}>04:18 / 10:00</span>
-          <span style={{ fontSize: 11, color: '#047857', fontWeight: 700 }}>43%</span>
+          <span style={{ fontSize: 11, color: '#0D4AA0', fontWeight: 700 }}>43%</span>
         </div>
         <div style={{ height: 4, background: '#F4F5F7', borderRadius: 999, overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: '43%',
-            background: 'linear-gradient(90deg, #34D399, #10B981)',
+            background: 'linear-gradient(90deg, #4D91E8, #1264D3)',
           }} />
         </div>
       </div>
@@ -68,7 +68,7 @@ export function Sidebar() {
               alignItems: 'center',
               padding: '8px 4px',
               borderRadius: 8,
-              background: s.active ? '#F0FDF4' : 'transparent',
+              background: s.active ? '#EFF5FF' : 'transparent',
             }}
           >
             <span
@@ -76,10 +76,10 @@ export function Sidebar() {
                 width: 14,
                 height: 14,
                 borderRadius: 999,
-                background: s.done ? '#10B981' : '#fff',
+                background: s.done ? '#1264D3' : '#fff',
                 border: s.active
-                  ? '2px solid #10B981'
-                  : `1.5px solid ${s.done ? '#10B981' : '#E2E5EA'}`,
+                  ? '2px solid #1264D3'
+                  : `1.5px solid ${s.done ? '#1264D3' : '#E2E5EA'}`,
                 display: 'grid',
                 placeItems: 'center',
                 color: '#fff',

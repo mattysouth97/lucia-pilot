@@ -1,4 +1,5 @@
 import { describe, it } from 'vitest';
+
 import { Building } from '../../domain/building.js';
 import { Settlement } from '../../domain/settlement.js';
 import { TxStreamMessage } from '../../domain/tx-stream-message.js';

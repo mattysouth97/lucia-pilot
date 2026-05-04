@@ -254,7 +254,7 @@ export function AdminConsole() {
                   style={{
                     fontSize: 12,
                     color: injectStatus.startsWith('✓')
-                      ? '#047857'
+                      ? '#0D4AA0'
                       : injectStatus.startsWith('✗')
                         ? '#BE123C'
                         : '#6B7280',
@@ -312,7 +312,7 @@ export function AdminConsole() {
                     gap: 10,
                     padding: '8px 10px',
                     borderRadius: 8,
-                    background: isCurrent ? '#F0FDF4' : 'transparent',
+                    background: isCurrent ? '#EFF5FF' : 'transparent',
                     cursor: 'pointer',
                     width: '100%',
                     textAlign: 'left',
@@ -354,7 +354,7 @@ export function AdminConsole() {
                           style={{
                             height: '100%',
                             width: `${pctOfStep}%`,
-                            background: 'linear-gradient(90deg,#34D399,#10B981)',
+                            background: 'linear-gradient(90deg,#4D91E8,#1264D3)',
                           }}
                         />
                       </div>
@@ -438,7 +438,7 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
         step={step}
         value={value}
         onChange={(e) => onChange(Number.parseFloat(e.target.value))}
-        style={{ width: '100%', accentColor: '#10B981' }}
+        style={{ width: '100%', accentColor: '#1264D3' }}
       />
     </div>
   );

@@ -3,9 +3,8 @@
 // FR-M-007: Mock auth via token; PII masked per NFR-4.
 import { pgTable, text } from 'drizzle-orm/pg-core';
 
-import { beneficiaryCategoryEnum } from './beneficiaries.js';
+import { beneficiaries, beneficiaryCategoryEnum } from './beneficiaries.js';
 import { buildings } from './buildings.js';
-import { beneficiaries } from './beneficiaries.js';
 
 export const residents = pgTable('residents', {
   resident_id: text('resident_id').primaryKey(),

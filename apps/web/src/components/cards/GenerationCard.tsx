@@ -193,8 +193,8 @@ export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
           <ComposedChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="todayGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.16} />
-                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                <stop offset="0%" stopColor="#1264D3" stopOpacity={0.16} />
+                <stop offset="100%" stopColor="#1264D3" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid stroke="#E8EAEE" vertical={false} />
@@ -213,7 +213,7 @@ export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
               style={{ fontSize: 11, fill: '#8A93A0' }}
             />
             <Tooltip
-              cursor={{ stroke: '#10B981', strokeWidth: 1, strokeDasharray: '3 3' }}
+              cursor={{ stroke: '#1264D3', strokeWidth: 1, strokeDasharray: '3 3' }}
               contentStyle={{
                 borderRadius: 4,
                 border: '1px solid #D5D9DF',
@@ -229,7 +229,7 @@ export function GenerationCard({ hourlyData }: GenerationCardProps = {}) {
             <Area
               type="monotone"
               dataKey="today"
-              stroke="#10B981"
+              stroke="#1264D3"
               strokeWidth={2}
               fill="url(#todayGrad)"
             />

@@ -21,24 +21,24 @@ function renderAt(initialPath: string) {
   );
 }
 
-describe('smoke — four routes render their placeholder text', () => {
-  it('/ renders Dashboard placeholder (FR-M-001)', () => {
+describe('smoke — four routes render without crashing (FR-M-001/002/007, FR-O-003)', () => {
+  it('/ renders Dashboard (FR-M-001)', () => {
     renderAt('/');
-    expect(screen.getByText(/FR-M-001 placeholder/i)).toBeDefined();
+    expect(screen.getByText(/이달 정산 매출/)).toBeDefined();
   });
 
-  it('/buildings/:id renders BuildingDetail placeholder (FR-M-002)', () => {
+  it('/buildings/:id renders BuildingDetail (FR-M-002)', () => {
     renderAt('/buildings/ULJN-001');
-    expect(screen.getByText(/FR-M-002 placeholder/i)).toBeDefined();
+    expect(screen.getAllByText(/발전량/).length).toBeGreaterThan(0);
   });
 
-  it('/portal/:user_id renders ResidentPortal placeholder (FR-M-007)', () => {
+  it('/portal/:user_id renders ResidentPortal (FR-M-007)', () => {
     renderAt('/portal/user-42');
-    expect(screen.getByText(/FR-M-007 placeholder/i)).toBeDefined();
+    expect(screen.getByText(/안녕하세요/)).toBeDefined();
   });
 
-  it('/admin renders AdminConsole placeholder (FR-O-003)', () => {
+  it('/admin renders AdminConsole (FR-O-003)', () => {
     renderAt('/admin');
-    expect(screen.getByText(/FR-O-003 placeholder/i)).toBeDefined();
+    expect(screen.getByText(/관리자 콘솔/)).toBeDefined();
   });
 });

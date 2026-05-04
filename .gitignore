@@ -31,6 +31,12 @@ pnpm-debug.log*
 .omc/state/
 .omc/logs/
 .omc/sessions/
+.omc/artifacts/
+
+# Agent / IDE caches (local-only)
+.claude/
+.cursor/
+.playwright-mcp/
 
 # IDE
 .idea/
@@ -38,6 +44,10 @@ pnpm-debug.log*
 !.vscode/settings.example.json
 *.swp
 *.swo
+
+# Local QA screenshots (root-only — keep src/ assets if any)
+/*.png
+/Environment changes - *.txt
 
 # OS
 .DS_Store

@@ -102,20 +102,20 @@ const src: SankeyNode = { x: 0,   y: 90,  h: 100, label: '발전수익',       v
 // Tuples (fixed-length) so positional access (rev[0], dst[5], etc.) is typed
 // as SankeyNode rather than SankeyNode | undefined under noUncheckedIndexedAccess.
 const rev: readonly [SankeyNode, SankeyNode] = [
-  { x: 180, y: 50,  h: 70,  label: 'SMP 매출', val: '19.4M원', color: '#10B981' },
-  { x: 180, y: 140, h: 100, label: 'REC 매출', val: '13.0M원', color: '#06B6A2' },
+  { x: 180, y: 50,  h: 70,  label: 'SMP 매출', val: '19.4M원', color: '#1264D3' },
+  { x: 180, y: 140, h: 100, label: 'REC 매출', val: '13.0M원', color: '#3B82F6' },
 ];
 
 const mid: readonly [SankeyNode, SankeyNode, SankeyNode] = [
-  { x: 400, y: 30,  h: 70,  label: '주거비 환원 41%', val: '13.3M원', color: '#10B981' },
+  { x: 400, y: 30,  h: 70,  label: '주거비 환원 41%', val: '13.3M원', color: '#1264D3' },
   { x: 400, y: 120, h: 30,  label: 'O&M·SaaS 9%',    val: '2.9M원',  color: '#F59E0B' },
   { x: 400, y: 165, h: 100, label: 'SPC 적립 50%',   val: '16.2M원', color: '#4F46E5' },
 ];
 
 const dst: readonly [SankeyNode, SankeyNode, SankeyNode, SankeyNode, SankeyNode, SankeyNode] = [
-  { x: 720, y: 10,  h: 30,  label: 'LH 매입임대 (1,643세대)', val: '8.5M원',  color: '#10B981' },
-  { x: 720, y: 50,  h: 12,  label: '국민임대 (280)',          val: '1.5M원',  color: '#34D399' },
-  { x: 720, y: 70,  h: 28,  label: '에너지소외 (916)',        val: '3.3M원',  color: '#06B6A2' },
+  { x: 720, y: 10,  h: 30,  label: 'LH 매입임대 (1,643세대)', val: '8.5M원',  color: '#1264D3' },
+  { x: 720, y: 50,  h: 12,  label: '국민임대 (280)',          val: '1.5M원',  color: '#4D91E8' },
+  { x: 720, y: 70,  h: 28,  label: '에너지소외 (916)',        val: '3.3M원',  color: '#3B82F6' },
   { x: 720, y: 110, h: 16,  label: 'TheKIE SaaS',            val: '1.7M원',  color: '#F59E0B' },
   { x: 720, y: 140, h: 14,  label: 'O&M 운영',               val: '1.2M원',  color: '#FBBF24' },
   { x: 720, y: 170, h: 95,  label: 'SPC 자본 적립',          val: '16.2M원', color: '#4F46E5' },
@@ -155,12 +155,12 @@ const srcV: SankeyNodeV = { x: 40, y: 20,  w: 280, h: 28, label: '발전수익',
 
 // Fixed-length tuples — preserves noUncheckedIndexedAccess discipline
 const revV: readonly [SankeyNodeV, SankeyNodeV] = [
-  { x: 40,  y: 160, w: 115, h: 28, label: 'SMP 매출', val: '19.4M원', color: '#10B981' },
-  { x: 163, y: 160, w: 157, h: 28, label: 'REC 매출', val: '13.0M원', color: '#06B6A2' },
+  { x: 40,  y: 160, w: 115, h: 28, label: 'SMP 매출', val: '19.4M원', color: '#1264D3' },
+  { x: 163, y: 160, w: 157, h: 28, label: 'REC 매출', val: '13.0M원', color: '#3B82F6' },
 ];
 
 const midV: readonly [SankeyNodeV, SankeyNodeV, SankeyNodeV] = [
-  { x: 40,  y: 320, w: 95,  h: 28, label: '주거비 환원 41%', val: '13.3M원', color: '#10B981' },
+  { x: 40,  y: 320, w: 95,  h: 28, label: '주거비 환원 41%', val: '13.3M원', color: '#1264D3' },
   { x: 143, y: 320, w: 41,  h: 28, label: 'O&M·SaaS 9%',    val: '2.9M원',  color: '#F59E0B' },
   { x: 192, y: 320, w: 136, h: 28, label: 'SPC 적립 50%',   val: '16.2M원', color: '#4F46E5' },
 ];
@@ -168,16 +168,16 @@ const midV: readonly [SankeyNodeV, SankeyNodeV, SankeyNodeV] = [
 // dst nodes arranged horizontally (widths proportional to flow magnitude)
 // x positions are cumulative: 40, 40+43=83, 83+17=100, 100+40=140, 140+23=163, 163+20=183
 const dstV: readonly [SankeyNodeV, SankeyNodeV, SankeyNodeV, SankeyNodeV, SankeyNodeV, SankeyNodeV] = [
-  { x: 40,  y: 490, w: 43,  h: 22, label: 'LH 매입임대 (1,643세대)', val: '8.5M원',  color: '#10B981' },
-  { x: 83,  y: 490, w: 17,  h: 22, label: '국민임대 (280)',          val: '1.5M원',  color: '#34D399' },
-  { x: 100, y: 490, w: 40,  h: 22, label: '에너지소외 (916)',        val: '3.3M원',  color: '#06B6A2' },
+  { x: 40,  y: 490, w: 43,  h: 22, label: 'LH 매입임대 (1,643세대)', val: '8.5M원',  color: '#1264D3' },
+  { x: 83,  y: 490, w: 17,  h: 22, label: '국민임대 (280)',          val: '1.5M원',  color: '#4D91E8' },
+  { x: 100, y: 490, w: 40,  h: 22, label: '에너지소외 (916)',        val: '3.3M원',  color: '#3B82F6' },
   { x: 140, y: 490, w: 23,  h: 22, label: 'TheKIE SaaS',            val: '1.7M원',  color: '#F59E0B' },
   { x: 163, y: 490, w: 20,  h: 22, label: 'O&M 운영',               val: '1.2M원',  color: '#FBBF24' },
   { x: 183, y: 490, w: 137, h: 22, label: 'SPC 자본 적립',          val: '16.2M원', color: '#4F46E5' },
 ];
 
 // Gradient colors indexed by flow group (same as horizontal)
-const FLOW_COLORS = ['#10B981', '#F59E0B', '#4F46E5', '#06B6A2', '#34D399'];
+const FLOW_COLORS = ['#1264D3', '#F59E0B', '#4F46E5', '#3B82F6', '#4D91E8'];
 
 export function SankeyCard({ data }: SankeyCardProps) {
   const totalRevenue    = data?.totalRevenue    ?? '총 32,356,400원';

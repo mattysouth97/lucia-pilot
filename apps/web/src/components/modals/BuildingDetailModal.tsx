@@ -27,7 +27,7 @@ const DocIcon = (
 );
 
 const STATUS_COLOR: Record<string, string> = {
-  ok: '#10B981',
+  ok: '#1264D3',
   warn: '#F59E0B',
   alert: '#F43F5E',
   maintenance: '#9AA0AB',
@@ -136,10 +136,10 @@ export function BuildingDetailModal({ building, onClose }: BuildingDetailModalPr
               unit: 'kWh',
               color: sevColor,
               delta: b.status === 'alert' ? '▼ 67.6%' : '▲ 4.2%',
-              deltaC: b.status === 'alert' ? '#BE123C' : '#047857',
+              deltaC: b.status === 'alert' ? '#BE123C' : '#0D4AA0',
             },
             { lbl: '현재 효율', val: b.status === 'alert' ? '28.4' : '94.8', unit: '%', color: sevColor },
-            { lbl: '환원 세대', val: fmt.n(inverterCnt * 24), unit: '세대', color: '#06B6A2' },
+            { lbl: '환원 세대', val: fmt.n(inverterCnt * 24), unit: '세대', color: '#1264D3' },
             { lbl: '누적 매출 (4월)', val: '16,432', unit: '천원', color: '#0E1116' },
           ].map((k, i) => (
             <div key={i} style={{

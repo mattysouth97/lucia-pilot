@@ -229,12 +229,12 @@ export function ResidentPortal() {
         <div
           style={{
             background:
-              'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 60%, #fff 100%)',
+              'linear-gradient(135deg, #EBF2FF 0%, #EFF5FF 60%, #fff 100%)',
             padding: '28px 30px 22px',
             borderBottom: '1px solid var(--line)',
           }}
         >
-          <div style={{ fontSize: 12.5, color: '#047857', fontWeight: 700, marginBottom: 8 }}>
+          <div style={{ fontSize: 12.5, color: '#0D4AA0', fontWeight: 700, marginBottom: 8 }}>
             {month} 환원 금액
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -249,9 +249,9 @@ export function ResidentPortal() {
               style={{
                 marginLeft: 8,
                 fontSize: 11.5,
-                color: '#059669',
+                color: '#1264D3',
                 fontWeight: 600,
-                background: '#D1FAE5',
+                background: '#DBEAFE',
                 padding: '3px 10px',
                 borderRadius: 999,
               }}
@@ -297,7 +297,7 @@ export function ResidentPortal() {
               <span style={{ color: '#6B7280' }}>
                 {fmt.n(resident.households)}세대 균등 분배
               </span>
-              <span className="num" style={{ fontWeight: 700, color: '#047857' }}>
+              <span className="num" style={{ fontWeight: 700, color: '#0D4AA0' }}>
                 ÷ {fmt.n(resident.households)} ={' '}
                 {fmt.won(resident.monthlySubsidyKrw)}
               </span>
@@ -344,7 +344,7 @@ export function ResidentPortal() {
             <tr>
               <td colSpan={2} style={{ paddingTop: 10, color: '#6B7280', fontSize: 12.5, fontWeight: 600 }}>합계</td>
               <td style={{ paddingTop: 10, textAlign: 'right' }}>
-                <span className="num" style={{ fontWeight: 700, color: '#047857', fontSize: 13 }}>{fmt.won(resident.monthlySubsidyKrw)}</span>
+                <span className="num" style={{ fontWeight: 700, color: '#0D4AA0', fontSize: 13 }}>{fmt.won(resident.monthlySubsidyKrw)}</span>
               </td>
             </tr>
           </tfoot>

@@ -1,9 +1,11 @@
-import Fastify, { FastifyInstance } from 'fastify';
 import sensible from '@fastify/sensible';
 import websocket from '@fastify/websocket';
+import Fastify from 'fastify';
+
 import { healthzPlugin } from './observability/healthz.js';
-import { metricsPlugin } from './observability/metrics.js';
 import { createLogger } from './observability/logger.js';
+import { metricsPlugin } from './observability/metrics.js';
+import { chatPlugin } from './routes/chat.js';
 
 export interface BuildServerOptions {
   /**
@@ -15,13 +17,13 @@ export interface BuildServerOptions {
   nodeEnv?: string;
 }
 
-export async function buildServer(opts: BuildServerOptions = {}): Promise<FastifyInstance> {
+export async function buildServer(opts: BuildServerOptions = {}) {
   const log = createLogger({
     level: opts.logLevel ?? process.env['LOG_LEVEL'] ?? 'info',
     nodeEnv: opts.nodeEnv ?? process.env['NODE_ENV'] ?? 'development',
   });
 
-  const app = Fastify({ logger: log });
+  const app = Fastify({ loggerInstance: log });
 
   // Core plugins
   await app.register(sensible);
@@ -30,6 +32,9 @@ export async function buildServer(opts: BuildServerOptions = {}): Promise<Fastif
   // Observability
   await app.register(healthzPlugin, { skipExternal: opts.skipExternal ?? false });
   await app.register(metricsPlugin);
+
+  // AI assistant
+  await app.register(chatPlugin);
 
   // --- REST API skeleton routes ---
   // Each route will gain Zod-validated request/response schemas from @lucia/contracts

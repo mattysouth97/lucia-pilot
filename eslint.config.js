@@ -1,7 +1,7 @@
 // Flat ESLint config (eslint v9). Per-package configs extend this via `extends`.
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
-import importPlugin from 'eslint-plugin-import';
+import importPlugin from 'eslint-plugin-import-x';
 import prettier from 'eslint-config-prettier';
 
 export default [

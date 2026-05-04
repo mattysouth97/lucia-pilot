@@ -1,7 +1,8 @@
 import 'dotenv/config';
+
 import { config } from './config.js';
-import { buildServer } from './server.js';
 import { createLogger } from './observability/logger.js';
+import { buildServer } from './server.js';
 
 const log = createLogger({ level: config.LOG_LEVEL, nodeEnv: config.NODE_ENV });
 

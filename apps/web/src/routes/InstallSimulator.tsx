@@ -357,7 +357,7 @@ function HeroBand({ model, onReset }: { model: Model; onReset: () => void }) {
   return (
     <section
       className="hero-band"
-      style={{ background: npvPositive ? '#0E5E42' : '#3F1D2E' }}
+      style={{ background: npvPositive ? '#0F2563' : '#3F1D2E' }}
     >
       <div className="hero-band-top">
         <div className="hero-band-meta">
@@ -389,8 +389,8 @@ function HeroBand({ model, onReset }: { model: Model; onReset: () => void }) {
           <span
             className="hero-headline-value-delta"
             style={{
-              background: npvPositive ? 'rgba(52, 211, 153, 0.18)' : 'rgba(244, 114, 182, 0.18)',
-              color: npvPositive ? '#34D399' : '#F472B6',
+              background: npvPositive ? 'rgba(18, 100, 211, 0.18)' : 'rgba(244, 114, 182, 0.18)',
+              color: npvPositive ? '#4D91E8' : '#F472B6',
             }}
           >
             {npvPositive ? '투자 적합' : '재검토 필요'}

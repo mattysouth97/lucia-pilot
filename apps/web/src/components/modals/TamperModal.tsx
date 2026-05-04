@@ -99,8 +99,8 @@ export function TamperModal({ onClose }: TamperModalProps) {
             </div>
           </div>
           <span style={{
-            fontSize: 11, fontWeight: 700, color: '#047857',
-            background: '#D1FAE5', padding: '4px 10px', borderRadius: 999,
+            fontSize: 11, fontWeight: 700, color: '#0D4AA0',
+            background: '#EBF2FF', padding: '4px 10px', borderRadius: 999,
             flexShrink: 0,
           }}>
             원장 무결성 유지
@@ -146,11 +146,11 @@ export function TamperModal({ onClose }: TamperModalProps) {
               해시 불일치 증거
             </div>
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: '#047857', fontWeight: 600, marginBottom: 6 }}>원본 해시 (원장)</div>
+              <div style={{ fontSize: 11, color: '#0D4AA0', fontWeight: 600, marginBottom: 6 }}>원본 해시 (원장)</div>
               <div style={{
-                background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8,
+                background: '#EFF5FF', border: '1px solid #BFDBFE', borderRadius: 8,
                 padding: '10px 12px', fontFamily: 'monospace', fontSize: 12,
-                color: '#047857', fontWeight: 700, wordBreak: 'break-all',
+                color: '#0D4AA0', fontWeight: 700, wordBreak: 'break-all',
               }}>
                 f7a2b9c1d4e83a12…3e91
               </div>
@@ -208,7 +208,7 @@ export function TamperModal({ onClose }: TamperModalProps) {
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12.5 }}>
                 <span style={{
                   width: 18, height: 18, borderRadius: 999,
-                  background: i < 2 ? '#10B981' : '#F43F5E',
+                  background: i < 2 ? '#1264D3' : '#F43F5E',
                   display: 'grid', placeItems: 'center',
                   flexShrink: 0,
                 }}>

@@ -125,10 +125,10 @@ export function BuildingsCard({ buildings }: BuildingsCardProps) {
               ? '#F43F5E'
               : b.status === 'warn'
               ? '#F59E0B'
-              : 'linear-gradient(90deg, #34D399, #10B981)';
+              : 'linear-gradient(90deg, #4D91E8, #1264D3)';
 
           const effColor =
-            b.eff < 50 ? '#BE123C' : b.eff < 85 ? '#B45309' : '#047857';
+            b.eff < 50 ? '#BE123C' : b.eff < 85 ? '#B45309' : '#0D4AA0';
 
           return (
             <div

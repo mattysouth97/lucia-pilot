@@ -100,7 +100,7 @@ export function RE100Card({ companies = DEFAULT_COMPANIES }: RE100CardProps) {
                       height: '100%',
                       width: `${Math.min(pct, 100)}%`,
                       background: isHigh
-                        ? 'linear-gradient(90deg, #34D399, #10B981)'
+                        ? 'linear-gradient(90deg, #4D91E8, #1264D3)'
                         : 'linear-gradient(90deg, #93C5FD, #4F46E5)',
                       borderRadius: 999,
                     }}
@@ -115,7 +115,7 @@ export function RE100Card({ companies = DEFAULT_COMPANIES }: RE100CardProps) {
                   style={{
                     fontSize: 12.5,
                     fontWeight: 700,
-                    color: isHigh ? '#047857' : '#374151',
+                    color: isHigh ? '#0D4AA0' : '#374151',
                   }}
                 >
                   {pct.toFixed(1)}%

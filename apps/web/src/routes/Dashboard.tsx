@@ -117,7 +117,7 @@ function HeroBand({ onReport }: HeroBandProps) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span className="live-dot" />
             <span>현재 발전</span>
-            <span className="num" style={{ color: '#34D399' }}>112동</span>
+            <span className="num" style={{ color: '#4D91E8' }}>112동</span>
             <span style={{ color: '#6B7180' }}>/ 116동</span>
           </span>
         </div>
@@ -184,7 +184,7 @@ function BlockchainIntegrityStrip() {
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
         <span className="live-dot" />
-        <span style={{ color: 'var(--accent-ink, #10B981)' }}>블록체인 검증 완료</span>
+        <span style={{ color: 'var(--accent-ink, #1264D3)' }}>블록체인 검증 완료</span>
       </span>
 
       <span style={{ color: 'var(--muted)' }}>·</span>
@@ -531,7 +531,7 @@ function IncomeChartCard() {
             />
             <Bar dataKey="revenue" radius={[3, 3, 0, 0]} maxBarSize={20}>
               {data.map((d, i) => (
-                <Cell key={i} fill={d.today ? '#10B981' : '#0A0C0F'} />
+                <Cell key={i} fill={d.today ? '#1264D3' : '#0A0C0F'} />
               ))}
             </Bar>
           </BarChart>

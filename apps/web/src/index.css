@@ -7,21 +7,21 @@
  */
 
 :root {
-  /* Page surface — neutrals tinted toward brand green hue (oklch chroma ≈0.005) */
-  --bg: #FBFBFA;
+  /* Page surface — cool neutrals, institutional blue tint */
+  --bg: #F5F7FA;
   --panel: #FFFFFF;
   --ink: #0A0C0F;
   --ink-2: #1F232A;
   --muted: #5C6470;
   --muted-2: #8A93A0;
-  --line: #E8EAEE;
-  --line-2: #D5D9DF;
-  --chip: #F1F2F4;
+  --line: #E2E6ED;
+  --line-2: #CDD2DB;
+  --chip: #EEF1F7;
 
-  /* The single accent. */
-  --accent: #10B981;
-  --accent-ink: #047857;
-  --accent-soft: #ECFDF5;
+  /* The single accent — institutional blue (UpBit-reference) */
+  --accent: #1264D3;
+  --accent-ink: #0D4AA0;
+  --accent-soft: #EBF2FF;
 
   /* Semantic state — earn their place, never decorate */
   --rose: #E11D48;
@@ -29,11 +29,11 @@
   --amber: #D97706;
   --amber-soft: #FFF4E0;
 
-  /* Topbar dark surface */
-  --bar: #0A0C0F;
+  /* Topbar — deep navy (institutional trust) */
+  --bar: #0C1B3F;
   --bar-ink: #FFFFFF;
-  --bar-ink-2: #B6BAC2;
-  --bar-line: #1E2228;
+  --bar-ink-2: #A8B4CC;
+  --bar-line: #162B55;
 
   /* Radii — audit-grade tightness */
   --r-sm: 4px;
@@ -292,7 +292,7 @@ a { color: inherit; text-decoration: none; }
 .topbar-shell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
   padding: 0 16px;
   height: 56px;
   background: var(--bar);
@@ -300,7 +300,7 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid var(--bar-line);
 }
 @media (min-width: 1024px) {
-  .topbar-shell { padding: 0 28px; gap: 24px; height: 60px; }
+  .topbar-shell { padding: 0 28px; gap: 6px; height: 60px; }
 }
 .topbar-tabs {
   display: none;
@@ -460,6 +460,42 @@ a { color: inherit; text-decoration: none; }
 }
 @media (min-width: 768px) { .grid-three { grid-template-columns: repeat(3, 1fr); } }
 
+/* DistributionCard revenue strip — stacks vertically on mobile, horizontal flow on tablet+.
+   Inline 28px numerals + arrow operators don't fit a 327px inner width; we hide the operators
+   and stack the three numbers below 520px so nothing overflows. */
+.revenue-strip {
+  background: linear-gradient(135deg, #EFF5FF 0%, #EBF2FF 100%);
+  border: 1px solid #C7D9F8;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 10px;
+  align-items: center;
+}
+@media (min-width: 520px) {
+  .revenue-strip {
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    column-gap: 10px;
+    padding: 16px 20px;
+  }
+}
+.revenue-strip-num {
+  font-size: clamp(20px, 5.4vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+.revenue-strip-op {
+  display: none;
+  color: #1264D3;
+  font-size: 22px;
+  font-weight: 300;
+  text-align: center;
+}
+@media (min-width: 520px) { .revenue-strip-op { display: block; } }
+
 /* === Dark hero band — Mpos-reference pattern ============================== */
 /* A single dark surface containing the greeting + 4 nested KPI tiles. Echoes
    the topbar's authority and collapses two visual zones (hero + KPI row) into
@@ -468,7 +504,7 @@ a { color: inherit; text-decoration: none; }
 
 .hero-band {
   position: relative;
-  background: #0E5E42;
+  background: #0F2563;
   color: #FFFFFF;
   border-radius: 10px;
   padding: 28px 28px 22px;
@@ -502,17 +538,17 @@ a { color: inherit; text-decoration: none; }
   flex-wrap: wrap;
   gap: 6px 14px;
   font-size: 12.5px;
-  color: #C8DCD2;
+  color: #8BB4E8;
   align-items: center;
 }
 .hero-band-meta .num { color: #FFFFFF; font-weight: 600; }
-.hero-band-meta .sep { color: #1A5340; }
+.hero-band-meta .sep { color: #1A3470; }
 
 .hero-band-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 .hero-band-cta {
   background: #FFFFFF;
-  color: #0E5E42;
+  color: #0F2563;
   border: 1px solid #FFFFFF;
   border-radius: 6px;
   height: 38px;
@@ -525,9 +561,9 @@ a { color: inherit; text-decoration: none; }
   gap: 8px;
   transition: background-color .15s, border-color .15s, color .15s;
 }
-.hero-band-cta:hover { background: #DCEDE5; border-color: #DCEDE5; }
+.hero-band-cta:hover { background: #DBEAFE; border-color: #DBEAFE; }
 
-/* Container-less headline figure — sits directly on the green band */
+/* Container-less headline figure — sits directly on the blue band */
 .hero-headline-figure {
   display: flex;
   flex-direction: column;
@@ -540,7 +576,7 @@ a { color: inherit; text-decoration: none; }
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8FB8A6;
+  color: #8BB4E8;
   margin-bottom: 14px;
 }
 .hero-headline-value {
@@ -565,20 +601,20 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.005em;
   padding: 4px 9px;
   border-radius: 5px;
-  background: rgba(52, 211, 153, 0.18);
-  color: #34D399;
+  background: rgba(18, 100, 211, 0.18);
+  color: #4D91E8;
 }
 .hero-headline-meta {
   margin-top: 14px;
   font-size: 12.5px;
-  color: #8FB8A6;
+  color: #8BB4E8;
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
   align-items: baseline;
 }
-.hero-headline-meta .num { color: #DCEDE5; font-weight: 600; font-family: "Geist Mono", ui-monospace, monospace; }
-.hero-headline-meta .sep { color: #1A5340; }
+.hero-headline-meta .num { color: #DBEAFE; font-weight: 600; font-family: "Geist Mono", ui-monospace, monospace; }
+.hero-headline-meta .sep { color: #1A3470; }
 
 /* === Activity zone (ledger table + income chart side by side) ============= */
 
@@ -799,3 +835,18 @@ a { color: inherit; text-decoration: none; }
   font-size: 11.5px; color: var(--muted-2);
   font-family: "Geist Mono", ui-monospace, monospace;
 }
+
+/* === Chat FAB — loading dots ============================================== */
+@keyframes chat-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40%           { transform: translateY(-4px); opacity: 1; }
+}
+.chat-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 999px;
+  background: var(--muted-2);
+}
+.chat-dot-0 { animation: chat-bounce 1s 0s   infinite; }
+.chat-dot-1 { animation: chat-bounce 1s .15s infinite; }
+.chat-dot-2 { animation: chat-bounce 1s .30s infinite; }

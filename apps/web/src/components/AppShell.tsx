@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { BottomNav } from '@/components/layout/BottomNav';
+import { ChatFAB } from '@/components/layout/ChatFAB';
 import { Topbar } from '@/components/layout/Topbar';
 
 interface AppShellProps {
@@ -19,6 +20,7 @@ export function AppShell({ children, tab, setTab }: AppShellProps) {
       <Topbar tab={tab} setTab={setTab} />
       <div className="container-x">{children}</div>
       <BottomNav tab={tab} setTab={setTab} />
+      <ChatFAB />
     </div>
   );
 }
