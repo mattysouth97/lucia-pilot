@@ -3,11 +3,9 @@
 // Mock token auth: user_id from URL maps to a hardcoded resident in MOCK_RESIDENTS.
 // Engine endpoint /api/portal/:user_id replaces this in B9.x.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { useAuth } from '@/auth/AuthProvider';
-import { findAccount } from '@/auth/demoAccounts';
 import { Icons } from '@/components/Icons';
 import { Pill, Btn, fmt } from '@/components/atoms';
 
@@ -129,23 +127,10 @@ const GROUP_PILL_TONE: Record<Resident['group'], 'green' | 'sky' | 'amber'> = {
 };
 
 export function ResidentPortal() {
-  const auth = useAuth();
   const { user_id } = useParams<{ user_id: string }>();
 
-  // FR-A-001 — URL-token escape hatch (preserves FR-M-007 demo flow). If the visitor
-  // landed on /portal/:user_id without an auth context (e.g. the FRD demo deep link),
-  // auto-login as that resident demo account.
-  useEffect(() => {
-    if (!auth.user && user_id) {
-      const account = findAccount(user_id);
-      if (account?.role === 'resident') {
-        auth.login(user_id);
-      }
-    }
-  }, [auth, user_id]);
-
   const lookupId = user_id ?? 'h0001';
-  const resident = MOCK_RESIDENTS[lookupId] ?? MOCK_RESIDENTS['h0001'];
+  const resident = MOCK_RESIDENTS[lookupId];
   const [month, setMonth] = useState<string>('4월');
   const [chainOpen, setChainOpen] = useState<boolean>(false);
 
