@@ -3,5 +3,11 @@
   "buildCommand": "pnpm --filter @lucia/web... build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": "vite"
+  "framework": "vite",
+  "headers": [
+    {
+      "source": "/((?!invest($|/)).*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ]
 }
