@@ -15,6 +15,15 @@ const Landing = lazy(() => import('@/routes/Invest').then(m => ({ default: m.Lan
 const LandingShell = lazy(() =>
   import('@/routes/Invest/LandingShell').then(m => ({ default: m.LandingShell })),
 );
+const ProjectsPage = lazy(() =>
+  import('@/routes/Invest/placeholders/ProjectsPage').then(m => ({ default: m.ProjectsPage })),
+);
+const OnboardingPage = lazy(() =>
+  import('@/routes/Invest/placeholders/OnboardingPage').then(m => ({ default: m.OnboardingPage })),
+);
+const DisclosurePages = lazy(() =>
+  import('@/routes/Invest/placeholders/DisclosurePages').then(m => ({ default: m.DisclosurePages })),
+);
 
 // FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
 //   개요             → /
@@ -80,6 +89,9 @@ function AppInner() {
             <LandingShell>
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="projects" element={<ProjectsPage />} />
+                <Route path="onboarding" element={<OnboardingPage />} />
+                <Route path="disclosures/*" element={<DisclosurePages />} />
               </Routes>
             </LandingShell>
           </Suspense>
