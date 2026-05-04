@@ -2,8 +2,8 @@
 // Typed numeric / structural fixtures for /invest. v1 is fixture-only;
 // Phase-2 swaps these import call sites for engine-backed TanStack Query hooks.
 
-import { BUILDINGS, TX_STREAM } from '@lucia/contracts/fixtures';
 import type { TxStreamMessage } from '@lucia/contracts';
+import { BUILDINGS, TX_STREAM } from '@lucia/contracts/fixtures';
 
 export interface AumStat {
   readonly label: string;

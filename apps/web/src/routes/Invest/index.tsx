@@ -3,6 +3,7 @@ import { LandingHeader } from './LandingHeader';
 import { Hero } from './sections/Hero';
 import { HowItWorks } from './sections/HowItWorks';
 import { ImpactStrip } from './sections/ImpactStrip';
+import { LiveLedgerRibbon } from './sections/LiveLedgerRibbon';
 
 export function Landing() {
   return (
@@ -12,6 +13,7 @@ export function Landing() {
         <Hero />
         <ImpactStrip />
         <HowItWorks />
+        <LiveLedgerRibbon />
       </main>
     </>
   );
