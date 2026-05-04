@@ -1,3 +1,7 @@
+import { UserMenu } from './UserMenu';
+
+import { useAuth } from '@/auth/AuthProvider';
+import type { Role } from '@/auth/types';
 import { Icons } from '@/components/Icons';
 
 interface TopbarProps {
@@ -7,21 +11,37 @@ interface TopbarProps {
 
 // Short display labels to prevent overflow. Values (keys) are unchanged so all
 // tab-switch logic in App.tsx/Dashboard continues to work without modification.
-const TABS: { value: string; label: string }[] = [
-  { value: '개요',           label: '개요'   },
-  { value: '정산 원장',      label: '원장'   },
-  { value: '동별 모니터',    label: '모니터' },
-  { value: '감사·보고',      label: '보고'   },
-  { value: '후보지 지도',    label: '지도'   },
-  { value: '투자 시뮬레이터', label: '시뮬'  },
-  { value: '관리자',         label: '관리'   },
-];
+// Tabs are filtered per-role: analyst sees the read-only set; operator adds 관리자;
+// resident and investor see no tabs (their UIs live elsewhere).
+const ROLE_TABS: Record<Role, ReadonlyArray<{ value: string; label: string }>> = {
+  analyst: [
+    { value: '개요',           label: '개요'   },
+    { value: '정산 원장',      label: '원장'   },
+    { value: '동별 모니터',    label: '모니터' },
+    { value: '감사·보고',      label: '보고'   },
+    { value: '후보지 지도',    label: '지도'   },
+    { value: '투자 시뮬레이터', label: '시뮬'  },
+  ],
+  operator: [
+    { value: '개요',           label: '개요'   },
+    { value: '정산 원장',      label: '원장'   },
+    { value: '동별 모니터',    label: '모니터' },
+    { value: '감사·보고',      label: '보고'   },
+    { value: '후보지 지도',    label: '지도'   },
+    { value: '투자 시뮬레이터', label: '시뮬'  },
+    { value: '관리자',         label: '관리'   },
+  ],
+  resident: [],
+  investor: [],
+};
 
 // Topbar — Lucia 정산 dark horizon line.
 // Reference: miawmiaw invoice dashboard nav pattern — pill highlight on active,
 // compact logo, icon-only actions on the right.
 export function Topbar({ tab, setTab }: TopbarProps) {
   const unreadAnomalies = 3;
+  const { user } = useAuth();
+  const tabsForRole = user ? ROLE_TABS[user.role] : [];
 
   return (
     <div
@@ -41,7 +61,7 @@ export function Topbar({ tab, setTab }: TopbarProps) {
 
       {/* Tabs — pill highlight on active, no underline chrome */}
       <div className="topbar-tabs" style={{ marginLeft: 12 }}>
-        {TABS.map(({ value, label }) => {
+        {tabsForRole.map(({ value, label }) => {
           const active = tab === value;
           return (
             <button
@@ -139,22 +159,9 @@ export function Topbar({ tab, setTab }: TopbarProps) {
           )}
         </button>
 
-        {/* User avatar */}
-        <div
-          title="김지호 처장 · LH ESG 경영실"
-          style={{
-            width: 26, height: 26,
-            borderRadius: 'var(--r-sm)',
-            background: 'var(--bar-line)',
-            color: 'var(--bar-ink)',
-            fontWeight: 600, fontSize: 11,
-            display: 'grid', placeItems: 'center',
-            letterSpacing: '-0.01em',
-            cursor: 'pointer',
-            marginLeft: 2,
-          }}
-        >
-          김
+        {/* User menu — avatar + role-aware dropdown with logout */}
+        <div style={{ marginLeft: 4 }}>
+          <UserMenu />
         </div>
       </div>
     </div>
