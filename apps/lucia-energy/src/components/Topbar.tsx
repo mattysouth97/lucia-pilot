@@ -10,7 +10,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ onInquiryClick }: TopbarProps) {
-  const investUrl = import.meta.env.VITE_LUCIA_INVEST_URL ?? '/invest';
+  const investUrl =
+    import.meta.env.VITE_LUCIA_INVEST_URL ?? 'http://localhost:5173/invest';
   // Derive login URL from the invest URL host so subdomain / path-prefix
   // deployments work without a separate env var.
   const loginUrl = investUrl.replace(/\/invest\/?$/, '/login');
