@@ -35,7 +35,7 @@ describe('smoke — four routes render without crashing (FR-M-001/002/007, FR-O-
   it('/ renders Dashboard (FR-M-001)', async () => {
     loginAsForTest('analyst');
     renderAt('/');
-    expect(await screen.findByText(/이달 정산 매출/)).toBeDefined();
+    expect(await screen.findByText(/감사 무결성 라운드/)).toBeDefined();
   });
 
   it('/buildings/:id renders BuildingDetail (FR-M-002)', async () => {
@@ -51,7 +51,7 @@ describe('smoke — four routes render without crashing (FR-M-001/002/007, FR-O-
     // The F1 escape hatch covers the FR-M-007 deep-link demo path (live BrowserRouter).
     loginAsForTest('resident');
     renderAt('/portal/h0001');
-    expect(await screen.findByText(/안녕하세요/)).toBeDefined();
+    expect(await screen.findByText(/안녕하세요, .* 입주민님/)).toBeDefined();
   });
 
   it('/admin renders AdminConsole (FR-O-003)', async () => {
