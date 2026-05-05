@@ -28,7 +28,7 @@ import {
   type Sensitivity,
   type SimulationInput,
 } from '@lucia/finance';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Bar,
@@ -76,12 +76,44 @@ const DEFAULT_SENSITIVITY: Sensitivity = {
 
 const DEFAULT_INVESTOR_CAPEX_WON = 100_000_000; // 1억원
 
+// Default panel for roof-meta derivation. ULJN-Pilot 표준 모듈.
+const DEFAULT_PANEL = {
+  id: '550W (Mono PERC)',
+  wattage: 550,
+  width_m: 2.28,
+  height_m: 1.13,
+  efficiency_pct: 21.4,
+} as const;
+
+// Layout overhead — roof footprint multiplier accounting for aisles, setbacks,
+// and inverter/maintenance zones. Korean rooftop benchmark.
+const ROOF_LAYOUT_FACTOR = 1.4;
+
+interface RoofMeta {
+  panel_count: number;
+  panel_id: string;
+  panel_area_m2: number;
+  roof_area_m2: number;
+}
+
+function deriveRoofMeta(installed_kw: number): RoofMeta {
+  const panel_count = Math.max(1, Math.round((installed_kw * 1000) / DEFAULT_PANEL.wattage));
+  const panel_area_m2 = DEFAULT_PANEL.width_m * DEFAULT_PANEL.height_m;
+  const roof_area_m2 = panel_count * panel_area_m2 * ROOF_LAYOUT_FACTOR;
+  return {
+    panel_count,
+    panel_id: DEFAULT_PANEL.id,
+    panel_area_m2,
+    roof_area_m2,
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────────────────────────────
 
 export function InstallSimulator(): JSX.Element {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const siteId = params.get('site') ?? 'ULJN-001';
 
   const site = useMemo(
@@ -89,6 +121,13 @@ export function InstallSimulator(): JSX.Element {
     [siteId],
   );
   const region = REGION_BY_NAME.get(site.region_office as never);
+  const roofMeta = useMemo(() => deriveRoofMeta(site.installed_kw), [site.installed_kw]);
+
+  const onSelectSite = (next: { building_id: string }): void => {
+    const nextParams = new URLSearchParams(params);
+    nextParams.set('site', next.building_id);
+    setParams(nextParams, { replace: false });
+  };
 
   const [investorCapex, setInvestorCapex] = useState(DEFAULT_INVESTOR_CAPEX_WON);
   const [years, setYears] = useState(20);
@@ -179,7 +218,13 @@ export function InstallSimulator(): JSX.Element {
 
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 1280, margin: '0 auto' }}>
-      <SiteHeader site={site} regionColor={region?.color ?? '#6b7280'} regionName={site.region_office} />
+      <SiteSearchSelector currentSite={site} onSelect={onSelectSite} />
+      <SiteHeader
+        site={site}
+        roofMeta={roofMeta}
+        regionColor={region?.color ?? '#6b7280'}
+        regionName={site.region_office}
+      />
 
       <div className="sim-layout">
         <aside className="sim-inputs">
@@ -412,10 +457,12 @@ export function InstallSimulator(): JSX.Element {
 
 function SiteHeader({
   site,
+  roofMeta,
   regionColor,
   regionName,
 }: {
   site: { building_id: string; installed_kw: number; address?: string };
+  roofMeta: RoofMeta;
   regionColor: string;
   regionName: string;
 }): JSX.Element {
@@ -448,7 +495,7 @@ function SiteHeader({
           >
             {regionName}
           </span>
-          <span style={{ fontSize: 11, opacity: 0.7 }}>FR-O-006 · 투자자 시뮬레이터 v1.3</span>
+          <span style={{ fontSize: 11, opacity: 0.7 }}>FR-O-006 · 투자자 시뮬레이터 v1.3 · 운영발전소</span>
         </div>
         <div
           className="num"
@@ -460,12 +507,233 @@ function SiteHeader({
           <div style={{ fontSize: 12, opacity: 0.65, marginTop: 2 }}>{site.address}</div>
         )}
       </div>
-      <div style={{ display: 'flex', gap: 18, fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(110px, max-content))',
+          gap: 18,
+          fontSize: 11.5,
+          color: 'rgba(255,255,255,0.7)',
+        }}
+      >
         <SitePill label="설치 용량" value={`${site.installed_kw.toFixed(2)} kW`} />
-        <SitePill label="총 사업비" value={`${((site.installed_kw * BASE_ASSUMPTIONS.capex_won_per_kw) / 100_000_000).toFixed(2)}억`} />
+        <SitePill label="옥상 면적" value={`${roofMeta.roof_area_m2.toFixed(0)} m²`} />
+        <SitePill
+          label="패널 수"
+          value={`${roofMeta.panel_count.toLocaleString('ko-KR')}장`}
+        />
+        <SitePill label="패널 종류" value={roofMeta.panel_id} />
+        <SitePill
+          label="총 사업비"
+          value={`${((site.installed_kw * BASE_ASSUMPTIONS.capex_won_per_kw) / 100_000_000).toFixed(2)}억`}
+        />
       </div>
     </header>
   );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Site search selector — typeahead over BUILDINGS_NATIONWIDE (9,354 entries).
+// Lets the investor pivot to another 운영발전소 without leaving the simulator.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface SiteOption {
+  building_id: string;
+  region_office: string;
+  city: string;
+  district: string;
+  installed_kw: number;
+  expected_yield_pct?: number;
+}
+
+function SiteSearchSelector({
+  currentSite,
+  onSelect,
+}: {
+  currentSite: SiteOption;
+  onSelect: (b: SiteOption) => void;
+}): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Click-outside to close
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent): void => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  const matches = useMemo<SiteOption[]>(() => {
+    const q = query.trim().toLowerCase();
+    const all = BUILDINGS_NATIONWIDE as readonly SiteOption[];
+    if (q === '') {
+      // Empty query — show first 30 ULJN- prefer (Pilot) then by yield desc
+      const sorted = [...all].sort((a, b) => {
+        const aPilot = a.building_id.startsWith('ULJN-') ? 1 : 0;
+        const bPilot = b.building_id.startsWith('ULJN-') ? 1 : 0;
+        if (aPilot !== bPilot) return bPilot - aPilot;
+        return (b.expected_yield_pct ?? 0) - (a.expected_yield_pct ?? 0);
+      });
+      return sorted.slice(0, 30);
+    }
+    const filtered: SiteOption[] = [];
+    for (const b of all) {
+      const hay = `${b.building_id} ${b.region_office} ${b.city} ${b.district}`.toLowerCase();
+      if (hay.includes(q)) {
+        filtered.push(b);
+        if (filtered.length >= 50) break;
+      }
+    }
+    return filtered;
+  }, [query]);
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', marginBottom: 12 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          padding: '10px 14px',
+          border: '1px solid var(--line, #e5e7eb)',
+          borderRadius: 6,
+          background: '#fff',
+          fontSize: 13,
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <span style={{ color: 'var(--muted, #5C6470)', fontSize: 11, fontWeight: 600 }}>
+          운영발전소
+        </span>
+        <span className="num" style={{ fontWeight: 700 }}>{currentSite.building_id}</span>
+        <span style={{ color: 'var(--muted-2, #8A93A0)', fontSize: 11.5 }}>
+          · {currentSite.region_office} {currentSite.city} {currentSite.district}
+        </span>
+        <span style={{ flex: 1 }} />
+        <span style={{ color: 'var(--muted, #5C6470)', fontSize: 11 }}>
+          {open ? '닫기 ▲' : '다른 발전소 검색 ▼'}
+        </span>
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            background: '#fff',
+            border: '1px solid var(--line, #e5e7eb)',
+            borderRadius: 6,
+            boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
+            zIndex: 50,
+            padding: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          <input
+            type="search"
+            autoFocus
+            placeholder="발전소 ID, 지역본부, 시·군·구로 검색 (예: 'ULJN', '대구', '서울')"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{
+              padding: '8px 10px',
+              border: '1px solid var(--line, #e5e7eb)',
+              borderRadius: 4,
+              fontSize: 12.5,
+              outline: 'none',
+            }}
+          />
+          <div style={{ fontSize: 10.5, color: 'var(--muted, #5C6470)', padding: '0 4px' }}>
+            전국 {BUILDINGS_NATIONWIDE.length.toLocaleString('ko-KR')}개 운영발전소 중 매칭{' '}
+            <span className="num" style={{ fontWeight: 700, color: 'var(--ink)' }}>
+              {matches.length.toLocaleString('ko-KR')}
+            </span>
+            개{matches.length === 50 ? ' (최대 50개 표시)' : ''}
+          </div>
+          <div style={{ maxHeight: 320, overflow: 'auto', borderTop: '1px solid var(--line)' }}>
+            {matches.length === 0 ? (
+              <div style={{ padding: 16, fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
+                검색 결과가 없습니다.
+              </div>
+            ) : (
+              matches.map((b) => (
+                <button
+                  key={b.building_id}
+                  type="button"
+                  onClick={() => {
+                    onSelect(b);
+                    setOpen(false);
+                    setQuery('');
+                  }}
+                  style={siteOptionRowStyle(b.building_id === currentSite.building_id)}
+                >
+                  <span
+                    className="num"
+                    style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 600, fontSize: 12 }}
+                  >
+                    {b.building_id}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--muted, #5C6470)' }}>
+                    {b.region_office} · {b.city} {b.district}
+                  </span>
+                  <span
+                    className="num"
+                    style={{ fontSize: 11, color: 'var(--ink, #0a0c0f)', textAlign: 'right' }}
+                  >
+                    {b.installed_kw.toFixed(2)} kW
+                  </span>
+                  <span
+                    className="num"
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--accent, #1264D3)',
+                      fontWeight: 600,
+                      textAlign: 'right',
+                    }}
+                  >
+                    {(b.expected_yield_pct ?? 0).toFixed(2)}%
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function siteOptionRowStyle(active: boolean): React.CSSProperties {
+  return {
+    display: 'grid',
+    gridTemplateColumns: '110px 1fr 80px 60px',
+    gap: 12,
+    alignItems: 'center',
+    padding: '8px 10px',
+    border: 'none',
+    borderBottom: '1px solid var(--line, #e5e7eb)',
+    background: active ? '#EBF2FF' : '#fff',
+    color: 'var(--ink, #0a0c0f)',
+    cursor: 'pointer',
+    width: '100%',
+    textAlign: 'left',
+    fontSize: 12,
+  };
 }
 
 function SitePill({ label, value }: { label: string; value: string }): JSX.Element {
