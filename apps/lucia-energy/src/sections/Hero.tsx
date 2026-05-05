@@ -1,7 +1,7 @@
 // apps/lucia-energy/src/sections/Hero.tsx
-// Photo-card hero — large rounded-corner photo with white overlay text.
-// Photo asset lives at apps/lucia-energy/public/hero-solar.jpg (Vite serves
-// the public/ directory from root, so the URL is /hero-solar.jpg).
+// Full-bleed photo hero — 100vh height, edge-to-edge width. The floating Topbar
+// (sticky, top: 16) overlays the hero's top portion via z-index. Photo asset
+// at apps/lucia-energy/public/hero-solar.jpg (Vite serves public/ from root).
 import { HERO } from '../copy';
 
 interface HeroProps {
@@ -11,44 +11,47 @@ interface HeroProps {
 
 export function Hero({ onPrimaryClick, onSecondaryClick }: HeroProps) {
   return (
-    <section aria-label="hero" style={{ padding: '24px var(--page-pad) 0' }}>
+    <section
+      aria-label="hero"
+      style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: '100vh',
+        overflow: 'hidden',
+        background: "url('/hero-solar.jpg') center/cover no-repeat, #1F2937",
+        color: '#FFFFFF',
+        margin: 0,
+        padding: 0,
+      }}
+    >
+      {/* Dark vignette for text legibility — concentrated at the bottom-left
+          where the headline sits, with a subtle top wash so the overline pops
+          against any bright cloud zone. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.0) 28%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.55) 100%), linear-gradient(90deg, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.0) 55%)',
+        }}
+      />
+
+      {/* Inner content — bottom-left text block, constrained to a max-width
+          container so the headline doesn't sprawl across ultra-wide displays. */}
       <div
         style={{
           position: 'relative',
+          minHeight: '100vh',
           maxWidth: 1280,
           margin: '0 auto',
-          minHeight: 'min(72vh, 640px)',
-          borderRadius: 'var(--r-hero)',
-          overflow: 'hidden',
-          background: "url('/hero-solar.jpg') center/cover no-repeat, #1F2937",
-          color: '#FFFFFF',
-          boxShadow: 'var(--shadow-floating)',
+          padding: 'clamp(40px, 6vw, 72px)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
         }}
       >
-        {/* Dark vignette for text legibility — concentrated at the bottom-left
-            where the headline sits, with a subtle top wash so the overline pops
-            against any bright cloud zone. */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.0) 28%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.55) 100%), linear-gradient(90deg, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.0) 55%)',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'relative',
-            padding: 'clamp(40px, 6vw, 72px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            minHeight: 'inherit',
-            maxWidth: 760,
-          }}
-        >
+        <div style={{ maxWidth: 760 }}>
           <div
             className="overline"
             style={{
