@@ -1,4 +1,5 @@
 export * from './building.js';
+export * from './region-office.js';
 export * from './generation-event.js';
 export * from './beneficiary.js';
 export * from './resident.js';

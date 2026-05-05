@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { BUILDING_ID_REGEX } from './building.js';
+
 // FRD §11.1 — 수혜자 그룹 (3 groups)
 // FR-S-004: LH 매입임대 64.2% (1,643세대), 국민임대 10.9% (280세대), 에너지소외 35.8% (916세대)
 export const BeneficiaryCategory = z.enum(['LH_매입임대', '국민임대', '에너지소외']);
@@ -7,7 +9,9 @@ export type BeneficiaryCategory = z.infer<typeof BeneficiaryCategory>;
 
 export const Beneficiary = z.object({
   beneficiary_id: z.string(),
-  building_id: z.string().regex(/^ULJN-\d{3}$/),
+  // v1.3: regex relaxed via BUILDING_ID_REGEX (was /^ULJN-\d{3}$/).
+  // Existing ULJN-* values still validate.
+  building_id: z.string().regex(BUILDING_ID_REGEX),
   category: BeneficiaryCategory,
   household_count: z.number().int().positive(),
   share_ratio: z.number().min(0).max(1), // within the 41% reservation

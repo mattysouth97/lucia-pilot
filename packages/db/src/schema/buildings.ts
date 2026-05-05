@@ -18,8 +18,16 @@ export const buildingStatusEnum = pgEnum('building_status', [
   'maintenance',
 ]);
 
+// v1.3 — deployment lifecycle (FR-R-002 catalog filter, FR-O-005 marker style).
+// Distinct from runtime status (ok/warn/alert/maintenance).
+export const deploymentStatusEnum = pgEnum('deployment_status', [
+  'planned',
+  'construction',
+  'operating',
+]);
+
 export const buildings = pgTable('buildings', {
-  building_id: text('building_id').primaryKey(),            // e.g. ULJN-001
+  building_id: text('building_id').primaryKey(),            // e.g. ULJN-001 / SEO-0001
   region_office: text('region_office').notNull(),
   city: text('city').notNull(),
   district: text('district').notNull(),
@@ -30,6 +38,11 @@ export const buildings = pgTable('buildings', {
   inverter_count: integer('inverter_count').notNull(),
   install_date: date('install_date').notNull(),
   status: buildingStatusEnum('status').notNull().default('ok'),
+  // v1.3 additive fields — nullable so existing seed rows (Pilot Uljin) don't
+  // need backfill. The 9,354-building catalog seed populates all three.
+  deployment_status: deploymentStatusEnum('deployment_status'),
+  expected_yield_pct: numeric('expected_yield_pct', { precision: 5, scale: 2 }),
+  est_capex_won: numeric('est_capex_won', { precision: 14, scale: 0 }),
 });
 
 export type BuildingInsert = typeof buildings.$inferInsert;
