@@ -9,3 +9,10 @@ export * from './subsidy.js';
 export * from './anomaly.js';
 export * from './audit-log.js';
 export * from './tx-stream-message.js';
+// v1.3 strategic-pivot entities
+export * from './investor.js';
+export * from './loi.js';
+export * from './simulation.js';
+export * from './esg-impact.js';
+export * from './community-event.js';
+export * from './event-rsvp.js';
