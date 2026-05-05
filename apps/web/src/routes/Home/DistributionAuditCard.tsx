@@ -6,9 +6,9 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 
-import { Pill } from '@/components/atoms';
-
 import type { DistributionRound, DistributionRoundStatus } from './analystFixtures';
+
+import { Pill } from '@/components/atoms';
 
 export interface DistributionAuditCardProps {
   readonly round: DistributionRound;
