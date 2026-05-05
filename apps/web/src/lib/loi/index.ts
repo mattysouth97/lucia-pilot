@@ -13,3 +13,10 @@ export {
 export { generateLOI, type LOIGenerateOutput } from './generator.js';
 export type { LOIDocumentInput } from './templates/types.js';
 export { formatKRW, formatDateKR } from './templates/types.js';
+export {
+  createSignatureMachine,
+  type SignatureMachine,
+  type SignatureState,
+  VERIFY_DELAY_MS,
+} from './signature.js';
+export { registerSignedLOI, type RegistrationResult } from './blockchain-hash.js';
