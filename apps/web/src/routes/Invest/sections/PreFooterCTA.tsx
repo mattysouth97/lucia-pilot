@@ -18,7 +18,7 @@ export function PreFooterCTA() {
           >
             {CTA_PRIMARY} →
           </a>
-          <a href="/invest/onboarding" style={{ fontSize: 13, color: '#A8B4CC' }}>
+          <a href="/login" style={{ fontSize: 13, color: '#A8B4CC' }}>
             {PRE_FOOTER_LOGIN_LINK}
           </a>
         </div>

@@ -9,16 +9,6 @@ import { useState } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Icons } from '@/components/Icons';
-import { AnomalyCard } from '@/components/cards/AnomalyCard';
-import { BlockchainCard } from '@/components/cards/BlockchainCard';
-import { BuildingsCard } from '@/components/cards/BuildingsCard';
-import { DistributionCard } from '@/components/cards/DistributionCard';
-import { GenerationCard } from '@/components/cards/GenerationCard';
-import { LoadTestCard } from '@/components/cards/LoadTestCard';
-import { RE100Card } from '@/components/cards/RE100Card';
-import { ResidentCard } from '@/components/cards/ResidentCard';
-import { SankeyCard } from '@/components/cards/SankeyCard';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { useLuciaModals } from '@/lib/modals';
 
 export function Dashboard() {
@@ -31,44 +21,6 @@ export function Dashboard() {
       <BlockchainIntegrityStrip />
 
       <ActivityZone />
-
-      {/* Operations zone — secondary, denser cards retain their per-FR design */}
-      <div className="ops-zone-head">
-        <div className="ops-zone-title">Operations · FRD-2026-001</div>
-        <div className="ops-zone-meta">7개 카드 · 실시간 동기화</div>
-      </div>
-
-      <div className="grid-dashboard">
-        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr)' }}>
-          <GenerationCard />
-          <div id="sankey-card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', minWidth: 0 }}>
-            <SankeyCard />
-          </div>
-          <div className="grid-card-pair" id="distribution-blockchain-row">
-            <div id="distribution-card">
-              <DistributionCard />
-            </div>
-            <div id="blockchain-card" style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(0, 1fr)' }}>
-              <BlockchainCard />
-            </div>
-          </div>
-          <div id="buildings-card">
-            <BuildingsCard />
-          </div>
-          <div className="grid-card-pair-eq">
-            <RE100Card />
-            <div id="load-test-card">
-              <LoadTestCard />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gap: 16, alignContent: 'start', gridTemplateColumns: 'minmax(0, 1fr)' }}>
-          <Sidebar />
-          <AnomalyCard />
-          <ResidentCard />
-        </div>
-      </div>
 
       <div
         style={{
@@ -90,7 +42,7 @@ export function Dashboard() {
           <span>KIE-REMS Lite · TheKIE Digital Platform</span>
         </div>
         <div className="mono" style={{ fontSize: 10.5 }}>
-          build 1.0.4 · 2026-04-30 · M+3 demo-ready
+          build 1.0.4 · 2026-04-30
         </div>
       </div>
     </>

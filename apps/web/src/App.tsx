@@ -2,12 +2,13 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import { AppShell } from '@/components/AppShell';
-import { DemoProvider } from '@/demo/DemoController';
 import { ModalProvider } from '@/lib/modals';
 import { AdminConsole } from '@/routes/AdminConsole';
 import { BuildingDetail } from '@/routes/BuildingDetail';
 import { InstallSimulator } from '@/routes/InstallSimulator';
+import { LedgerPage } from '@/routes/Ledger';
 import { MapExplorer } from '@/routes/MapExplorer';
+import { MonitorPage } from '@/routes/Monitor';
 import { ResidentPortal } from '@/routes/ResidentPortal';
 
 const Landing = lazy(() => import('@/routes/Invest').then(m => ({ default: m.Landing })));
@@ -34,11 +35,10 @@ const InvestorHome = lazy(() =>
   import('@/routes/Home/InvestorHome').then(m => ({ default: m.InvestorHome })),
 );
 
-// FR-M-001 — Topbar tabs map to routes / on-page sections so navigation reflects URL.
+// Topbar tabs map to routes; navigation reflects URL.
 //   개요             → /
-//   정산 원장        → / (anchor scroll)
-//   동별 모니터       → / (anchor scroll, BuildingsCard)
-//   감사·보고        → / (anchor scroll, BlockchainCard)
+//   정산 원장        → /ledger
+//   동별 모니터       → /monitor
 //   후보지 지도       → /map
 //   투자 시뮬레이터    → /simulator
 //   관리자           → /admin
@@ -46,18 +46,16 @@ const TAB_TO_PATH: Record<string, string> = {
   관리자: '/admin',
   '투자 시뮬레이터': '/simulator',
   '후보지 지도': '/map',
-};
-
-const TAB_TO_ANCHOR: Record<string, string> = {
-  '정산 원장': 'distribution-card',
-  '동별 모니터': 'buildings-card',
-  '감사·보고': 'blockchain-card',
+  '동별 모니터': '/monitor',
+  '정산 원장': '/ledger',
 };
 
 function tabFromPath(path: string): string {
   if (path.startsWith('/admin')) return '관리자';
   if (path.startsWith('/simulator')) return '투자 시뮬레이터';
   if (path.startsWith('/map')) return '후보지 지도';
+  if (path.startsWith('/monitor')) return '동별 모니터';
+  if (path.startsWith('/ledger')) return '정산 원장';
   return '개요';
 }
 
@@ -78,15 +76,8 @@ function AppInner() {
       navigate(path);
       return;
     }
-    // Anchor tabs route back to dashboard then scroll to the section.
+    // 개요 — back to dashboard root.
     if (location.pathname !== '/') navigate('/');
-    const anchor = TAB_TO_ANCHOR[t];
-    if (anchor) {
-      // Defer to next tick so the dashboard mounts before scrolling.
-      window.setTimeout(() => {
-        document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    }
   };
 
   return (
@@ -179,6 +170,26 @@ function AppInner() {
                 }
               />
               <Route
+                path="/monitor"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <MonitorPage />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/ledger"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <LedgerPage />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
                 path="/map"
                 element={
                   <Suspense fallback={null}>
@@ -207,13 +218,10 @@ function AppInner() {
 }
 
 export default function App() {
-  // QueryClientProvider is mounted in main.tsx; ModalProvider + DemoProvider live here
-  // so they can use router hooks (DemoController calls useNavigate).
+  // QueryClientProvider is mounted in main.tsx; ModalProvider lives here.
   return (
     <ModalProvider>
-      <DemoProvider>
-        <AppInner />
-      </DemoProvider>
+      <AppInner />
     </ModalProvider>
   );
 }

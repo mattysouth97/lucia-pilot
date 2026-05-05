@@ -1,50 +1,31 @@
 // apps/web/src/routes/Invest/copy.ts
 // All user-facing Korean strings for /invest. Keep terse; legal owns final 약관 / 위험 고지 / 면책 wording.
 
-export const HERO_OVERLINE = 'LUCIA · LH 매입임대 햇빛발전소 정산 기반 금융상품';
-export const HERO_TITLE = '햇빛으로 받는, 투명한 정기 수익.';
+export const HERO_OVERLINE = 'LH 매입임대 햇빛발전소 정산 기반 금융상품';
+export const HERO_TITLE = '햇빛, 매월의 수익으로.';
 export const HERO_SUB =
-  '한국토지주택공사 매입임대주택 옥상 발전소의 SMP/REC 정산 수익을 블록체인으로 검증하고 투자자에게 분배합니다.';
+  '116동 옥상 발전소의 SMP/REC 정산 수익을 블록체인으로 검증해 매월 정시에 분배합니다.';
 
-export const CTA_PRIMARY = '투자하기';
-export const CTA_SECONDARY = '운영 발전소 보기';
+export const CTA_PRIMARY = '투자 시뮬레이션 시작';
+export const CTA_SECONDARY = '운영 발전소 116동 보기';
 
-export const IMPACT_OVERLINE = '정산 구조에 내장된 사회적 환원';
-export const IMPACT_HEADLINE_LINE_1 = '발전 수익의 41%는 공익 목적으로 자동 분배되며,';
-export const IMPACT_HEADLINE_LINE_2 = '그중 35.8%는 에너지소외 가구로 환원됩니다.';
-export const IMPACT_DETAIL_LINK = '정산 분배 구조 자세히 보기';
-
-export const HOW_IT_WORKS_OVERLINE = '정산엔진의 작동 방식';
-export const HOW_IT_WORKS_STEPS: ReadonlyArray<{ index: number; title: string; body: string }> = [
-  { index: 1, title: '예치', body: '본인인증 후 투자금을 입금합니다.' },
-  { index: 2, title: '정산엔진 자동 분배', body: '116동 발전소 풀에 가상공유거래 41%가 자동 적용됩니다.' },
-  { index: 3, title: 'SMP/REC 자동 수익', body: 'Hyperledger 검증을 거쳐 월 정산이 지급됩니다.' },
+export const HERO_TRUST_BADGES: ReadonlyArray<string> = [
+  'LH 공기업 협력',
+  'Hyperledger Fabric 정산 원장',
+  '분기 회계 검증',
+  '온투업 등록 진행',
 ];
 
-export const RIBBON_OVERLINE = '실시간 정산 원장 — 라이브';
-export const RIBBON_LINK = '전체 원장 보기';
-export const RIBBON_STATUS_LIVE = '라이브';
-export const RIBBON_STATUS_CONNECTING = '연결 중';
-export const RIBBON_STATUS_SNAPSHOT = (capturedAt: string) => `스냅샷 · ${capturedAt} 기준`;
+export const YIELD_OVERLINE = '지난 12개월 분배 실적';
+export const YIELD_TITLE = '매월, 정시에 분배합니다.';
+export const YIELD_NOTE =
+  '116동 운영 풀의 SMP/REC 정산 결과 — 매월 말 자동 정산, 익월 5영업일 이내 분배.';
+export const YIELD_STATS_LABELS = {
+  total: '12개월 누적 분배',
+  avg: '월 평균 분배',
+  onTime: '정시 분배 횟수',
+} as const;
 
-export const STATIONS_TITLE = '운영 발전소';
-export const STATIONS_SUB = '원하는 발전소를 직접 지정해 투자할 수도 있습니다.';
-export const STATIONS_FILTER = { all: '전체', ok: '가동중', maintenance: '점검' } as const;
-export const STATIONS_VIEW_ALL = '전체 116동 보기';
-export const STATIONS_INVEST_CTA = '지정 투자';
-export const STATIONS_STATUS_LABEL = { ok: '가동중', maintenance: '점검' } as const;
-
-export const TRUST_TITLE = '왜 Lucia인가';
-export const TRUST_TILES: ReadonlyArray<{
-  iconKind: 'hyperledger' | 'lh' | 'registration' | 'audit';
-  title: string;
-  body: string;
-}> = [
-  { iconKind: 'hyperledger', title: 'Hyperledger Fabric 블록체인', body: '모든 정산 거래는 변조 불가능한 블록체인에 기록됩니다.' },
-  { iconKind: 'lh', title: 'LH 공공임대 backed', body: '한국토지주택공사 매입임대주택 옥상 자산을 기반으로 합니다.' },
-  { iconKind: 'registration', title: '정부 등록', body: '온라인투자연계금융업 등록 절차를 진행하고 있습니다.' },
-  { iconKind: 'audit', title: '회계 검증', body: '분기별로 회계법인 검증 보고서를 발행합니다.' },
-];
 
 export const RISK_TITLE = '투자 위험 고지';
 export const RISK_BULLETS: ReadonlyArray<string> = [
@@ -128,8 +109,7 @@ export const FOOTER_REGULATORY = '온라인투자연계금융업 등록번호 �
 
 export const NAV_ITEMS: ReadonlyArray<{ label: string; href: string }> = [
   { label: '상품 소개', href: '#hero' },
-  { label: '운영 발전소', href: '#stations' },
-  { label: '신뢰', href: '#trust' },
+  { label: '운영 발전소', href: '/invest/projects' },
   { label: '자료', href: '/invest/disclosures' },
 ];
 export const NAV_LOGIN = '로그인';

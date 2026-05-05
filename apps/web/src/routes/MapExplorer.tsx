@@ -2,15 +2,18 @@
 //
 // V1 is fully simulated:
 //   - 116 LH 매입임대주택 buildings with mock-but-realistic Korean lat/lng
-//   - SVG-rendered peninsula (no MapLibre/external tiles for offline demo)
+//   - Mapbox GL basemap with state-coded markers (token via VITE_MAPBOX_TOKEN)
 //   - Deterministic ko-KR query parser stubbing the Anthropic tool-use loop
 //
 // When RTUs land real lat/lng + 세움터/VWORLD/부동산정보 통합 열람 keys
-// arrive, the marker layer swaps to MapLibre + VWORLD tiles, and the chat
-// stub swaps to a real Anthropic SDK tool-use call. The visual contract
-// (map / chat / result panel) stays intact.
+// arrive, only the marker source swaps; the chat stub swaps to a real
+// Anthropic SDK tool-use call. The visual contract (map / chat / result
+// panel) stays intact.
 
+import mapboxgl from 'mapbox-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { Icons } from '@/components/Icons';
 import { Pill, fmt } from '@/components/atoms';
@@ -395,23 +398,6 @@ function composeAssistantResponse(matched: MapBuilding[], reasoning: string): st
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Geographic projection — simple equirectangular into our SVG viewBox
-// ────────────────────────────────────────────────────────────────────────────
-
-const MAP_VB = { w: 400, h: 600 };
-const KOREA_BOUNDS = { latMin: 33.0, latMax: 38.7, lngMin: 125.5, lngMax: 130.5 };
-
-function project(lat: number, lng: number): { x: number; y: number } {
-  const x =
-    ((lng - KOREA_BOUNDS.lngMin) / (KOREA_BOUNDS.lngMax - KOREA_BOUNDS.lngMin)) *
-    MAP_VB.w;
-  const y =
-    ((KOREA_BOUNDS.latMax - lat) / (KOREA_BOUNDS.latMax - KOREA_BOUNDS.latMin)) *
-    MAP_VB.h;
-  return { x, y };
-}
-
-// ────────────────────────────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -621,7 +607,7 @@ function HeroBand({
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// MapPanel — SVG peninsula + projected markers + state legend
+// MapPanel — Mapbox basemap + state-coded markers + legend
 // ────────────────────────────────────────────────────────────────────────────
 
 const STATE_PALETTE: Record<SiteState, { fill: string; stroke: string; label: string; size: number }> = {
@@ -630,6 +616,11 @@ const STATE_PALETTE: Record<SiteState, { fill: string; stroke: string; label: st
   marginal:    { fill: 'transparent',       stroke: 'var(--ink)',        label: '보강 필요',  size: 6 },
   unsuitable:  { fill: 'transparent',       stroke: 'var(--muted-2)',    label: '부적합',     size: 4 },
 };
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
+const MAP_STYLE = 'mapbox://styles/mapbox/light-v11';
+const KOREA_CENTER: [number, number] = [127.85, 36.4];
+const KOREA_ZOOM = 5.7;
 
 function MapPanel({
   buildings,
@@ -669,154 +660,195 @@ function MapPanel({
         </div>
       </div>
 
-      <div
-        style={{
-          background: '#FAFAFA',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--r-sm)',
-          padding: 12,
-        }}
-      >
-        <svg
-          viewBox={`0 0 ${MAP_VB.w} ${MAP_VB.h}`}
-          style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 720 }}
-        >
-          {/* Stylised Korean peninsula silhouette — recognisable, not survey-grade. */}
-          <path
-            d="
-              M 245 60
-              C 218 58, 195 75, 195 100
-              L 180 130
-              C 165 145, 165 175, 180 195
-              L 175 230
-              C 160 250, 165 285, 180 305
-              L 175 345
-              C 165 380, 175 420, 175 450
-              L 165 490
-              C 155 525, 165 565, 195 580
-              L 215 565
-              C 235 545, 245 520, 240 490
-              L 250 460
-              C 265 425, 260 390, 250 360
-              L 260 320
-              C 275 290, 270 255, 260 225
-              L 270 190
-              C 285 165, 285 135, 275 110
-              L 280 85
-              C 280 65, 265 55, 245 60
-              Z
-            "
-            fill="#FFFFFF"
-            stroke="var(--line-2)"
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-          {/* Faint province grid hints */}
-          <g stroke="var(--line)" strokeDasharray="2 4" strokeWidth={0.6} fill="none">
-            <line x1={170} y1={150} x2={290} y2={150} />
-            <line x1={160} y1={250} x2={270} y2={250} />
-            <line x1={155} y1={350} x2={260} y2={350} />
-            <line x1={160} y1={450} x2={250} y2={450} />
-          </g>
+      <MapboxMap
+        buildings={buildings}
+        filteredIds={filteredIds}
+        highlightedId={highlightedId}
+        onSelect={onSelect}
+      />
 
-          {/* Province labels */}
-          <g
-            fontFamily="Pretendard, sans-serif"
-            fontSize={9}
-            fill="var(--muted-2)"
-            fontWeight={500}
-            letterSpacing={-0.2}
-          >
-            <text x={258} y={108}>강원</text>
-            <text x={233} y={138}>서울·경기</text>
-            <text x={208} y={205}>충청</text>
-            <text x={258} y={245}>경북</text>
-            <text x={188} y={295}>전북</text>
-            <text x={250} y={325}>경남</text>
-            <text x={183} y={395}>전남</text>
-            <text x={235} y={395}>부산</text>
-          </g>
-
-          {/* Markers — split into "dimmed" and "active" passes so active ones render on top */}
-          {buildings.map((b) => {
-            const { x, y } = project(b.lat, b.lng);
-            const active = filteredIds.has(b.id);
-            const palette = STATE_PALETTE[b.state];
-            if (active) return null;
-            return (
-              <circle
-                key={`dim-${b.id}`}
-                cx={x}
-                cy={y}
-                r={palette.size * 0.55}
-                fill={palette.fill === 'transparent' ? 'transparent' : palette.fill}
-                stroke={palette.stroke}
-                strokeWidth={1}
-                opacity={0.18}
-                pointerEvents="none"
-              />
-            );
-          })}
-          {buildings.map((b) => {
-            const { x, y } = project(b.lat, b.lng);
-            const active = filteredIds.has(b.id);
-            const palette = STATE_PALETTE[b.state];
-            if (!active) return null;
-            const isHighlighted = highlightedId === b.id;
-            return (
-              <g key={b.id} style={{ cursor: 'pointer' }} onClick={() => onSelect(b.id)}>
-                {isHighlighted && (
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={palette.size + 6}
-                    fill="none"
-                    stroke="var(--accent-ink)"
-                    strokeWidth={1.5}
-                  />
-                )}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={palette.size}
-                  fill={palette.fill === 'transparent' ? '#FFFFFF' : palette.fill}
-                  stroke={palette.stroke}
-                  strokeWidth={palette.fill === 'transparent' ? 1.4 : 1}
-                />
-              </g>
-            );
-          })}
-
-          {/* Legend in bottom-right */}
-          <g transform={`translate(${MAP_VB.w - 130}, ${MAP_VB.h - 110})`}>
-            <rect x={0} y={0} width={120} height={100} rx={4} fill="rgba(255,255,255,0.95)" stroke="var(--line)" />
-            {(['existing', 'good', 'marginal', 'unsuitable'] as const).map((s, i) => {
-              const palette = STATE_PALETTE[s];
-              return (
-                <g key={s} transform={`translate(10, ${16 + i * 21})`}>
-                  <circle
-                    cx={6}
-                    cy={0}
-                    r={palette.size}
-                    fill={palette.fill === 'transparent' ? '#FFFFFF' : palette.fill}
-                    stroke={palette.stroke}
-                    strokeWidth={palette.fill === 'transparent' ? 1.4 : 1}
-                  />
-                  <text x={20} y={3.5} fontSize={9.5} fontFamily="Pretendard, sans-serif" fill="var(--ink-2)">
-                    {palette.label}
-                  </text>
-                </g>
-              );
-            })}
-          </g>
-        </svg>
-      </div>
+      <MapLegend />
 
       <div style={{ fontSize: 11.5, color: 'var(--muted-2)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <span>좌표 시뮬레이션 · RTU 연동 시 실제 위치로 자동 갱신</span>
         <span className="num">표시 {Array.from(filteredIds).length} / 전체 {buildings.length}</span>
       </div>
     </section>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MapboxMap — basemap + DOM markers; mounts once, styles update on prop change
+// ────────────────────────────────────────────────────────────────────────────
+
+function MapboxMap({
+  buildings,
+  filteredIds,
+  highlightedId,
+  onSelect,
+}: {
+  buildings: ReadonlyArray<MapBuilding>;
+  filteredIds: Set<string>;
+  highlightedId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; el: HTMLDivElement }>>(new Map());
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
+
+  // Mount the map and create one marker per building. Runs once.
+  useEffect(() => {
+    if (!containerRef.current || !MAPBOX_TOKEN) return;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: MAP_STYLE,
+      center: KOREA_CENTER,
+      zoom: KOREA_ZOOM,
+      attributionControl: true,
+    });
+    mapRef.current = map;
+
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+    for (const b of buildings) {
+      const el = document.createElement('div');
+      el.style.width = '14px';
+      el.style.height = '14px';
+      el.style.borderRadius = '999px';
+      el.style.cursor = 'pointer';
+      el.style.boxSizing = 'border-box';
+      el.style.transition = 'opacity .15s, transform .15s, box-shadow .15s';
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        onSelectRef.current(b.id);
+      });
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([b.lng, b.lat]).addTo(map);
+      markersRef.current.set(b.id, { marker, el });
+    }
+
+    // Background click clears selection.
+    map.on('click', () => onSelectRef.current(null));
+
+    return () => {
+      for (const { marker } of markersRef.current.values()) marker.remove();
+      markersRef.current.clear();
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Re-style markers whenever filter / highlight changes.
+  useEffect(() => {
+    for (const b of buildings) {
+      const entry = markersRef.current.get(b.id);
+      if (!entry) continue;
+      const { el } = entry;
+      const palette = STATE_PALETTE[b.state];
+      const active = filteredIds.has(b.id);
+      const isHighlighted = highlightedId === b.id;
+
+      const fill = palette.fill === 'transparent' ? '#FFFFFF' : palette.fill;
+      el.style.background = fill;
+      el.style.border = `1.5px solid ${palette.stroke}`;
+      el.style.opacity = active ? '1' : '0.22';
+      el.style.pointerEvents = active ? 'auto' : 'none';
+      el.style.transform = isHighlighted ? 'scale(1.3)' : 'scale(1)';
+      el.style.boxShadow = isHighlighted ? '0 0 0 3px var(--accent-ink)' : 'none';
+      el.style.zIndex = isHighlighted ? '2' : active ? '1' : '0';
+    }
+  }, [buildings, filteredIds, highlightedId]);
+
+  // Pan to the highlighted building (smooth fly-in).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !highlightedId) return;
+    const b = buildings.find((x) => x.id === highlightedId);
+    if (!b) return;
+    map.flyTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), 8.5), duration: 700 });
+  }, [buildings, highlightedId]);
+
+  if (!MAPBOX_TOKEN) {
+    return (
+      <div
+        style={{
+          background: '#FAFAFA',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-sm)',
+          padding: 24,
+          minHeight: 400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: 6,
+          color: 'var(--muted)',
+          fontSize: 12.5,
+          textAlign: 'center',
+        }}
+      >
+        <strong style={{ color: 'var(--ink)' }}>VITE_MAPBOX_TOKEN 미설정</strong>
+        <span>apps/web/.env.local 에 토큰을 추가한 뒤 dev 서버를 재시작해 주세요.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        height: 560,
+        borderRadius: 'var(--r-sm)',
+        border: '1px solid var(--line)',
+        overflow: 'hidden',
+      }}
+      aria-label="후보지 지도"
+    />
+  );
+}
+
+function MapLegend() {
+  return (
+    <div
+      role="list"
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '6px 16px',
+        padding: '8px 10px',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-sm)',
+        background: 'var(--panel)',
+        fontSize: 11.5,
+        color: 'var(--ink-2)',
+      }}
+    >
+      {(['existing', 'good', 'marginal', 'unsuitable'] as const).map((s) => {
+        const palette = STATE_PALETTE[s];
+        return (
+          <span
+            key={s}
+            role="listitem"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 999,
+                background: palette.fill === 'transparent' ? '#FFFFFF' : palette.fill,
+                border: `1.5px solid ${palette.stroke}`,
+                display: 'inline-block',
+              }}
+            />
+            {palette.label}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 

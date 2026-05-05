@@ -233,11 +233,6 @@ export function TamperModal({ onClose }: TamperModalProps) {
           </div>
         </div>
 
-        {/* Footer note */}
-        <div style={{ fontSize: 11.5, color: '#9AA0AB', textAlign: 'center', marginBottom: 20 }}>
-          본 알림은 LH 본사 시연 시나리오 5단계(05:30~06:30)에 자동 표시됩니다.
-        </div>
-
         {/* CTAs */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
           <Btn variant="secondary" icon={SearchIcon}>감사 로그 보기</Btn>

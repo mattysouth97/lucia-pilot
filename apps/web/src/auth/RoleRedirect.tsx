@@ -8,7 +8,7 @@ import { OperatorHome } from '@/routes/Home/OperatorHome';
 
 export function RoleRedirect() {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login?redirect=%2F" replace />;
+  if (!user) return <Navigate to="/invest" replace />;
   switch (user.role) {
     case 'analyst':  return <AnalystHome />;
     case 'operator': return <OperatorHome />;

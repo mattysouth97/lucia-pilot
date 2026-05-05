@@ -2,39 +2,12 @@
 // Typed numeric / structural fixtures for /invest. v1 is fixture-only;
 // Phase-2 swaps these import call sites for engine-backed TanStack Query hooks.
 
-import type { TxStreamMessage } from '@lucia/contracts';
-import { TX_STREAM } from '@lucia/contracts/fixtures';
-
 export interface AumStat {
   readonly label: string;
   readonly value: number;
   readonly format: 'krw' | 'pct' | 'count';
   readonly unit?: string;
   readonly helper?: string;
-}
-
-export interface ImpactSplit {
-  readonly reservationPct: number;
-  readonly groups: ReadonlyArray<{
-    readonly code: 'lh' | 'gukmin' | 'sowoe';
-    readonly label: string;
-    readonly pct: number;
-  }>;
-  readonly highlightCode: 'sowoe';
-}
-
-export interface StationCard {
-  readonly buildingId: string;
-  readonly buildingName: string;
-  readonly installedKw: number;
-  readonly status: 'ok' | 'maintenance';
-  readonly dailyKwh: number;
-  readonly cumulativeKrw: number;
-}
-
-export interface LedgerSnapshot {
-  readonly txs: ReadonlyArray<TxStreamMessage>;
-  readonly capturedAt: string;
 }
 
 // AUM trio — values derived from FRD §11.3 seed targets in untitled/project/src/data.jsx,
@@ -45,40 +18,26 @@ export const aumStats: ReadonlyArray<AumStat> = [
   { label: '운영 발전소', value: 116, format: 'count', unit: '동', helper: '9,354동까지 확장 가능한 구조' },
 ];
 
-// 41% / 64.2 / 10.9 / 35.8 — verbatim labels from untitled/project/src/data.jsx lines 106–108
-// and apps/web/src/routes/ResidentPortal.tsx. Sub-ratios refer to scoped cohorts, not flat shares.
-export const impactSplit: ImpactSplit = {
-  reservationPct: 41,
-  groups: [
-    { code: 'lh', label: 'LH 매입임대', pct: 64.2 },
-    { code: 'gukmin', label: '국민임대', pct: 10.9 },
-    { code: 'sowoe', label: '에너지소외', pct: 35.8 },
-  ],
-  highlightCode: 'sowoe',
-};
+export interface YieldMonth {
+  readonly month: string;       // 'YY.MM' display
+  readonly distributionKrw: number;
+  readonly onTime: boolean;
+  readonly latest?: boolean;
+}
 
-// Station cards — manually projected from contracts BUILDINGS to a public-safe shape.
-// Tree-shaking does not remove sibling object fields, so importing BUILDINGS directly
-// would leak internal data (address, lat, lng, region_office, inverter_count) into the
-// public bundle. We pre-project here so only the 4 public fields are referenced.
-//
-// Source IDs intersect BUILDINGS fixture with public-fixture status constraint
-// (only 'ok' or 'maintenance' may appear publicly per spec §6.6).
-export const stationCards: ReadonlyArray<StationCard> = [
-  { buildingId: 'ULJN-001', buildingName: '울진 울진읍 001동', installedKw: 25.86, status: 'ok',          dailyKwh: 124.6, cumulativeKrw: 4_812_400 },
-  { buildingId: 'ULJN-002', buildingName: '울진 울진읍 002동', installedKw: 25.86, status: 'ok',          dailyKwh: 122.1, cumulativeKrw: 4_768_900 },
-  { buildingId: 'ULJN-007', buildingName: '울진 울진읍 007동', installedKw: 25.86, status: 'ok',          dailyKwh: 119.8, cumulativeKrw: 4_701_200 },
-  { buildingId: 'ULJN-014', buildingName: '울진 울진읍 014동', installedKw: 25.86, status: 'maintenance', dailyKwh: 0,     cumulativeKrw: 4_690_300 },
-  { buildingId: 'ULJN-023', buildingName: '울진 울진읍 023동', installedKw: 25.86, status: 'ok',          dailyKwh: 125.2, cumulativeKrw: 4_854_100 },
-  { buildingId: 'ULJN-031', buildingName: '울진 울진읍 031동', installedKw: 25.86, status: 'ok',          dailyKwh: 121.4, cumulativeKrw: 4_792_600 },
-  { buildingId: 'ULJN-073', buildingName: '울진 울진읍 073동', installedKw: 25.86, status: 'ok',          dailyKwh: 123.7, cumulativeKrw: 4_823_400 },
-  { buildingId: 'ULJN-089', buildingName: '울진 울진읍 089동', installedKw: 25.86, status: 'ok',          dailyKwh: 120.5, cumulativeKrw: 4_745_800 },
+// 12-month distribution history — slight upward trend tracking the operating fleet
+// growing from ~98 to 116 buildings. All months on-time per FRD §11 SLAs.
+export const yieldHistory: ReadonlyArray<YieldMonth> = [
+  { month: '25.05', distributionKrw: 28_140_000, onTime: true },
+  { month: '25.06', distributionKrw: 28_920_000, onTime: true },
+  { month: '25.07', distributionKrw: 30_410_000, onTime: true },
+  { month: '25.08', distributionKrw: 31_240_000, onTime: true },
+  { month: '25.09', distributionKrw: 30_660_000, onTime: true },
+  { month: '25.10', distributionKrw: 30_180_000, onTime: true },
+  { month: '25.11', distributionKrw: 29_540_000, onTime: true },
+  { month: '25.12', distributionKrw: 29_120_000, onTime: true },
+  { month: '26.01', distributionKrw: 30_300_000, onTime: true },
+  { month: '26.02', distributionKrw: 31_080_000, onTime: true },
+  { month: '26.03', distributionKrw: 31_960_000, onTime: true },
+  { month: '26.04', distributionKrw: 32_356_400, onTime: true, latest: true },
 ];
-
-// Ledger snapshot — 8-row fallback when WebSocket disconnected. Reuses TX_STREAM from
-// @lucia/contracts; entry [4] in TX_STREAM is the tamper rejection (status !== 'confirmed'),
-// which we intentionally exclude from the public landing-page fallback.
-export const ledgerSnapshot: LedgerSnapshot = {
-  txs: TX_STREAM.filter(tx => tx.status === 'confirmed').slice(0, 8),
-  capturedAt: '2026-04-30 13:24',
-};

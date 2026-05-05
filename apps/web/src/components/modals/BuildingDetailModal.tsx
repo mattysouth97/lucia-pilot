@@ -1,6 +1,8 @@
 // NOTE(wk2): demo prop shape is BuildingLike (prototype demo data), not the FRD-spec Building.
 // Phase 2 will replace this with @lucia/contracts Building once real engine endpoints land
 // and the dashboard rows derive from generation_events + buildings join (FR-M-002 backend wiring).
+import { Area, AreaChart, Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
 import { Modal } from './Modal.js';
 
 import { Pill, Btn, fmt } from '@/components/atoms';
@@ -46,6 +48,33 @@ const STATUS_TONE: Record<string, 'green' | 'amber' | 'rose' | 'neutral'> = {
   alert: 'rose',
   maintenance: 'neutral',
 };
+
+// 24-hour generation curve — rises from sunrise (06h), peaks ~12–13h, fades by sunset.
+const HOURLY_GENERATION: { hour: number; kwh: number }[] = [
+  { hour: 6,  kwh: 0.4 },
+  { hour: 7,  kwh: 1.8 },
+  { hour: 8,  kwh: 4.5 },
+  { hour: 9,  kwh: 8.2 },
+  { hour: 10, kwh: 12.1 },
+  { hour: 11, kwh: 14.6 },
+  { hour: 12, kwh: 15.8 },
+  { hour: 13, kwh: 15.5 },
+  { hour: 14, kwh: 14.2 },
+  { hour: 15, kwh: 12.8 },
+  { hour: 16, kwh: 9.4 },
+  { hour: 17, kwh: 5.7 },
+  { hour: 18, kwh: 2.1 },
+  { hour: 19, kwh: 0.5 },
+];
+
+// 30-day trend — deterministic, drifts around 138 kWh/day with mild day-of-month variance.
+const MONTHLY_TREND: { day: number; kwh: number }[] = Array.from({ length: 30 }, (_, i) => {
+  const day = i + 1;
+  // Slight upward drift + sinusoidal weekly wobble
+  const base = 130 + i * 0.4;
+  const wobble = Math.sin(i * 0.9) * 8;
+  return { day, kwh: Math.round((base + wobble) * 10) / 10 };
+});
 
 const RECENT_SETTLEMENTS = [
   { ts: '13:24:18', kwh: 1.23, smp: 119, won: 146.4 },
@@ -158,6 +187,118 @@ export function BuildingDetailModal({ building, onClose }: BuildingDetailModalPr
               )}
             </div>
           ))}
+        </div>
+
+        {/* Charts row — 24-hour generation curve + 30-day daily trend */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+          {/* 24-hour area chart */}
+          <div style={{ background: '#fff', border: '1px solid #E2E5EA', borderRadius: 14, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>24시간 발전량</div>
+              <span className="num" style={{ fontSize: 11, color: '#9AA0AB' }}>2026-04-30</span>
+            </div>
+            <div style={{ height: 200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={HOURLY_GENERATION} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="bd-hourly-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.32} />
+                      <stop offset="100%" stopColor="var(--accent)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="hour"
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => String(v).padStart(2, '0')}
+                    tick={{ fontSize: 10.5, fill: '#9AA0AB' }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    width={32}
+                    tick={{ fontSize: 10.5, fill: '#9AA0AB' }}
+                    domain={[0, 16]}
+                    ticks={[0, 4, 8, 12, 16]}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    contentStyle={{
+                      borderRadius: 6,
+                      border: '1px solid #D5D9DF',
+                      fontSize: 11.5,
+                      boxShadow: 'none',
+                      padding: '6px 10px',
+                      fontFamily: 'Geist Mono, monospace',
+                    }}
+                    formatter={(v: unknown) => [`${(v as number).toFixed(1)} kWh`, '발전량']}
+                    labelFormatter={(h: unknown) => `${String(h).padStart(2, '0')}시`}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="kwh"
+                    stroke="var(--accent)"
+                    strokeWidth={2}
+                    fill="url(#bd-hourly-fill)"
+                    dot={false}
+                    activeDot={{ r: 3, fill: 'var(--accent)' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* 30-day bar chart */}
+          <div style={{ background: '#fff', border: '1px solid #E2E5EA', borderRadius: 14, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>30일 추이</div>
+              <span style={{
+                fontSize: 11, color: '#0E1116', fontWeight: 600,
+                background: '#F4F5F7', padding: '3px 10px', borderRadius: 999,
+              }}>
+                일별
+              </span>
+            </div>
+            <div style={{ height: 200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={MONTHLY_TREND} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                  <XAxis
+                    dataKey="day"
+                    axisLine={false}
+                    tickLine={false}
+                    interval={1}
+                    tick={{ fontSize: 10, fill: '#9AA0AB' }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    width={32}
+                    tick={{ fontSize: 10.5, fill: '#9AA0AB' }}
+                    domain={[0, 160]}
+                    ticks={[0, 40, 80, 120, 160]}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(16,185,129,0.06)' }}
+                    contentStyle={{
+                      borderRadius: 6,
+                      border: '1px solid #D5D9DF',
+                      fontSize: 11.5,
+                      boxShadow: 'none',
+                      padding: '6px 10px',
+                      fontFamily: 'Geist Mono, monospace',
+                    }}
+                    formatter={(v: unknown) => [`${(v as number).toFixed(1)} kWh`, '발전량']}
+                    labelFormatter={(d: unknown) => `4월 ${d}일`}
+                  />
+                  <Bar dataKey="kwh" radius={[3, 3, 0, 0]} maxBarSize={14}>
+                    {MONTHLY_TREND.map((d) => (
+                      <Cell key={d.day} fill="var(--accent)" />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Two-column: inverter + recent settlements */}

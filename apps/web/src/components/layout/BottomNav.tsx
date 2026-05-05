@@ -19,7 +19,6 @@ const NAV_ITEMS: NavItem[] = [
   { value: '개요',           label: '개요',   icon: Icons['Home'] },
   { value: '정산 원장',      label: '원장',   icon: Icons['Coin'] },
   { value: '동별 모니터',    label: '모니터', icon: Icons['Map'] },
-  { value: '감사·보고',      label: '보고',   icon: Icons['Chain'] },
   { value: '후보지 지도',    label: '지도',   icon: Icons['Search'] },
   { value: '투자 시뮬레이터', label: '시뮬',   icon: Icons['Chart'] },
   { value: '관리자',         label: '관리',   icon: Icons['Settings'] },

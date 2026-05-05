@@ -1,16 +1,13 @@
-// FR-O-003 — 관리자 콘솔 (Demo Step 0 controller satisfier).
+// FR-O-003 — 관리자 콘솔.
 //
-// Sections: 동 관리, 가중치/단가 조정, 이상 상황 주입, 시연 시나리오 제어.
+// Sections: 동 관리, 가중치/단가 조정, 이상 상황 주입.
 // Anomaly inject calls POST /api/admin/anomaly (engine route lands B5.x).
-// Demo scenario controls bind to useDemoController() so admins can drive
-// the M+3 storyboard from the same surface as the rest of the console.
 
 import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { Icons } from '@/components/Icons';
 import { Pill, Btn, fmt } from '@/components/atoms';
-import { useDemoController } from '@/demo/DemoController';
 
 interface BuildingRow {
   id: string;
@@ -42,8 +39,6 @@ const ANOMALY_TYPES = [
 ] as const;
 
 export function AdminConsole() {
-  const demo = useDemoController();
-
   const [sliders, setSliders] = useState<SliderState>({
     recWeight: 1.2,
     saasFee: 0.66,
@@ -91,10 +86,10 @@ export function AdminConsole() {
             marginTop: 8,
           }}
         >
-          시스템 운영 · 시연 제어
+          시스템 운영
         </div>
         <div style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
-          FR-O-003 · 동 관리, 가중치/단가, 이상 주입, 시연 시나리오 통제
+          FR-O-003 · 동 관리, 가중치/단가, 이상 주입
         </div>
       </div>
 
@@ -197,7 +192,7 @@ export function AdminConsole() {
         <div className="card" style={{ padding: 22 }}>
           <SectionHeader
             title="이상 상황 주입"
-            subtitle="POST /api/admin/anomaly · 시연용"
+            subtitle="POST /api/admin/anomaly"
           />
           <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
             <FormRow label="대상 동">
@@ -268,106 +263,6 @@ export function AdminConsole() {
           </div>
         </div>
 
-        {/* 시연 시나리오 제어 */}
-        <div className="card" style={{ padding: 22 }}>
-          <SectionHeader
-            title="시연 시나리오 제어"
-            subtitle={`FR-O-004 · 9-step storyboard · ${demo.steps.length}단계`}
-            action={
-              <Pill tone={demo.running ? 'green' : 'neutral'} dot>
-                {demo.running ? '재생 중' : '대기'}
-              </Pill>
-            }
-          />
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 14, marginBottom: 14 }}>
-            <Btn variant="primary" size="md" onClick={demo.start} style={{ flex: 1, justifyContent: 'center' }}>
-              ▶ 재생 시작
-            </Btn>
-            <Btn variant="secondary" size="md" onClick={demo.pause}>
-              일시정지
-            </Btn>
-            <Btn variant="secondary" size="md" onClick={demo.resume}>
-              재개
-            </Btn>
-            <Btn variant="ghost" size="md" onClick={demo.reset}>
-              리셋
-            </Btn>
-          </div>
-
-          <div style={{ display: 'grid', gap: 4, maxHeight: 280, overflowY: 'auto' }}>
-            {demo.steps.map((step, i) => {
-              const isCurrent = i === demo.currentStep;
-              const pctOfStep = isCurrent
-                ? Math.min(100, (demo.elapsedMs / step.duration_ms) * 100)
-                : 0;
-              return (
-                <button
-                  key={step.id}
-                  onClick={() => demo.jumpTo(i)}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '24px 1fr auto',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 10px',
-                    borderRadius: 8,
-                    background: isCurrent ? '#EFF5FF' : 'transparent',
-                    cursor: 'pointer',
-                    width: '100%',
-                    textAlign: 'left',
-                    border: 'none',
-                  }}
-                >
-                  <span
-                    className="mono"
-                    style={{
-                      fontSize: 11,
-                      color: '#9AA0AB',
-                      width: 18,
-                      textAlign: 'right',
-                    }}
-                  >
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: isCurrent ? 700 : 500,
-                        color: isCurrent ? '#0E1116' : '#374151',
-                      }}
-                    >
-                      {step.label}
-                    </div>
-                    {isCurrent && (
-                      <div
-                        style={{
-                          height: 3,
-                          background: '#F4F5F7',
-                          borderRadius: 999,
-                          marginTop: 4,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: '100%',
-                            width: `${pctOfStep}%`,
-                            background: 'linear-gradient(90deg,#4D91E8,#1264D3)',
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <span className="mono" style={{ fontSize: 10.5, color: '#9AA0AB' }}>
-                    {Math.round(step.duration_ms / 1000)}s
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </>
   );

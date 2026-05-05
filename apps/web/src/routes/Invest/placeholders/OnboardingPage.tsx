@@ -1,19 +1,28 @@
 // apps/web/src/routes/Invest/placeholders/OnboardingPage.tsx
+//
+// Public investor-facing simulator at /invest/onboarding.  Reuses the same
+// simulation engine + UI as the analyst/operator surface at /simulator —
+// single source of truth for the pro-forma model.
+
 import { useRouteMeta } from '../meta';
+
+import { InstallSimulator } from '@/routes/InstallSimulator';
 
 export function OnboardingPage() {
   useRouteMeta({
-    title: 'Lucia — 투자 시작 (준비 중)',
-    description: '본인인증 및 투자 신청 페이지는 출시 준비 중입니다.',
+    title: 'Lucia — 투자 시뮬레이션',
+    description:
+      '옥상·시스템·재무 파라미터를 조정하고 NPV·IRR·LCOE·25년 현금흐름을 실시간으로 확인하세요.',
     robots: 'index, follow',
+    canonical: '/invest/onboarding',
   });
+
   return (
-    <main className="landing-container" style={{ padding: '120px 24px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700 }}>투자 시작</h1>
-      <p style={{ color: 'var(--muted)', marginTop: 12 }}>본인인증 및 투자 신청은 출시 준비 중입니다.</p>
-      <a href="/invest" style={{ marginTop: 24, display: 'inline-block', color: 'var(--accent-ink)', fontWeight: 600 }}>
-        ← Lucia 홈으로
-      </a>
+    <main
+      className="landing-container"
+      style={{ padding: '32px 24px 96px', display: 'flex', flexDirection: 'column', gap: 24 }}
+    >
+      <InstallSimulator />
     </main>
   );
 }
