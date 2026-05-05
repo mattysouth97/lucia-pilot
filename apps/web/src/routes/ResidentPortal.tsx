@@ -259,6 +259,28 @@ export function ResidentPortal() {
             >
               월 자동 정산
             </span>
+            <button
+              type="button"
+              onClick={() => setChainOpen(true)}
+              title="블록체인 원장에서 해당 거래 직접 확인"
+              style={{
+                marginLeft: 8,
+                fontSize: 11.5,
+                fontFamily: 'Geist Mono, ui-monospace, monospace',
+                color: '#0D4AA0',
+                fontWeight: 600,
+                background: '#FFFFFF',
+                border: '1px solid #BFDBFE',
+                padding: '3px 10px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {txId} <span aria-hidden style={{ fontSize: 10 }}>↗</span>
+            </button>
           </div>
           <div style={{ fontSize: 12.5, color: '#6B7280', marginTop: 6 }}>
             {resident.buildingId}에서 발전된{' '}

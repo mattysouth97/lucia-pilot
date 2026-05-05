@@ -7,7 +7,7 @@ export const DEMO_ACCOUNTS: ReadonlyArray<AuthUser> = [
   { id: 'h0001',          role: 'resident', displayName: '홍*동',       subtitle: 'ULJN-001 거주 · LH 매입임대 (1,643세대)' },
   { id: 'k0014',          role: 'resident', displayName: '김*수',       subtitle: 'YESN-014 거주 · 국민임대 (280세대)' },
   { id: 'e0042',          role: 'resident', displayName: '이*경',       subtitle: 'BSAN-042 거주 · 에너지소외 (916세대)' },
-  { id: 'u_investor_a01', role: 'investor', displayName: '박재민',      subtitle: '투자자 #A01 · 누적 ₩2,400,000' },
+  { id: 'u_investor_a01', role: 'investor', displayName: 'SK하이닉스 ESG실', subtitle: 'RE100 PPA 매수자 · 약정 180,000 kWh/월' },
 ];
 
 export function findAccount(userId: string): AuthUser | undefined {
