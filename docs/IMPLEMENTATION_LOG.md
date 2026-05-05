@@ -39,10 +39,10 @@ checked, "·" = open. Gate codes: `P` processing-steps coded, `A` AC verified
 | FR-R-002 | Investor catalog | Must | 2C | · | · | · | · | · | · | — |
 | FR-R-003 | RE100 onboarding | Must | 2D | · | · | · | · | · | · | — |
 | FR-R-004 | Retail onboarding | Should | 2E | · | · | · | · | · | · | — |
-| FR-R-005 | LOI module | Must | 2A | · | · | · | · | · | · | — |
+| FR-R-005 | LOI module | Must | 2A | C | C | · | · | C | C | `ee6bf47`, `1648ef6`, `e27cbb3` (logic layer; UI defers to Wave 4) |
 | FR-R-006 | Investor portfolio | Should | 2F | · | · | · | · | · | · | — |
 | FR-O-005 | Kakao Maps explorer | Should | 2G | · | · | · | · | · | · | — |
-| FR-O-006 | Financial simulator | Must | 2B | · | · | · | · | · | · | — |
+| FR-O-006 | Financial simulator | Must | 2B | C | C | · | · | C | C | `37a6da9` (Slice 1 — @lucia/finance pure model + 31 tests; React UI Slice 2 pending) |
 | FR-M-009 | ESG impact dashboard | Should | 3A | · | · | · | · | · | · | — |
 | FR-M-010 | Community feed | Should | 3B | · | · | · | · | · | · | — |
 
@@ -224,6 +224,10 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 | `984f7f4` | docs | Wave 1 quality-gate result + commit history update | `feat/v1.3-strategic-pivot` |
 | `ee6bf47` | feat | Wave 2A Slice 1 — FR-R-005 LOI data layer (sha256 + store + 16 tests) | `feat/v1.3-strategic-pivot` |
 | `bdad922` | docs | v1.3.1 prompt update — FR-O-006 refocused on investor-equity perspective | `feat/v1.3-strategic-pivot` |
+| `db7813c` | docs | IMPLEMENTATION_LOG.md — v1.3.1 changes reflected, R-V13-1 closed | `feat/v1.3-strategic-pivot` |
+| `1648ef6` | feat | Wave 2A Slice 2 — LOI HTML templates + generator (12 tests) | `feat/v1.3-strategic-pivot` |
+| `e27cbb3` | feat | Wave 2A Slice 3 — signature flow + blockchain hash registration (17 tests) | `feat/v1.3-strategic-pivot` |
+| `37a6da9` | feat | Wave 2B Slice 1 — @lucia/finance investor-model + assumptions (31 tests) | `feat/v1.3-strategic-pivot` |
 
 ## Wave 1 quality-gate result (workspace-wide)
 
