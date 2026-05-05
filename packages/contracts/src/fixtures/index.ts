@@ -3,3 +3,4 @@ export * from './buildings-nationwide.js';
 export * from './settlements.js';
 export * from './tx-stream.js';
 export * from './v1-3-demo.js';
+export * as LuciaEnergyFixtures from './lucia-energy/index.js';

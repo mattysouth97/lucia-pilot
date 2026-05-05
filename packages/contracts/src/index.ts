@@ -4,3 +4,4 @@
 export * from './domain/index.js';
 export * from './external/index.js';
 export * from './fixtures/index.js';
+export * as LuciaEnergy from './lucia-energy/index.js';
