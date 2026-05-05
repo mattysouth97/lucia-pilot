@@ -50,15 +50,18 @@ Data infrastructure (precondition for the 9 FRs above):
 
 | Item | Path | Status | Commit |
 |---|---|---|---|
-| 9,354-building seed | `packages/db/src/seeds/buildings.ts` | open | — |
-| `Investor` entity | `packages/contracts/src/domain/investor.ts` | open | — |
-| `LOI` entity | `packages/contracts/src/domain/loi.ts` | open | — |
-| `SimulationResult` entity | `packages/contracts/src/domain/simulation.ts` | open | — |
-| `ESGImpactSnapshot` entity | `packages/contracts/src/domain/esg-impact.ts` | open | — |
-| `CommunityEvent` entity | `packages/contracts/src/domain/community-event.ts` | open | — |
-| `EventRSVP` entity | `packages/contracts/src/domain/event-rsvp.ts` | open | — |
-| RE100 companies seed | `packages/db/src/seeds/re100-companies.ts` | open | — |
-| Demo LOI / Event / ESG seeds | `packages/db/src/seeds/demo-v1-3.ts` | open | — |
+| 9,354-building catalog | `packages/contracts/src/fixtures/buildings-nationwide.ts` | ✅ done | `94f3451` |
+| RegionOffice enum + 14-region metadata | `packages/contracts/src/domain/region-office.ts` | ✅ done | `94f3451` |
+| `Investor` entity (RE100 + retail union) | `packages/contracts/src/domain/investor.ts` | ✅ done | `4496ef7` |
+| `LOI` entity + status transitions | `packages/contracts/src/domain/loi.ts` | ✅ done | `4496ef7` |
+| `SimulationResult` entity | `packages/contracts/src/domain/simulation.ts` | ✅ done | `4496ef7` |
+| `ESGImpactSnapshot` entity + computeESGEquivalents | `packages/contracts/src/domain/esg-impact.ts` | ✅ done | `4496ef7` |
+| `CommunityEvent` entity | `packages/contracts/src/domain/community-event.ts` | ✅ done | `4496ef7` |
+| `EventRSVP` entity | `packages/contracts/src/domain/event-rsvp.ts` | ✅ done | `4496ef7` |
+| 5 demo investors (4 RE100 + 1 retail) | `packages/contracts/src/fixtures/v1-3-demo.ts` | ✅ done | `2865041` |
+| 3 demo LOI (submitted/draft/approved) | same file | ✅ done | `2865041` |
+| 2 demo community events (past + upcoming) | same file | ✅ done | `2865041` |
+| 9 demo ESG snapshots (3 residents × 3 months) | same file | ✅ done | `2865041` |
 | 2 new demo accounts | `apps/web/src/auth/demoAccounts.ts` | open | — |
 
 Cross-cutting (after all per-FR rows are green):
@@ -200,6 +203,26 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 |---|---|---|---|
 | `b55ae1d` | docs | add FRD-2026-001 v1.3 + changelog + build script | `feat/multi-role-auth` (parent) |
 | `9aeb699` | chore | setup for v1.3 work — CLAUDE.md FRD ref, make frd target, .vercel ignore | `feat/v1.3-strategic-pivot` |
+| `f31db78` | docs | initialize IMPLEMENTATION_LOG.md as durable progress log | `feat/v1.3-strategic-pivot` |
+| `94f3451` | feat | Wave 1A — nationwide 9,354-building catalog (region-office + Building extension) | `feat/v1.3-strategic-pivot` |
+| `4496ef7` | feat | Wave 1B — 6 new domain entities (Investor/LOI/Sim/ESG/Event/RSVP) | `feat/v1.3-strategic-pivot` |
+| `2865041` | feat | Wave 1C — demo fixtures (5 investors / 3 LOI / 2 events / 9 ESG snapshots) | `feat/v1.3-strategic-pivot` |
+
+## Wave 1 quality-gate result (workspace-wide)
+
+| Gate | Result | Notes |
+|---|---|---|
+| `pnpm typecheck` | ✅ clean | all 5 projects (contracts/db/web/engine/simulator) |
+| `pnpm lint` | ✅ clean | max-warnings=0 across workspace |
+| `pnpm test` (contracts) | ✅ 75/75 | 12 prior + 26 nationwide + 21 entities + 16 demo |
+| `pnpm test` (apps/web) | ⚠️ 3 pre-existing fails | inherited from `feat/multi-role-auth` (verified by checking parent branch — failures predate v1.3 work). Tests: `Invest/index hero title`, `Home/InvestorHome 누적 투자금`. NOT v1.3 regressions. Tracked separately for the FR-A-001 / FR-R-001 owners. |
+| `pnpm build` (contracts) | ✅ clean | |
+
+The DB schemas for the 6 new v1.3 entities (Investor/LOI/Sim/ESG/Event/RSVP)
+are intentionally **not** added in this wave. Pilot v1.3 UI consumes them as
+fixtures (`v1-3-demo.ts`) — there's no v1.3 backend yet. Drizzle schemas
++ migrations will land with v1.4 / Phase 2 backend wiring. Decision logged
+to keep the wave focused.
 
 ---
 
