@@ -33,6 +33,15 @@ const RetailWizard = lazy(() =>
 const OnboardingDone = lazy(() =>
   import('@/routes/Invest/Onboarding').then(m => ({ default: m.OnboardingDone })),
 );
+const PortfolioDashboard = lazy(() =>
+  import('@/routes/Invest/Portfolio').then(m => ({ default: m.PortfolioDashboard })),
+);
+const ResidentESGDashboard = lazy(() =>
+  import('@/routes/ResidentPortalSubpages').then(m => ({ default: m.ResidentESGDashboard })),
+);
+const ResidentCommunity = lazy(() =>
+  import('@/routes/ResidentPortalSubpages').then(m => ({ default: m.ResidentCommunity })),
+);
 const DisclosurePages = lazy(() =>
   import('@/routes/Invest/placeholders/DisclosurePages').then(m => ({ default: m.DisclosurePages })),
 );
@@ -135,6 +144,7 @@ function AppInner() {
                 <Route path="onboarding/re100" element={<RE100Wizard />} />
                 <Route path="onboarding/retail" element={<RetailWizard />} />
                 <Route path="onboarding/done" element={<OnboardingDone />} />
+                <Route path="portfolio" element={<PortfolioDashboard />} />
                 <Route path="disclosures/*" element={<DisclosurePages />} />
               </Routes>
             </LandingShell>
@@ -172,6 +182,26 @@ function AppInner() {
                   <Suspense fallback={null}>
                     <RequireRole roles={['resident']}>
                       <ResidentPortal />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/portal/:user_id/esg"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['resident']}>
+                      <ResidentESGDashboard />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/portal/:user_id/community"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['resident']}>
+                      <ResidentCommunity />
                     </RequireRole>
                   </Suspense>
                 }
