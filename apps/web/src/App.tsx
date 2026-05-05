@@ -24,6 +24,15 @@ const SiteDetail = lazy(() =>
 const OnboardingPage = lazy(() =>
   import('@/routes/Invest/placeholders/OnboardingPage').then(m => ({ default: m.OnboardingPage })),
 );
+const RE100Wizard = lazy(() =>
+  import('@/routes/Invest/Onboarding').then(m => ({ default: m.RE100Wizard })),
+);
+const RetailWizard = lazy(() =>
+  import('@/routes/Invest/Onboarding').then(m => ({ default: m.RetailWizard })),
+);
+const OnboardingDone = lazy(() =>
+  import('@/routes/Invest/Onboarding').then(m => ({ default: m.OnboardingDone })),
+);
 const DisclosurePages = lazy(() =>
   import('@/routes/Invest/placeholders/DisclosurePages').then(m => ({ default: m.DisclosurePages })),
 );
@@ -123,6 +132,9 @@ function AppInner() {
                 <Route path="projects/:siteId" element={<SiteDetail />} />
                 <Route path="simulator" element={<InstallSimulator />} />
                 <Route path="onboarding" element={<OnboardingPage />} />
+                <Route path="onboarding/re100" element={<RE100Wizard />} />
+                <Route path="onboarding/retail" element={<RetailWizard />} />
+                <Route path="onboarding/done" element={<OnboardingDone />} />
                 <Route path="disclosures/*" element={<DisclosurePages />} />
               </Routes>
             </LandingShell>
