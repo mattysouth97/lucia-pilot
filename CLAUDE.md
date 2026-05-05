@@ -6,7 +6,11 @@
 settlement platform for LH (한국토지주택공사) 매입임대주택 햇빛발전소.  The M+3
 demo to LH 본사 ESG 경영실 is the critical path milestone.
 
-FRD: `untitled/project/uploads/TheKIE_LH_FRD.docx` (FRD-2026-001 v1.0).
+FRD: `docs/frd/FRD-2026-001.md` (FRD-2026-001 v1.3 — markdown source of truth).
+The `.docx` consumed by LH at `untitled/project/uploads/TheKIE_LH_FRD.docx` is
+generated via `bash scripts/build-frd.sh` (or `make frd`). Change log at
+`docs/frd/CHANGELOG.md`. Pandoc is required to build; install via
+`winget install --id JohnMacFarlane.Pandoc -e`.
 
 ---
 

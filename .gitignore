@@ -70,3 +70,4 @@ infra/aws/terraform/*.tfvars
 
 # Drizzle
 packages/db/drizzle/
+.vercel

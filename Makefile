@@ -4,7 +4,7 @@
 .PHONY: help install typecheck lint test build dev up down logs clean \
         chain-hello chain-up chain-down \
         load-test-aws-smoke load-test-aws-full \
-        verify-p0
+        verify-p0 frd
 
 help:
 	@echo "Lucia Pilot — common commands:"
@@ -17,6 +17,7 @@ help:
 	@echo "  make chain-hello      - submit hello-world chaincode tx (P0.6 acceptance)"
 	@echo "  make load-test-aws-* - run k6 load test on AWS (FR-O-001)"
 	@echo "  make verify-p0        - run the full P0 acceptance gate command"
+	@echo "  make frd              - rebuild FRD .docx from docs/frd/FRD-2026-001.md (requires pandoc)"
 
 install:
 	pnpm install
@@ -71,6 +72,10 @@ load-test-aws-smoke:
 
 load-test-aws-full:
 	bash infra/aws/run-loadtest.sh full
+
+# FRD build — markdown source -> .docx via pandoc (see scripts/build-frd.sh)
+frd:
+	bash scripts/build-frd.sh
 
 # P0 acceptance gate (per .omc/plans/lucia-pilot-implementation.md)
 verify-p0:
