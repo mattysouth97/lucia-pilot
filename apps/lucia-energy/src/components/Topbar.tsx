@@ -1,6 +1,5 @@
 // apps/lucia-energy/src/components/Topbar.tsx
-// Black bar with cross-link tabs back to LH 햇빛발전소 + LuciaEnergy active.
-// Right-hand `사업 문의` pill scrolls to inquiry section.
+// Floating white rounded navbar — service-style register, away from the page edges.
 import type { CSSProperties } from 'react';
 
 import { NAV } from '../copy';
@@ -12,137 +11,150 @@ interface TopbarProps {
 export function Topbar({ onInquiryClick }: TopbarProps) {
   const investUrl =
     import.meta.env.VITE_LUCIA_INVEST_URL ?? 'http://localhost:5173/invest';
-  // Derive login URL from the invest URL host so subdomain / path-prefix
-  // deployments work without a separate env var.
   const loginUrl = investUrl.replace(/\/invest\/?$/, '/login');
 
   return (
-    <header
-      role="banner"
+    <div
       style={{
         position: 'sticky',
-        top: 0,
+        top: 16,
         zIndex: 40,
-        background: 'var(--bar)',
-        color: 'var(--bar-ink)',
-        height: 56,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 24px',
+        padding: '0 var(--page-pad)',
       }}
     >
-      <a
-        href="/"
-        aria-label="Lucia Energy"
+      <header
+        role="banner"
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
+          maxWidth: 1280,
+          margin: '0 auto',
+          background: 'var(--bar)',
           color: 'var(--bar-ink)',
-          flexShrink: 0,
-        }}
-      >
-        <svg width={20} height={20} viewBox="0 0 20 20" aria-hidden>
-          <path d="M2 16 L10 4 L18 16 Z" fill="#FFFFFF" />
-        </svg>
-        <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
-          {NAV.brand}
-        </span>
-      </a>
-
-      <nav
-        aria-label="메뉴"
-        className="show-md+"
-        style={{
-          marginLeft: 32,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 22,
-        }}
-      >
-        {NAV.menuItems.map(item => (
-          <a
-            key={item.href}
-            href={item.href}
-            style={menuLinkStyle}
-            onMouseEnter={e => (e.currentTarget.style.color = '#FFFFFF')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.72)')}
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      <div
-        style={{
-          marginLeft: 'auto',
+          height: 64,
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          padding: '0 24px',
+          borderRadius: 'var(--r-lg)',
+          boxShadow: 'var(--shadow-floating)',
+          border: '1px solid var(--bar-line)',
         }}
       >
-        <div
-          role="tablist"
-          aria-label="사이트 선택"
-          className="show-md+"
+        <a
+          href="/"
+          aria-label="Lucia Energy"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 2,
-            padding: 2,
-            borderRadius: 6,
-            background: 'rgba(255,255,255,0.06)',
+            gap: 10,
+            color: 'var(--bar-ink)',
+            flexShrink: 0,
           }}
         >
-          <a href={investUrl} role="tab" aria-selected={false} style={tabStyle(false)}>
-            {NAV.tabLh}
-          </a>
-          <a href="/" role="tab" aria-selected style={tabStyle(true)}>
-            {NAV.tabEnergy}
-          </a>
-        </div>
-
-        <a
-          href={loginUrl}
-          className="show-md+"
-          style={menuLinkStyle}
-          onMouseEnter={e => (e.currentTarget.style.color = '#FFFFFF')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.72)')}
-        >
-          {NAV.ctaLogin}
+          <svg width={22} height={22} viewBox="0 0 22 22" aria-hidden>
+            <path d="M2 18 L11 4 L20 18 Z" fill="var(--accent)" />
+          </svg>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
+            {NAV.brand}
+          </span>
         </a>
 
-        <button
-          type="button"
-          onClick={onInquiryClick}
+        <nav
+          aria-label="메뉴"
+          className="show-md+"
           style={{
-            background: 'var(--accent)',
-            color: '#FFFFFF',
-            padding: '8px 16px',
-            borderRadius: 'var(--r-md)',
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: '-0.005em',
-            border: 'none',
-            cursor: 'pointer',
+            marginLeft: 32,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 22,
           }}
         >
-          {NAV.ctaInquiry}
-        </button>
-      </div>
-    </header>
+          {NAV.menuItems.map(item => (
+            <a
+              key={item.href}
+              href={item.href}
+              style={menuLinkStyle}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--bar-ink-2)')}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <div
+            role="tablist"
+            aria-label="사이트 선택"
+            className="show-md+"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: 3,
+              borderRadius: 'var(--r-md)',
+              background: 'rgba(0,0,0,0.04)',
+            }}
+          >
+            <a href={investUrl} role="tab" aria-selected={false} style={tabStyle(false)}>
+              {NAV.tabLh}
+            </a>
+            <a href="/" role="tab" aria-selected style={tabStyle(true)}>
+              {NAV.tabEnergy}
+            </a>
+          </div>
+
+          <a
+            href={loginUrl}
+            className="show-md+"
+            style={menuLinkStyle}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--bar-ink-2)')}
+          >
+            {NAV.ctaLogin}
+          </a>
+
+          <button
+            type="button"
+            onClick={onInquiryClick}
+            style={{
+              background: 'var(--accent)',
+              color: '#FFFFFF',
+              padding: '10px 18px',
+              borderRadius: 'var(--r-md)',
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: '-0.005em',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 120ms ease-out',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-ink)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
+          >
+            {NAV.ctaInquiry}
+          </button>
+        </div>
+      </header>
+    </div>
   );
 }
 
 function tabStyle(active: boolean): CSSProperties {
   return {
-    padding: '5px 10px',
+    padding: '6px 12px',
     fontSize: 12.5,
-    fontWeight: active ? 600 : 400,
-    color: active ? '#FFFFFF' : 'rgba(255,255,255,0.72)',
+    fontWeight: active ? 600 : 500,
+    color: active ? 'var(--ink)' : 'var(--bar-ink-2)',
     letterSpacing: '-0.01em',
-    borderRadius: 4,
-    background: active ? 'rgba(255,255,255,0.13)' : 'transparent',
+    borderRadius: 'var(--r-sm)',
+    background: active ? 'var(--bg-elevated)' : 'transparent',
+    boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
   };
@@ -151,7 +163,7 @@ function tabStyle(active: boolean): CSSProperties {
 const menuLinkStyle: CSSProperties = {
   fontSize: 13.5,
   fontWeight: 500,
-  color: 'rgba(255,255,255,0.72)',
+  color: 'var(--bar-ink-2)',
   letterSpacing: '-0.01em',
   whiteSpace: 'nowrap',
   transition: 'color 120ms ease-out',
