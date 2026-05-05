@@ -15,8 +15,11 @@ const Landing = lazy(() => import('@/routes/Invest').then(m => ({ default: m.Lan
 const LandingShell = lazy(() =>
   import('@/routes/Invest/LandingShell').then(m => ({ default: m.LandingShell })),
 );
-const ProjectsPage = lazy(() =>
-  import('@/routes/Invest/placeholders/ProjectsPage').then(m => ({ default: m.ProjectsPage })),
+const ProjectsCatalog = lazy(() =>
+  import('@/routes/Invest/Projects').then(m => ({ default: m.ProjectsCatalog })),
+);
+const SiteDetail = lazy(() =>
+  import('@/routes/Invest/Projects/SiteDetail').then(m => ({ default: m.SiteDetail })),
 );
 const OnboardingPage = lazy(() =>
   import('@/routes/Invest/placeholders/OnboardingPage').then(m => ({ default: m.OnboardingPage })),
@@ -116,7 +119,8 @@ function AppInner() {
             <LandingShell>
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="projects" element={<ProjectsPage />} />
+                <Route path="projects" element={<ProjectsCatalog />} />
+                <Route path="projects/:siteId" element={<SiteDetail />} />
                 <Route path="onboarding" element={<OnboardingPage />} />
                 <Route path="disclosures/*" element={<DisclosurePages />} />
               </Routes>
