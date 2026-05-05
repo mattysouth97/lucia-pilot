@@ -265,3 +265,25 @@ to keep the wave focused.
 6. Every quality gate runs through the mirror: `./sync-to-build-mirror.sh
    exec pnpm typecheck && ./sync-to-build-mirror.sh exec pnpm lint && ...`
    — never raw `pnpm` from this Korean-path cwd.
+
+---
+
+## 2026-05-06 — Analyst Dashboard Audit-Integrity Pivot
+
+Reframed `AnalystHome` from generic-dashboard wrapper to audit-integrity instrument:
+
+- **Hero**: monumental `0 변조 시도` with σ3 rejection-framing semantics, full-bleed white. Live-bound state matrix (loading/fresh/stale/disconnected/unreachable) — em-dash placeholder when data missing, refusal block on engine unreachable.
+- **Audit card**: explicit FR-S-004 formula strip (`매출 ₩32,356,400 × 41% → ₩13,266,124 → 2,839세대`) + 비중 % column. Cohort math satisfies `sum === revenue × 0.41` invariant (tested). Monthly-cycle badge state machine (진행 중 → 마감 임박 → 마감 검증 중 → 마감 완료).
+- **ActivityZone extracted** to its own module with analyst-tilted defaults (`주거비 환원 + 가상공유거래`) + `이상만 보기 (N)` toggle. `Dashboard.tsx` now imports it; operator path unchanged behaviorally.
+- **Right rail**: 30-day `감사 무결성 타임라인` replaces `IncomeChartCard` on analyst path only. Horizontal strip with verification height + rejection (rose) and unsettled (amber) overlays.
+- **Modal trio**: `TxDetailModal` (ledger row drill-in), `SankeyFlowModal` (audit-card chevron `분배 흐름도 →`); existing `TamperModal` reused for FR-S-008 with rejection-escalation pattern (R3) — clicking 거부 row in ledger opens TxDetail with a "변조 시도 분석 →" escalation button to the dramatic Tamper view.
+- **Single source of truth**: `apps/web/src/routes/Home/analystFixtures.ts` consolidates `INTEGRITY_SUMMARY`, `INTEGRITY_TIMELINE_30D`, `DISTRIBUTION_ROUND_2026_04`. Replaces hardcoded numbers scattered across the old `EnvironmentalImpactCard`, `Dashboard.HeroBand`, and `AuditHeroStrip`.
+- **Auth**: added optional `honorific?: string` field to `AuthUser` (analyst account: `displayName='김지호', honorific='처장'`) so the greeting renders `안녕하세요, 김지호 처장님`.
+- **Dropped from analyst**: `HeroBand` 매출 hero, `BlockchainIntegrityStrip`, `EnvironmentalImpactCard` (deleted file), `AuditHeroStrip` inline. `Dashboard.tsx` keeps its 매출-hero layout for operator role.
+- **17 design decisions** captured at [docs/superpowers/specs/2026-05-06-analyst-dashboard-design.md](docs/superpowers/specs/2026-05-06-analyst-dashboard-design.md). Plan + execution at [docs/superpowers/plans/2026-05-06-analyst-dashboard-audit-pivot.md](docs/superpowers/plans/2026-05-06-analyst-dashboard-audit-pivot.md).
+
+Phase 2 (out of scope): engine endpoints `/audit/integrity-summary`, `/audit/integrity-timeline`, `/audit/distribution-round`; WebSocket `integrity_event` payload extension. Currently all data wired to fixtures via the analystFixtures module.
+
+**Visual smoke pending** — interactive browser verification on the analyst home (CTAs, modals, monthly cycle, hero state transitions) deferred to the user. Run `./sync-to-build-mirror.sh dev` (port 3001), log in as `김지호 처장`, and walk the checklist in the implementation plan §"Task 9: Build verification + visual smoke".
+
+Commits (in order): `077bba8` `c527a06` `da2b3bd` `b99dc06` `8caa825` `c9b59f3` `743efee` `711dcf9` `418cf50` `269ee7e` `ec8913d` `e9467f6` `06bd5b7`.
