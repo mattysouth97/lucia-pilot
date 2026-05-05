@@ -42,6 +42,12 @@ const ResidentESGDashboard = lazy(() =>
 const ResidentCommunity = lazy(() =>
   import('@/routes/ResidentPortalSubpages').then(m => ({ default: m.ResidentCommunity })),
 );
+const AdminLOIList = lazy(() =>
+  import('@/routes/AdminLOI').then(m => ({ default: m.AdminLOIList })),
+);
+const AdminLOIDetail = lazy(() =>
+  import('@/routes/AdminLOI').then(m => ({ default: m.AdminLOIDetail })),
+);
 const DisclosurePages = lazy(() =>
   import('@/routes/Invest/placeholders/DisclosurePages').then(m => ({ default: m.DisclosurePages })),
 );
@@ -252,6 +258,26 @@ function AppInner() {
                   <Suspense fallback={null}>
                     <RequireRole roles={['analyst', 'operator']}>
                       <AdminConsole />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin/loi"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <AdminLOIList />
+                    </RequireRole>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin/loi/:loi_id"
+                element={
+                  <Suspense fallback={null}>
+                    <RequireRole roles={['analyst', 'operator']}>
+                      <AdminLOIDetail />
                     </RequireRole>
                   </Suspense>
                 }

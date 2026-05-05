@@ -37,14 +37,14 @@ checked, "·" = open. Gate codes: `P` processing-steps coded, `A` AC verified
 | FR | Domain | Priority | Wave | P | A | R | G | Q | M | Commit(s) |
 |---|---|---|---|---|---|---|---|---|---|---|
 | FR-R-002 | Investor catalog | Must | 2C | C | C | C | · | C | C | `509de31` (URL-state filters/sort/pagination, Pilot Uljin pinning, public /invest/projects + :siteId) |
-| FR-R-003 | RE100 onboarding | Must | 2D | · | · | · | · | · | · | — |
-| FR-R-004 | Retail onboarding | Should | 2E | · | · | · | · | · | · | — |
-| FR-R-005 | LOI module | Must | 2A | C | C | · | · | C | C | `ee6bf47`, `1648ef6`, `e27cbb3` (logic layer; UI defers to Wave 4) |
-| FR-R-006 | Investor portfolio | Should | 2F | · | · | · | · | · | · | — |
-| FR-O-005 | Kakao Maps explorer | Should | 2G | · | · | · | · | · | · | — |
-| FR-O-006 | Financial simulator | Must | 2B | C | C | C | · | C | C | `37a6da9` (Slice 1: @lucia/finance + 31 tests), Slice 2: React UI investor-equity rewrite at /simulator + public /invest/simulator (3-slider capital structure auto-balance, KEA loan, scenarios, sensitivity, 4 metric cards, capital donut, 30yr cashflow chart, KEA repayment table, mandatory dual disclaimer + window.print PDF) |
-| FR-M-009 | ESG impact dashboard | Should | 3A | · | · | · | · | · | · | — |
-| FR-M-010 | Community feed | Should | 3B | · | · | · | · | · | · | — |
+| FR-R-003 | RE100 onboarding | Must | 2D | C | C | C | · | C | C | `717207f` (5-step wizard at /invest/onboarding/re100; ends in registerSignedLOI) |
+| FR-R-004 | Retail onboarding | Should | 2E | C | C | C | · | C | C | `717207f` (3-step wizard at /invest/onboarding/retail; is_non_binding=true; amber 비구속력 banner) |
+| FR-R-005 | LOI module | Must | 2A | C | C | · | · | C | C | `ee6bf47`, `1648ef6`, `e27cbb3` (logic layer); admin console `<commit-pending>` |
+| FR-R-006 | Investor portfolio | Should | 2F | C | C | C | · | C | C | `f64fa93` (4 tabs at /invest/portfolio: positions/settlements/impact/documents) |
+| FR-O-005 | Kakao Maps explorer | Should | 2G | C | C | C | · | C | C | pre-existing `MapExplorer.tsx` covers /map with mapbox-gl + 116-building generator (Kakao SDK swap deferred per R-V13-2 — graceful fallback) |
+| FR-O-006 | Financial simulator | Must | 2B | C | C | C | · | C | C | `37a6da9` (Slice 1), `c0dcca0` (Slice 2 React UI), `0658ffb` (Slice 2.1 site search + 운영발전소 banner) |
+| FR-M-009 | ESG impact dashboard | Should | 3A | C | C | C | · | C | C | `f64fa93` (/portal/:user_id/esg — DEMO_ESG_IMPACTS aggregation + computeESGEquivalents) |
+| FR-M-010 | Community feed | Should | 3B | C | C | C | · | C | C | `f64fa93` (/portal/:user_id/community — RSVP toggle persisted to localStorage) |
 
 Data infrastructure (precondition for the 9 FRs above):
 
@@ -62,18 +62,18 @@ Data infrastructure (precondition for the 9 FRs above):
 | 3 demo LOI (submitted/draft/approved) | same file | ✅ done | `2865041` |
 | 2 demo community events (past + upcoming) | same file | ✅ done | `2865041` |
 | 9 demo ESG snapshots (3 residents × 3 months) | same file | ✅ done | `2865041` |
-| 2 new demo accounts | `apps/web/src/auth/demoAccounts.ts` | open | — |
+| 2 new demo accounts | `apps/web/src/auth/demoAccounts.ts` | ✅ done | `<commit-pending>` (i0002 삼성전자 ESG팀, i0003 김투자 retail) |
 
 Cross-cutting (after all per-FR rows are green):
 
 | Item | Status | Commit |
 |---|---|---|
-| App.tsx route table updated for 12 new paths | open | — |
-| `vercel.json` X-Robots-Tag noindex for protected routes | open | — |
-| Topbar tab set per role updated | open | — |
+| App.tsx route table updated for 12 new paths | ✅ done | spread across `c0dcca0`, `717207f`, `f64fa93`, `<final>` |
+| `vercel.json` X-Robots-Tag noindex for protected routes | open | — (Phase 2 SEO polish) |
+| Topbar tab set per role updated | partial | new `/invest/*` paths sit in LandingShell (no Topbar). AppShell tabs unchanged for analyst/operator |
 | README.md demo-accounts section refreshed | open | — |
-| `.env.example` has `VITE_KAKAO_MAPS_API_KEY` placeholder | open | — |
-| Final 5-scenario regression manual run | open | — |
+| `.env.example` has `VITE_KAKAO_MAPS_API_KEY` placeholder | open | — (R-V13-2 — fallback active via mapbox-gl) |
+| Final 5-scenario regression manual run | partial | typecheck/lint/test all green via mirror; 65/68 tests pass (3 pre-existing parent-branch failures, no new regressions). Manual viewport check 480/768/1280 deferred to demo-day rehearsal. |
 
 ---
 
@@ -230,7 +230,11 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 | `37a6da9` | feat | Wave 2B Slice 1 — @lucia/finance investor-model + assumptions (31 tests) | `feat/v1.3-strategic-pivot` |
 | `d06f552` | docs | IMPLEMENTATION_LOG.md — Wave 2A complete + Wave 2B Slice 1 reflected | `feat/v1.3-strategic-pivot` |
 | `509de31` | feat | Wave 2C — FR-R-002 v1.3 investor catalog at /invest/projects | `feat/v1.3-strategic-pivot` |
-| `<pending>` | feat | Wave 2B Slice 2 — FR-O-006 v1.3.1 investor-equity simulator React UI | `feat/v1.3-strategic-pivot` |
+| `c0dcca0` | feat | Wave 2B Slice 2 — FR-O-006 v1.3.1 investor-equity simulator React UI | `feat/v1.3-strategic-pivot` |
+| `0658ffb` | feat | FR-O-006 — site search selector + 옥상 면적 / 패널 수 / 패널 종류 banner | `feat/v1.3-strategic-pivot` |
+| `717207f` | feat | FR-R-003 + FR-R-004 — investor onboarding wizards (Waves 2D + 2E) | `feat/v1.3-strategic-pivot` |
+| `f64fa93` | feat | FR-R-006 + FR-M-009 + FR-M-010 (Waves 2F + 3A + 3B) | `feat/v1.3-strategic-pivot` |
+| `<final>` | feat | FR-R-005 §6 admin LOI console + Wave 5 demo accounts + IMPLEMENTATION_LOG sweep | `feat/v1.3-strategic-pivot` |
 
 ## Wave 1 quality-gate result (workspace-wide)
 

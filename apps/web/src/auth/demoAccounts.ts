@@ -8,6 +8,8 @@ export const DEMO_ACCOUNTS: ReadonlyArray<AuthUser> = [
   { id: 'k0014',          role: 'resident', displayName: '김*수',       subtitle: 'YESN-014 거주 · 국민임대 (280세대)' },
   { id: 'e0042',          role: 'resident', displayName: '이*경',       subtitle: 'BSAN-042 거주 · 에너지소외 (916세대)' },
   { id: 'u_investor_a01', role: 'investor', displayName: 'SK하이닉스 ESG실', subtitle: 'RE100 PPA 매수자 · 약정 180,000 kWh/월' },
+  { id: 'i0002',          role: 'investor', displayName: '삼성전자 ESG팀',   subtitle: 'RE100 가입 · 80,000 MWh/년 목표 · 50억 출자 검토' },
+  { id: 'i0003',          role: 'investor', displayName: '김투자 (개인)',    subtitle: 'Retail · ESG·지역기여 동기 · 1,000만 ~ 5,000만원 검토' },
 ];
 
 export function findAccount(userId: string): AuthUser | undefined {
