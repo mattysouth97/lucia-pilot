@@ -8,6 +8,11 @@ import { useEffect, useState } from 'react';
 
 import { CTA_PRIMARY, NAV_ITEMS, NAV_LOGIN } from './copy';
 
+// Cross-link to apps/lucia-energy. Env-driven so subdomain vs path-prefix
+// stays an ops decision; defaults to dev port 3002.
+const LUCIA_ENERGY_URL =
+  import.meta.env.VITE_LUCIA_ENERGY_URL ?? 'http://localhost:3002';
+
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -77,6 +82,61 @@ export function LandingHeader() {
       </nav>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div
+          role="tablist"
+          aria-label="사이트 선택"
+          className="show-md+"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            padding: 2,
+            borderRadius: 6,
+            background: 'rgba(255,255,255,0.06)',
+          }}
+        >
+          <a
+            href="/invest"
+            role="tab"
+            aria-selected
+            style={{
+              padding: '5px 10px',
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: '#FFFFFF',
+              letterSpacing: '-0.01em',
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.13)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            LH햇빛발전소
+          </a>
+          <a
+            href={LUCIA_ENERGY_URL}
+            role="tab"
+            aria-selected={false}
+            style={{
+              padding: '5px 10px',
+              fontSize: 12.5,
+              fontWeight: 400,
+              color: 'rgba(255,255,255,0.72)',
+              letterSpacing: '-0.01em',
+              borderRadius: 4,
+              background: 'transparent',
+              whiteSpace: 'nowrap',
+              transition: 'color 120ms ease-out, background-color 120ms ease-out',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            LuciaEnergy
+          </a>
+        </div>
         <a
           href="/login"
           className="show-md+"
