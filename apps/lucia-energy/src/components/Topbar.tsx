@@ -11,6 +11,9 @@ interface TopbarProps {
 
 export function Topbar({ onInquiryClick }: TopbarProps) {
   const investUrl = import.meta.env.VITE_LUCIA_INVEST_URL ?? '/invest';
+  // Derive login URL from the invest URL host so subdomain / path-prefix
+  // deployments work without a separate env var.
+  const loginUrl = investUrl.replace(/\/invest\/?$/, '/login');
 
   return (
     <header
@@ -46,36 +49,14 @@ export function Topbar({ onInquiryClick }: TopbarProps) {
         </span>
       </a>
 
-      <div
-        role="tablist"
-        aria-label="사이트 선택"
+      <nav
+        aria-label="메뉴"
         className="show-md+"
         style={{
           marginLeft: 32,
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 2,
-          padding: 2,
-          borderRadius: 6,
-          background: 'rgba(255,255,255,0.06)',
-        }}
-      >
-        <a href={investUrl} role="tab" aria-selected={false} style={tabStyle(false)}>
-          {NAV.tabLh}
-        </a>
-        <a href="/" role="tab" aria-selected style={tabStyle(true)}>
-          {NAV.tabEnergy}
-        </a>
-      </div>
-
-      <nav
-        aria-label="메뉴"
-        className="show-md+"
-        style={{
-          marginLeft: 24,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 18,
+          gap: 22,
         }}
       >
         {NAV.menuItems.map(item => (
@@ -91,7 +72,45 @@ export function Topbar({ onInquiryClick }: TopbarProps) {
         ))}
       </nav>
 
-      <div style={{ marginLeft: 'auto' }}>
+      <div
+        style={{
+          marginLeft: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+        }}
+      >
+        <div
+          role="tablist"
+          aria-label="사이트 선택"
+          className="show-md+"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            padding: 2,
+            borderRadius: 6,
+            background: 'rgba(255,255,255,0.06)',
+          }}
+        >
+          <a href={investUrl} role="tab" aria-selected={false} style={tabStyle(false)}>
+            {NAV.tabLh}
+          </a>
+          <a href="/" role="tab" aria-selected style={tabStyle(true)}>
+            {NAV.tabEnergy}
+          </a>
+        </div>
+
+        <a
+          href={loginUrl}
+          className="show-md+"
+          style={menuLinkStyle}
+          onMouseEnter={e => (e.currentTarget.style.color = '#FFFFFF')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.72)')}
+        >
+          {NAV.ctaLogin}
+        </a>
+
         <button
           type="button"
           onClick={onInquiryClick}
