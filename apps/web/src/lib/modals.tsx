@@ -7,7 +7,10 @@ import type { ReactNode } from 'react';
 
 import { BuildingDetailModal } from '@/components/modals/BuildingDetailModal';
 import { ReportModal } from '@/components/modals/ReportModal';
+import { SankeyFlowModal } from '@/components/modals/SankeyFlowModal';
 import { TamperModal } from '@/components/modals/TamperModal';
+import { TxDetailModal } from '@/components/modals/TxDetailModal';
+import type { LedgerRow } from '@/routes/Home/ActivityZone';
 
 // Minimal building shape used by cards (extended by @lucia/contracts BuildingRow later).
 //
@@ -38,6 +41,8 @@ export interface LuciaModals {
   openBuilding: (b: BuildingLike) => void;
   openReport: () => void;
   openTamper: () => void;
+  openTx: (tx: LedgerRow) => void;
+  openSankey: () => void;
   closeAll: () => void;
 }
 
@@ -45,6 +50,8 @@ interface ModalState {
   building: BuildingLike | null;
   showReport: boolean;
   showTamper: boolean;
+  tx: LedgerRow | null;
+  showSankey: boolean;
 }
 
 const ModalCtx = createContext<LuciaModals | null>(null);
@@ -58,6 +65,8 @@ export function ModalProvider({ children }: ModalProviderProps) {
     building: null,
     showReport: false,
     showTamper: false,
+    tx: null,
+    showSankey: false,
   });
 
   const openBuilding = useCallback((b: BuildingLike) => {
@@ -72,13 +81,21 @@ export function ModalProvider({ children }: ModalProviderProps) {
     setState((s) => ({ ...s, showTamper: true }));
   }, []);
 
+  const openTx = useCallback((tx: LedgerRow) => {
+    setState((s) => ({ ...s, tx }));
+  }, []);
+
+  const openSankey = useCallback(() => {
+    setState((s) => ({ ...s, showSankey: true }));
+  }, []);
+
   const closeAll = useCallback(() => {
-    setState({ building: null, showReport: false, showTamper: false });
+    setState({ building: null, showReport: false, showTamper: false, tx: null, showSankey: false });
   }, []);
 
   const value = useMemo<LuciaModals>(
-    () => ({ openBuilding, openReport, openTamper, closeAll }),
-    [openBuilding, openReport, openTamper, closeAll],
+    () => ({ openBuilding, openReport, openTamper, openTx, openSankey, closeAll }),
+    [openBuilding, openReport, openTamper, openTx, openSankey, closeAll],
   );
 
   return (
@@ -87,6 +104,18 @@ export function ModalProvider({ children }: ModalProviderProps) {
       {state.building && <BuildingDetailModal building={state.building} onClose={closeAll} />}
       {state.showReport && <ReportModal onClose={closeAll} />}
       {state.showTamper && <TamperModal onClose={closeAll} />}
+      {state.tx && (
+        <TxDetailModal
+          tx={state.tx}
+          onClose={closeAll}
+          onEscalateToRejection={
+            state.tx.status === 'bad'
+              ? () => setState((s) => ({ ...s, tx: null, showTamper: true }))
+              : undefined
+          }
+        />
+      )}
+      {state.showSankey && <SankeyFlowModal onClose={closeAll} />}
     </ModalCtx.Provider>
   );
 }
@@ -100,6 +129,8 @@ export function useLuciaModals(): LuciaModals {
       openBuilding: (b) => console.warn('[modals] no provider; openBuilding', b.id),
       openReport: () => console.warn('[modals] no provider; openReport'),
       openTamper: () => console.warn('[modals] no provider; openTamper'),
+      openTx: (tx) => console.warn('[modals] no provider; openTx', tx.id),
+      openSankey: () => console.warn('[modals] no provider; openSankey'),
       closeAll: () => {},
     };
   }
