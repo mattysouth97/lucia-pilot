@@ -113,7 +113,7 @@ export function SiteDetail(): JSX.Element {
         }}
       >
         <Link
-          to={`/simulator?site=${site.building_id}`}
+          to={`/invest/simulator?site=${site.building_id}`}
           style={{
             display: 'block',
             padding: '14px 16px',

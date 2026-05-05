@@ -1,22 +1,43 @@
-// 투자 시뮬레이터 — Solar PV installation financial model.
+// FRD-2026-001 v1.3.1 §FR-O-006 — investor-equity financial simulator.
 //
-// LH operations sizes a candidate rooftop here before approving CAPEX. The
-// page is a pure derived-state pro-forma: one parameter object → one model
-// object → multiple read-only views (roof layout, CAPEX waterfall, 25-year
-// cashflow, NPV/IRR/Payback/LCOE).
+// SCOPE: investor perspective only. TheKIE-internal BM A vs BM B comparison
+// is forbidden in this UI. We compute and surface:
+//   - Cumulative distribution (won)
+//   - Equity IRR (%)
+//   - Payback (years)
+//   - ROI multiple (×)
 //
-// Settlement split anchors to FR-S-004 verbatim (LH 64.2 / 국민임대 10.9 /
-// 에너지소외 35.8) so the planning surface and the live engine speak the same
-// allocation. The simulator is forecasting; the engine is audited truth.
+// All numbers route through @lucia/finance.simulateInvestorReturn — this
+// component is a pure controlled-form orchestrator: state → SimulationInput →
+// useMemo result → render. No data-fetching, no derived business logic.
 //
-// All money is KRW. All energy is kWh. All areas are m².
+// Mandatory disclaimers (FR-O-006 §처리-12):
+//   1. "본 시뮬레이션은 가정 기반이며 실제 수익을 보장하지 않습니다."
+//   2. "재생에너지지원사업 융자금 적용은 한국에너지공단 심사 후 확정됩니다."
 
+import { BUILDINGS_NATIONWIDE, REGION_BY_NAME } from '@lucia/contracts';
+import {
+  BASE_ASSUMPTIONS,
+  SCENARIOS,
+  simulateInvestorReturn,
+  validateCapitalStructure,
+  type CapitalStructure,
+  type InvestorResult,
+  type KEALoanTerms,
+  type ScenarioName,
+  type Sensitivity,
+  type SimulationInput,
+} from '@lucia/finance';
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Bar,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
+  Pie,
+  PieChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -24,605 +45,834 @@ import {
   YAxis,
 } from 'recharts';
 
-import { Icons } from '@/components/Icons';
-import { Pill, fmt } from '@/components/atoms';
-
 // ────────────────────────────────────────────────────────────────────────────
-// Reference tables — typed `as const` for noUncheckedIndexedAccess safety.
+// Defaults
 // ────────────────────────────────────────────────────────────────────────────
 
-const PANELS = [
-  { id: '350W', wattage: 350, w: 1.94, h: 0.99, eff: 18.2 },
-  { id: '450W', wattage: 450, w: 2.10, h: 1.13, eff: 19.0 },
-  { id: '550W', wattage: 550, w: 2.28, h: 1.13, eff: 21.4 },
-  { id: '600W', wattage: 600, w: 2.38, h: 1.13, eff: 22.3 },
-] as const;
-type PanelId = (typeof PANELS)[number]['id'];
+const SCENARIO_OPTIONS: { value: ScenarioName; label: string; tone: string }[] = [
+  { value: 'conservative', label: '보수적', tone: 'var(--muted)' },
+  { value: 'base', label: '기본', tone: 'var(--ink)' },
+  { value: 'optimistic', label: '낙관적', tone: 'var(--accent)' },
+];
 
-// CAPEX components in KRW per kWp installed. Korean rooftop benchmark, 2026.
-const CAPEX_BREAKDOWN = [
-  { id: 'panels',      label: '모듈',         rate: 580_000 },
-  { id: 'inverter',    label: '인버터',       rate: 180_000 },
-  { id: 'mounting',    label: '구조·가대',    rate: 250_000 },
-  { id: 'wiring',      label: '배선·보호',    rate:  90_000 },
-  { id: 'install',     label: '설치 인건비',  rate: 220_000 },
-  { id: 'engineer',    label: '인허가·설계',  rate:  90_000 },
-  { id: 'grid',        label: '계통 연계',    rate:  60_000 },
-  { id: 'contingency', label: '예비비',       rate:  80_000 },
-] as const;
-
-const TOTAL_CAPEX_PER_KW = CAPEX_BREAKDOWN.reduce((s, c) => s + c.rate, 0);
-
-// FR-S-004 anchors — kept verbatim per FRD. Visualization only; the engine
-// is the source of truth for actual allocation at clearing time.
-const SETTLEMENT_ANCHORS = [
-  { id: 'lh',     label: 'LH SaaS',     pct: 0.642, color: 'var(--ink)' },
-  { id: 'public', label: '국민임대',     pct: 0.109, color: 'var(--accent)' },
-  { id: 'energy', label: '에너지소외',   pct: 0.358, color: 'var(--accent-ink)' },
-] as const;
-
-// ────────────────────────────────────────────────────────────────────────────
-// Parameter state
-// ────────────────────────────────────────────────────────────────────────────
-
-interface Params {
-  // Site
-  roofArea: number;        // m²
-  usableFactor: number;    // 0–1, fraction of roof area available for panels
-  tilt: number;            // degrees
-  azimuth: number;         // degrees from south, ±45 max
-  shadingLoss: number;     // 0–0.3
-  specificYield: number;   // kWh/kWp/year (Korean rooftop ~1300–1500)
-
-  // System
-  panelId: PanelId;
-  layoutOverhead: number;  // ≥1.0 multiplier on panel footprint for aisles/setbacks
-
-  // Tariff
-  smpPrice: number;        // KRW/kWh
-  recPrice: number;        // KRW/kWh-equivalent (i.e. KRW per kWh × weight)
-  recWeight: number;       // multiplier on REC
-
-  // Financial
-  discountRate: number;    // 0–0.20
-  degradation: number;     // 0–0.02 per year
-  tariffEscalation: number;// 0–0.05 per year
-  opexPerKw: number;       // KRW/kWp/year (O&M + insurance + replacement reserve)
-  capexAdjust: number;     // 0.7–1.3 multiplier on benchmark CAPEX
-  horizon: number;         // years (typical 25)
-}
-
-const DEFAULT_PARAMS: Params = {
-  roofArea: 1200,
-  usableFactor: 0.72,
-  tilt: 28,
-  azimuth: 0,
-  shadingLoss: 0.06,
-  specificYield: 1380,
-
-  panelId: '550W',
-  layoutOverhead: 1.4,
-
-  smpPrice: 145,
-  recPrice: 58,
-  recWeight: 1.2,
-
-  discountRate: 0.055,
-  degradation: 0.005,
-  tariffEscalation: 0.015,
-  opexPerKw: 45_000,
-  capexAdjust: 1.0,
-  horizon: 25,
+const DEFAULT_CAPITAL: CapitalStructure = {
+  project_equity_pct: 30,
+  kea_loan_pct: 50,
+  other_debt_pct: 20,
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// Model — single derivation pipeline (params → model)
-// ────────────────────────────────────────────────────────────────────────────
+const DEFAULT_KEA: KEALoanTerms = {
+  interest_rate_pct: BASE_ASSUMPTIONS.kea_loan_default_rate_pct,
+  grace_years: BASE_ASSUMPTIONS.kea_loan_default_grace_years,
+  repayment_years: BASE_ASSUMPTIONS.kea_loan_default_repayment_years,
+};
 
-interface YearRow {
-  year: number;
-  generationKwh: number;
-  revenue: number;
-  opex: number;
-  netCashflow: number;
-  cumulative: number;
-  discounted: number;
-}
+const DEFAULT_SENSITIVITY: Sensitivity = {
+  smp_pct: 0,
+  rec_pct: 0,
+  efficiency_pct: 0,
+  kea_rate_bps: 0,
+};
 
-interface Model {
-  panel: (typeof PANELS)[number];
-  panelArea: number;       // m²
-  panelFootprint: number;  // m² with overhead
-  usableArea: number;      // m²
-  numPanels: number;
-  installedKw: number;
-  panelGridCols: number;
-  panelGridRows: number;
-
-  capexPerKw: number;
-  totalCapex: number;
-  capexLines: { id: string; label: string; cost: number }[];
-
-  yearOneGeneration: number;
-  yearOneRevenue: number;
-  effectiveTariff: number; // KRW/kWh year 1
-
-  years: YearRow[];        // index 0 = year 0 outflow; index 1..N = operating years
-  npv: number;
-  irr: number | null;
-  paybackYears: number | null;
-  lcoe: number;            // KRW/kWh
-
-  // Settlement split (year 1 anchors)
-  yearOneSplit: { id: string; label: string; amount: number; color: string }[];
-}
-
-function tiltLossFactor(tilt: number, azimuth: number): number {
-  // Quadratic loss vs optimal (tilt=30, azimuth=0). Rough but monotonic.
-  const tiltLoss = 0.0003 * Math.pow(tilt - 30, 2);
-  const azLoss = 0.0001 * Math.pow(azimuth, 2);
-  return Math.max(0.7, 1 - tiltLoss - azLoss);
-}
-
-function deriveModel(p: Params): Model {
-  const panel = PANELS.find((pk) => pk.id === p.panelId) ?? PANELS[2];
-  const panelArea = panel.w * panel.h;
-  const panelFootprint = panelArea * p.layoutOverhead;
-
-  const usableArea = p.roofArea * p.usableFactor;
-  const numPanels = Math.max(0, Math.floor(usableArea / panelFootprint));
-  const installedKw = (numPanels * panel.wattage) / 1000;
-
-  // Visual grid layout — assume ~1.5:1 roof aspect, fit a rectangular grid.
-  const aspect = 1.5;
-  const cols = Math.max(1, Math.round(Math.sqrt(numPanels * aspect)));
-  const rows = numPanels > 0 ? Math.ceil(numPanels / cols) : 0;
-
-  // CAPEX
-  const capexPerKw = TOTAL_CAPEX_PER_KW * p.capexAdjust;
-  const totalCapex = capexPerKw * installedKw;
-  const capexLines = CAPEX_BREAKDOWN.map((c) => ({
-    id: c.id,
-    label: c.label,
-    cost: c.rate * p.capexAdjust * installedKw,
-  }));
-
-  // Year-1 generation
-  const tiltFactor = tiltLossFactor(p.tilt, p.azimuth);
-  const shading = 1 - p.shadingLoss;
-  const yearOneGeneration = installedKw * p.specificYield * tiltFactor * shading;
-  const effectiveTariff = p.smpPrice + p.recPrice * p.recWeight;
-  const yearOneRevenue = yearOneGeneration * effectiveTariff;
-
-  // 0..horizon cashflows. Year 0 = -CAPEX. Years 1..horizon = revenue - opex.
-  const years: YearRow[] = [];
-  let cumulative = -totalCapex;
-  years.push({
-    year: 0,
-    generationKwh: 0,
-    revenue: 0,
-    opex: 0,
-    netCashflow: -totalCapex,
-    cumulative,
-    discounted: -totalCapex,
-  });
-
-  for (let y = 1; y <= p.horizon; y++) {
-    const degradeFactor = Math.pow(1 - p.degradation, y - 1);
-    const escalationFactor = Math.pow(1 + p.tariffEscalation, y - 1);
-    const generation = yearOneGeneration * degradeFactor;
-    const revenue = generation * effectiveTariff * escalationFactor;
-    const opex = installedKw * p.opexPerKw;
-    const net = revenue - opex;
-    cumulative += net;
-    const discounted = net / Math.pow(1 + p.discountRate, y);
-    years.push({
-      year: y,
-      generationKwh: generation,
-      revenue,
-      opex,
-      netCashflow: net,
-      cumulative,
-      discounted,
-    });
-  }
-
-  const cashflows = years.map((r) => r.netCashflow);
-  const npv = years.reduce((s, r) => s + r.discounted, 0);
-  const irr = computeIRR(cashflows);
-  const paybackYears = computePayback(cashflows);
-  const lcoe = computeLCOE(years, totalCapex, p.discountRate);
-
-  const yearOneSplit = SETTLEMENT_ANCHORS.map((a) => ({
-    id: a.id,
-    label: a.label,
-    amount: yearOneRevenue * a.pct,
-    color: a.color,
-  }));
-
-  return {
-    panel,
-    panelArea,
-    panelFootprint,
-    usableArea,
-    numPanels,
-    installedKw,
-    panelGridCols: cols,
-    panelGridRows: rows,
-    capexPerKw,
-    totalCapex,
-    capexLines,
-    yearOneGeneration,
-    yearOneRevenue,
-    effectiveTariff,
-    years,
-    npv,
-    irr,
-    paybackYears,
-    lcoe,
-    yearOneSplit,
-  };
-}
-
-// IRR — bisection on [-50%, +100%]. Converges to ~0.01% precision in <30 iters.
-function computeIRR(cashflows: number[]): number | null {
-  if (cashflows.length === 0) return null;
-  const npvAt = (rate: number) =>
-    cashflows.reduce((s, cf, i) => s + cf / Math.pow(1 + rate, i), 0);
-
-  let low = -0.5;
-  let high = 1.0;
-  const npvLow = npvAt(low);
-  const npvHigh = npvAt(high);
-  if (Number.isNaN(npvLow) || Number.isNaN(npvHigh)) return null;
-  if (npvLow * npvHigh > 0) return null; // no sign change → no IRR
-
-  for (let i = 0; i < 80; i++) {
-    const mid = (low + high) / 2;
-    const npvMid = npvAt(mid);
-    if (Math.abs(npvMid) < 1) return mid;
-    if (npvMid * npvAt(low) < 0) high = mid;
-    else low = mid;
-  }
-  return (low + high) / 2;
-}
-
-// Payback — first year where cumulative crosses zero, with linear interpolation.
-function computePayback(cashflows: number[]): number | null {
-  let cumulative = 0;
-  for (let i = 0; i < cashflows.length; i++) {
-    const cf = cashflows[i] ?? 0;
-    const before = cumulative;
-    cumulative += cf;
-    if (before < 0 && cumulative >= 0 && cf !== 0) {
-      return i - 1 + -before / cf;
-    }
-  }
-  return null;
-}
-
-// LCOE = PV(CAPEX + OPEX) / PV(Generation). Standard NREL-style.
-function computeLCOE(years: YearRow[], totalCapex: number, discountRate: number): number {
-  let pvOpex = 0;
-  let pvGen = 0;
-  for (const r of years) {
-    if (r.year === 0) continue;
-    pvOpex += r.opex / Math.pow(1 + discountRate, r.year);
-    pvGen += r.generationKwh / Math.pow(1 + discountRate, r.year);
-  }
-  if (pvGen === 0) return 0;
-  return (totalCapex + pvOpex) / pvGen;
-}
+const DEFAULT_INVESTOR_CAPEX_WON = 100_000_000; // 1억원
 
 // ────────────────────────────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────────────────────────────
 
-export function InstallSimulator() {
-  const [params, setParams] = useState<Params>(DEFAULT_PARAMS);
-  const model = useMemo(() => deriveModel(params), [params]);
+export function InstallSimulator(): JSX.Element {
+  const [params] = useSearchParams();
+  const siteId = params.get('site') ?? 'ULJN-001';
 
-  const update = <K extends keyof Params>(key: K, value: Params[K]) =>
-    setParams((p) => ({ ...p, [key]: value }));
-
-  return (
-    <>
-      <HeroBand model={model} onReset={() => setParams(DEFAULT_PARAMS)} />
-
-      <div className="grid-dashboard" style={{ marginBottom: 24 }}>
-        <SiteAndSystemCard params={params} update={update} model={model} />
-        <RoofVisualizationCard model={model} />
-      </div>
-
-      <div className="grid-card-pair-eq" style={{ marginBottom: 24 }}>
-        <CapexCard model={model} params={params} update={update} />
-        <RevenueCard model={model} params={params} update={update} />
-      </div>
-
-      <CashflowCard model={model} params={params} update={update} />
-
-      <SettlementSplitCard model={model} />
-
-      <Footnote />
-    </>
+  const site = useMemo(
+    () => BUILDINGS_NATIONWIDE.find((b) => b.building_id === siteId) ?? BUILDINGS_NATIONWIDE[0]!,
+    [siteId],
   );
-}
+  const region = REGION_BY_NAME.get(site.region_office as never);
 
-/* ===================================================================== *
- * Hero band — NPV is the hero; IRR / payback / LCOE underline it.        *
- * ===================================================================== */
+  const [investorCapex, setInvestorCapex] = useState(DEFAULT_INVESTOR_CAPEX_WON);
+  const [years, setYears] = useState(20);
+  const [capital, setCapital] = useState<CapitalStructure>(DEFAULT_CAPITAL);
+  const [keaTerms, setKeaTerms] = useState<KEALoanTerms>(DEFAULT_KEA);
+  const [scenario, setScenario] = useState<ScenarioName>('base');
+  const [sensitivity, setSensitivity] = useState<Sensitivity>(DEFAULT_SENSITIVITY);
+  const [showSensitivity, setShowSensitivity] = useState(false);
+  const [showKeaSchedule, setShowKeaSchedule] = useState(false);
 
-function HeroBand({ model, onReset }: { model: Model; onReset: () => void }) {
-  const npvPositive = model.npv >= 0;
+  const capitalValidation = validateCapitalStructure(capital);
+
+  const input: SimulationInput = {
+    investor_capex_won: investorCapex,
+    years,
+    installed_kw: site.installed_kw,
+    capital_structure: capital,
+    kea_loan_terms: keaTerms,
+    scenario,
+    sensitivity,
+  };
+
+  const result: InvestorResult | null = useMemo(() => {
+    if (!capitalValidation.valid) return null;
+    try {
+      return simulateInvestorReturn(input);
+    } catch {
+      return null;
+    }
+  }, [
+    investorCapex,
+    years,
+    site.installed_kw,
+    capital.project_equity_pct,
+    capital.kea_loan_pct,
+    capital.other_debt_pct,
+    keaTerms.interest_rate_pct,
+    keaTerms.grace_years,
+    keaTerms.repayment_years,
+    scenario,
+    sensitivity.smp_pct,
+    sensitivity.rec_pct,
+    sensitivity.efficiency_pct,
+    sensitivity.kea_rate_bps,
+    capitalValidation.valid,
+  ]);
+
+  const reset = (): void => {
+    setInvestorCapex(DEFAULT_INVESTOR_CAPEX_WON);
+    setYears(20);
+    setCapital(DEFAULT_CAPITAL);
+    setKeaTerms(DEFAULT_KEA);
+    setScenario('base');
+    setSensitivity(DEFAULT_SENSITIVITY);
+  };
+
+  const setCapitalKey = (key: keyof CapitalStructure, value: number): void => {
+    // Auto-balance the OTHER two so the sum stays at 100. KEA hard-capped at 80.
+    const v = Math.max(0, Math.min(key === 'kea_loan_pct' ? 80 : 100, value));
+    const otherKeys = (Object.keys(capital) as (keyof CapitalStructure)[]).filter((k) => k !== key);
+    const remaining = 100 - v;
+    const otherSum = otherKeys.reduce((s, k) => s + capital[k], 0);
+    const next: CapitalStructure = { ...capital, [key]: v };
+    if (otherSum <= 0) {
+      // Split evenly
+      otherKeys.forEach((k) => {
+        next[k] = remaining / otherKeys.length;
+      });
+    } else {
+      otherKeys.forEach((k) => {
+        next[k] = (capital[k] / otherSum) * remaining;
+      });
+    }
+    // Clamp KEA at 80 if it bubbles up via redistribution
+    if (next.kea_loan_pct > 80) {
+      const overflow = next.kea_loan_pct - 80;
+      next.kea_loan_pct = 80;
+      const others = (Object.keys(next) as (keyof CapitalStructure)[]).filter(
+        (k) => k !== 'kea_loan_pct',
+      );
+      const totalOthers = others.reduce((s, k) => s + next[k], 0);
+      others.forEach((k) => {
+        next[k] += totalOthers > 0 ? (next[k] / totalOthers) * overflow : overflow / others.length;
+      });
+    }
+    setCapital(next);
+  };
+
   return (
-    <section
-      className="hero-band"
-      style={{ background: npvPositive ? '#0F2563' : '#3F1D2E' }}
-    >
-      <div className="hero-band-top">
-        <div className="hero-band-meta">
-          <span className="num">투자 시뮬레이션 · v1</span>
-          <span className="sep">·</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="live-dot" />
-            <span>실시간 추산</span>
-          </span>
-          <span className="sep">·</span>
-          <span>FR-S-004 기준</span>
-        </div>
-        <div className="hero-band-actions">
-          <button type="button" className="hero-band-cta" onClick={onReset}>
-            <span style={{ display: 'inline-flex' }}>{Icons.Settings}</span>
-            기본값으로 초기화
-          </button>
-        </div>
-      </div>
+    <div style={{ padding: '24px 20px 80px', maxWidth: 1280, margin: '0 auto' }}>
+      <SiteHeader site={site} regionColor={region?.color ?? '#6b7280'} regionName={site.region_office} />
 
-      <div className="hero-headline-figure">
-        <div className="hero-headline-label">
-          순현재가치 (NPV) · 25년 · 할인율 5.5% 기준
-        </div>
-        <div className="hero-headline-value">
-          <span>
-            {npvPositive ? '+' : '−'}₩{Math.abs(model.npv).toLocaleString('ko-KR', { maximumFractionDigits: 0 })}
-          </span>
-          <span
-            className="hero-headline-value-delta"
-            style={{
-              background: npvPositive ? 'rgba(18, 100, 211, 0.18)' : 'rgba(244, 114, 182, 0.18)',
-              color: npvPositive ? '#4D91E8' : '#F472B6',
-            }}
-          >
-            {npvPositive ? '투자 적합' : '재검토 필요'}
-          </span>
-        </div>
-        <div className="hero-headline-meta">
-          <span>
-            IRR{' '}
-            <span className="num">
-              {model.irr != null ? `${(model.irr * 100).toFixed(2)}%` : '—'}
-            </span>
-          </span>
-          <span className="sep">·</span>
-          <span>
-            회수기간{' '}
-            <span className="num">
-              {model.paybackYears != null ? `${model.paybackYears.toFixed(1)}년` : '회수불가'}
-            </span>
-          </span>
-          <span className="sep">·</span>
-          <span>
-            LCOE <span className="num">{model.lcoe.toFixed(0)}</span> 원/kWh
-          </span>
-          <span className="sep">·</span>
-          <span>
-            설치용량 <span className="num">{model.installedKw.toFixed(1)}</span> kWp
-          </span>
-          <span className="sep">·</span>
-          <span>
-            CAPEX <span className="num">₩{(model.totalCapex / 1_000_000).toFixed(1)}M</span>
-          </span>
-        </div>
-      </div>
-    </section>
-  );
-}
+      <div className="sim-layout">
+        <aside className="sim-inputs">
+          <InputCard title="투자 조건">
+            <NumberInput
+              label="출자액"
+              suffix="원"
+              value={investorCapex}
+              min={1_000_000}
+              max={10_000_000_000}
+              step={1_000_000}
+              format={(v) => `${(v / 100_000_000).toFixed(2)}억`}
+              onChange={setInvestorCapex}
+            />
+            <SliderRow
+              label="보유 기간"
+              value={years}
+              min={5}
+              max={30}
+              step={1}
+              format={(v) => `${v}년`}
+              onChange={setYears}
+            />
+          </InputCard>
 
-/* ===================================================================== *
- * Site & System input card — sliders only, value rendered live           *
- * ===================================================================== */
+          <InputCard title="자본 구조" warning={capitalValidation.error}>
+            <CapitalSlider
+              label="자기자본 (Project equity)"
+              value={capital.project_equity_pct}
+              max={100}
+              tone="var(--ink)"
+              onChange={(v) => setCapitalKey('project_equity_pct', v)}
+            />
+            <CapitalSlider
+              label="KEA 융자금"
+              hint="한국에너지공단 한도 80%"
+              value={capital.kea_loan_pct}
+              max={80}
+              tone="var(--accent)"
+              onChange={(v) => setCapitalKey('kea_loan_pct', v)}
+            />
+            <CapitalSlider
+              label="기타 부채 (Commercial loan)"
+              value={capital.other_debt_pct}
+              max={100}
+              tone="var(--muted)"
+              onChange={(v) => setCapitalKey('other_debt_pct', v)}
+            />
+            <div style={summaryRowStyle}>
+              <span>합계</span>
+              <span className="num" style={{ fontWeight: 700 }}>
+                {(capital.project_equity_pct + capital.kea_loan_pct + capital.other_debt_pct).toFixed(1)}%
+              </span>
+            </div>
+          </InputCard>
 
-function SiteAndSystemCard({
-  params,
-  update,
-  model,
-}: {
-  params: Params;
-  update: <K extends keyof Params>(key: K, value: Params[K]) => void;
-  model: Model;
-}) {
-  return (
-    <section className="card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-      <SectionHead
-        overline="입력 파라미터"
-        title="부지 · 시스템"
-        meta={`${model.numPanels.toLocaleString('ko-KR')}장 · ${model.installedKw.toFixed(1)}kWp`}
-      />
+          <InputCard title="KEA 융자금 조건">
+            <SliderRow
+              label="이자율"
+              hint="0~5% (default 1.75%)"
+              value={keaTerms.interest_rate_pct}
+              min={0}
+              max={5}
+              step={0.05}
+              format={(v) => `${v.toFixed(2)}%`}
+              onChange={(v) => setKeaTerms({ ...keaTerms, interest_rate_pct: v })}
+            />
+            <SliderRow
+              label="거치 기간"
+              value={keaTerms.grace_years}
+              min={0}
+              max={10}
+              step={1}
+              format={(v) => `${v}년`}
+              onChange={(v) => setKeaTerms({ ...keaTerms, grace_years: v })}
+            />
+            <SliderRow
+              label="상환 기간"
+              value={keaTerms.repayment_years}
+              min={5}
+              max={20}
+              step={1}
+              format={(v) => `${v}년`}
+              onChange={(v) => setKeaTerms({ ...keaTerms, repayment_years: v })}
+            />
+          </InputCard>
 
-      <SubGroup title="옥상">
-        <Slider
-          label="옥상 면적"
-          value={params.roofArea}
-          unit="m²"
-          min={200}
-          max={5000}
-          step={50}
-          format={(v) => fmt.n(v)}
-          onChange={(v) => update('roofArea', v)}
-        />
-        <Slider
-          label="가용 면적 비율"
-          value={params.usableFactor}
-          unit="%"
-          min={0.3}
-          max={0.95}
-          step={0.01}
-          format={(v) => (v * 100).toFixed(0)}
-          onChange={(v) => update('usableFactor', v)}
-        />
-        <Slider
-          label="경사각"
-          value={params.tilt}
-          unit="°"
-          min={5}
-          max={45}
-          step={1}
-          format={(v) => v.toFixed(0)}
-          onChange={(v) => update('tilt', v)}
-        />
-        <Slider
-          label="방위각 (남향=0)"
-          value={params.azimuth}
-          unit="°"
-          min={-60}
-          max={60}
-          step={1}
-          format={(v) => (v >= 0 ? `+${v.toFixed(0)}` : v.toFixed(0))}
-          onChange={(v) => update('azimuth', v)}
-        />
-      </SubGroup>
+          <InputCard title="시나리오">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {SCENARIO_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setScenario(opt.value)}
+                  style={scenarioBtnStyle(scenario === opt.value, opt.tone)}
+                  aria-pressed={scenario === opt.value}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{opt.label}</span>
+                  <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>
+                    SMP×{SCENARIOS[opt.value].smp_multiplier.toFixed(2)}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-      <SubGroup title="모듈">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={panelLabelStyle}>모듈 선택</span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-            {PANELS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => update('panelId', p.id)}
-                style={panelOptionStyle(params.panelId === p.id)}
-              >
-                <span style={{ fontWeight: 700, fontSize: 13 }}>{p.id}</span>
-                <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>
-                  η {p.eff.toFixed(1)}%
-                </span>
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setShowSensitivity((s) => !s)}
+              style={collapseHeaderStyle}
+              aria-expanded={showSensitivity}
+            >
+              <span>고급 민감도</span>
+              <span style={{ fontSize: 11 }}>{showSensitivity ? '▾' : '▸'}</span>
+            </button>
+            {showSensitivity && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+                <SliderRow
+                  label="SMP 단가 변동"
+                  value={sensitivity.smp_pct}
+                  min={-20}
+                  max={20}
+                  step={1}
+                  format={(v) => `${v >= 0 ? '+' : ''}${v}%`}
+                  onChange={(v) => setSensitivity({ ...sensitivity, smp_pct: v })}
+                />
+                <SliderRow
+                  label="REC 단가 변동"
+                  value={sensitivity.rec_pct}
+                  min={-20}
+                  max={20}
+                  step={1}
+                  format={(v) => `${v >= 0 ? '+' : ''}${v}%`}
+                  onChange={(v) => setSensitivity({ ...sensitivity, rec_pct: v })}
+                />
+                <SliderRow
+                  label="발전 효율 변동"
+                  value={sensitivity.efficiency_pct}
+                  min={-10}
+                  max={10}
+                  step={1}
+                  format={(v) => `${v >= 0 ? '+' : ''}${v}%`}
+                  onChange={(v) => setSensitivity({ ...sensitivity, efficiency_pct: v })}
+                />
+                <SliderRow
+                  label="KEA 이자율 변동"
+                  value={sensitivity.kea_rate_bps}
+                  min={-50}
+                  max={50}
+                  step={5}
+                  format={(v) => `${v >= 0 ? '+' : ''}${v}bps`}
+                  onChange={(v) => setSensitivity({ ...sensitivity, kea_rate_bps: v })}
+                />
+              </div>
+            )}
+          </InputCard>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" onClick={reset} style={secondaryBtnStyle}>
+              기본값으로 초기화
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              style={primaryBtnStyle}
+              disabled={!result}
+            >
+              PDF 다운로드
+            </button>
           </div>
-        </div>
-        <Slider
-          label="배치 여유 계수"
-          value={params.layoutOverhead}
-          unit="×"
-          min={1.1}
-          max={1.8}
-          step={0.05}
-          format={(v) => v.toFixed(2)}
-          onChange={(v) => update('layoutOverhead', v)}
-        />
-      </SubGroup>
+        </aside>
 
-      <SubGroup title="입지">
-        <Slider
-          label="일조량 (kWh/kWp/년)"
-          value={params.specificYield}
-          unit=""
-          min={1100}
-          max={1600}
-          step={10}
-          format={(v) => fmt.n(v)}
-          onChange={(v) => update('specificYield', v)}
-        />
-        <Slider
-          label="음영 손실"
-          value={params.shadingLoss}
-          unit="%"
-          min={0}
-          max={0.3}
-          step={0.005}
-          format={(v) => (v * 100).toFixed(1)}
-          onChange={(v) => update('shadingLoss', v)}
-        />
-      </SubGroup>
-    </section>
-  );
-}
-
-function SubGroup({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--muted)',
-          paddingBottom: 6,
-          borderBottom: '1px solid var(--line)',
-        }}
-      >
-        {title}
+        <section className="sim-results">
+          {!result ? (
+            <div style={errorBoxStyle}>
+              <strong>입력값 검증 필요</strong>
+              <p style={{ margin: '6px 0 0', fontSize: 12 }}>
+                {capitalValidation.error ?? '시뮬레이션 입력값을 확인해주세요.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <MetricGrid
+                investorCapex={investorCapex}
+                result={result}
+                scenario={scenario}
+              />
+              <ResultsBody
+                result={result}
+                capital={capital}
+                investorCapex={investorCapex}
+                site={site}
+                showKeaSchedule={showKeaSchedule}
+                setShowKeaSchedule={setShowKeaSchedule}
+              />
+            </>
+          )}
+        </section>
       </div>
-      {children}
+
+      <Disclaimers />
+
+      <style>{`
+        .sim-layout {
+          display: grid;
+          grid-template-columns: minmax(280px, 340px) 1fr;
+          gap: 20px;
+          align-items: start;
+        }
+        @media (max-width: 1024px) {
+          .sim-layout { grid-template-columns: 1fr; }
+        }
+        .sim-inputs { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 16px; }
+        @media (max-width: 1024px) {
+          .sim-inputs { position: static; }
+        }
+        .sim-results { display: flex; flex-direction: column; gap: 16px; }
+        @media print {
+          aside.sim-inputs, .sim-print-hide { display: none !important; }
+          .sim-layout { grid-template-columns: 1fr !important; }
+          body { background: white !important; }
+        }
+      `}</style>
     </div>
   );
 }
 
-const panelLabelStyle: React.CSSProperties = {
-  fontSize: 12,
-  color: 'var(--muted)',
-  fontWeight: 500,
-};
+// ────────────────────────────────────────────────────────────────────────────
+// Site header
+// ────────────────────────────────────────────────────────────────────────────
 
-function panelOptionStyle(active: boolean): React.CSSProperties {
-  return {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 2,
-    padding: '8px 4px',
-    background: active ? 'var(--ink)' : 'var(--panel)',
-    color: active ? '#fff' : 'var(--ink)',
-    border: `1px solid ${active ? 'var(--ink)' : 'var(--line)'}`,
-    borderRadius: 'var(--r-md)',
-    cursor: 'pointer',
-    transition: 'background-color .12s, border-color .12s, color .12s',
-  };
+function SiteHeader({
+  site,
+  regionColor,
+  regionName,
+}: {
+  site: { building_id: string; installed_kw: number; address?: string };
+  regionColor: string;
+  regionName: string;
+}): JSX.Element {
+  return (
+    <header
+      style={{
+        background: 'var(--ink)',
+        color: '#fff',
+        padding: '20px 24px',
+        borderRadius: 6,
+        marginBottom: 20,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 16,
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+          <span
+            style={{
+              padding: '3px 9px',
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 4,
+              background: regionColor,
+              color: '#fff',
+            }}
+          >
+            {regionName}
+          </span>
+          <span style={{ fontSize: 11, opacity: 0.7 }}>FR-O-006 · 투자자 시뮬레이터 v1.3</span>
+        </div>
+        <div
+          className="num"
+          style={{ fontSize: 28, fontFamily: 'var(--font-mono, monospace)', letterSpacing: '-0.02em' }}
+        >
+          {site.building_id}
+        </div>
+        {site.address && (
+          <div style={{ fontSize: 12, opacity: 0.65, marginTop: 2 }}>{site.address}</div>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 18, fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>
+        <SitePill label="설치 용량" value={`${site.installed_kw.toFixed(2)} kW`} />
+        <SitePill label="총 사업비" value={`${((site.installed_kw * BASE_ASSUMPTIONS.capex_won_per_kw) / 100_000_000).toFixed(2)}억`} />
+      </div>
+    </header>
+  );
 }
 
-/* ===================================================================== *
- * Slider primitive — label + bar + monumental value                      *
- * ===================================================================== */
+function SitePill({ label, value }: { label: string; value: string }): JSX.Element {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+      <span className="num" style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{value}</span>
+    </div>
+  );
+}
 
-interface SliderProps {
+// ────────────────────────────────────────────────────────────────────────────
+// Metric grid (4 cards)
+// ────────────────────────────────────────────────────────────────────────────
+
+function MetricGrid({
+  investorCapex,
+  result,
+  scenario,
+}: {
+  investorCapex: number;
+  result: InvestorResult;
+  scenario: ScenarioName;
+}): JSX.Element {
+  const irrLabel = Number.isNaN(result.equity_irr_pct)
+    ? '계산 불가'
+    : `${result.equity_irr_pct.toFixed(2)}%`;
+  const paybackLabel = !Number.isFinite(result.payback_years)
+    ? '회수 불가'
+    : `${result.payback_years.toFixed(1)}년`;
+  const irrAccent = !Number.isNaN(result.equity_irr_pct) && result.equity_irr_pct >= 5;
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: 12,
+      }}
+    >
+      <Metric
+        overline="누적 분배"
+        value={`${(result.cumulative_distribution_won / 100_000_000).toFixed(2)}억`}
+        sub={`출자 ${(investorCapex / 100_000_000).toFixed(2)}억 대비`}
+      />
+      <Metric
+        overline="Equity IRR"
+        value={irrLabel}
+        sub={`시나리오: ${scenario === 'conservative' ? '보수적' : scenario === 'base' ? '기본' : '낙관적'}`}
+        accent={irrAccent ? 'var(--accent)' : undefined}
+      />
+      <Metric
+        overline="회수 기간 (Payback)"
+        value={paybackLabel}
+        sub="누적 분배가 출자액 회수 시점"
+      />
+      <Metric
+        overline="ROI Multiple"
+        value={`${result.roi_multiple.toFixed(2)}×`}
+        sub={`총 분배 / 출자액`}
+        accent={result.roi_multiple >= 1 ? 'var(--accent)' : 'var(--muted)'}
+      />
+    </div>
+  );
+}
+
+function Metric({
+  overline,
+  value,
+  sub,
+  accent,
+}: {
+  overline: string;
+  value: string;
+  sub: string;
+  accent?: string;
+}): JSX.Element {
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 16,
+        background: '#fff',
+        border: '1px solid var(--line, #e5e7eb)',
+        borderRadius: 6,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}
+    >
+      <div className="overline" style={{ fontSize: 10.5, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        {overline}
+      </div>
+      <div
+        className="num"
+        style={{
+          fontSize: 22,
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
+          color: accent ?? 'var(--ink, #0a0c0f)',
+        }}
+      >
+        {value}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted-2, #8A93A0)' }}>{sub}</div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Results body — capital donut + cashflow chart + KEA table
+// ────────────────────────────────────────────────────────────────────────────
+
+function ResultsBody({
+  result,
+  capital,
+  investorCapex,
+  site,
+  showKeaSchedule,
+  setShowKeaSchedule,
+}: {
+  result: InvestorResult;
+  capital: CapitalStructure;
+  investorCapex: number;
+  site: { installed_kw: number };
+  showKeaSchedule: boolean;
+  setShowKeaSchedule: (v: boolean) => void;
+}): JSX.Element {
+  const chartData = result.yearly.map((r) => ({
+    year: r.year,
+    revenue: r.revenue / 1_000_000,
+    distribution: r.investor_distribution / 1_000_000,
+    cumulative: (r.investor_cumulative - investorCapex) / 1_000_000,
+  }));
+
+  const totalCapex = capital.project_equity_pct > 0
+    ? investorCapex / (capital.project_equity_pct / 100)
+    : site.installed_kw * BASE_ASSUMPTIONS.capex_won_per_kw;
+  const donutData = [
+    { name: '자기자본', value: capital.project_equity_pct, color: 'var(--ink, #0a0c0f)' },
+    { name: 'KEA 융자금', value: capital.kea_loan_pct, color: 'var(--accent, #1264D3)' },
+    { name: '기타 부채', value: capital.other_debt_pct, color: 'var(--muted, #5C6470)' },
+  ];
+
+  return (
+    <>
+      <section
+        style={{
+          background: '#fff',
+          border: '1px solid var(--line, #e5e7eb)',
+          borderRadius: 6,
+          padding: 18,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 15, margin: 0 }}>자본 구조</h3>
+          <span className="num" style={{ fontSize: 12, color: 'var(--muted)' }}>
+            총 사업비 {(totalCapex / 100_000_000).toFixed(2)}억
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 24, alignItems: 'center' }}>
+          <div style={{ width: 180, height: 180 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={donutData} dataKey="value" innerRadius={50} outerRadius={80} stroke="#fff" strokeWidth={2}>
+                  {donutData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v: unknown) => [`${(v as number).toFixed(1)}%`]}
+                  contentStyle={{ fontSize: 11.5, borderRadius: 4 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {donutData.map((d) => (
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: d.color }} />
+                <span style={{ flex: 1 }}>{d.name}</span>
+                <span className="num" style={{ fontWeight: 600 }}>{d.value.toFixed(1)}%</span>
+                <span className="num" style={{ color: 'var(--muted)', minWidth: 80, textAlign: 'right' }}>
+                  {((totalCapex * d.value) / 100 / 100_000_000).toFixed(2)}억
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: '#fff',
+          border: '1px solid var(--line, #e5e7eb)',
+          borderRadius: 6,
+          padding: 18,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 15, margin: 0 }}>투자자 현금흐름</h3>
+          <span className="num" style={{ fontSize: 11, color: 'var(--muted)' }}>
+            연 매출 {(result.project_revenue_year1_won / 1_000_000).toFixed(1)}M (1년차)
+          </span>
+        </div>
+        <div style={{ width: '100%', height: 280 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+              <CartesianGrid stroke="var(--line)" strokeDasharray="2 4" vertical={false} />
+              <XAxis
+                dataKey="year"
+                axisLine={{ stroke: 'var(--line-2)' }}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
+                tickFormatter={(v) => `${v}년`}
+              />
+              <YAxis
+                yAxisId="left"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
+                tickFormatter={(v) => `${v}M`}
+                width={50}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
+                tickFormatter={(v) => `${v}M`}
+                width={50}
+              />
+              <Tooltip
+                formatter={(v: unknown, name: string) => {
+                  const labels: Record<string, string> = {
+                    distribution: '연 분배',
+                    cumulative: '누적 (출자 차감 후)',
+                    revenue: '프로젝트 매출',
+                  };
+                  return [`${(v as number).toFixed(2)} M원`, labels[name] ?? name];
+                }}
+                labelFormatter={(v) => `${v}년차`}
+                contentStyle={{ fontSize: 11.5, borderRadius: 4, fontFamily: 'Geist Mono, monospace' }}
+              />
+              <ReferenceLine y={0} yAxisId="right" stroke="var(--ink-2)" />
+              <Bar dataKey="distribution" yAxisId="left" fill="var(--accent, #1264D3)" maxBarSize={18} />
+              <Line
+                dataKey="cumulative"
+                yAxisId="right"
+                type="monotone"
+                stroke="var(--ink, #0a0c0f)"
+                strokeWidth={2}
+                dot={false}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--muted-2)', paddingTop: 8 }}>
+          <LegendDot color="var(--accent, #1264D3)" label="연 분배 (좌축)" />
+          <LegendDot color="var(--ink, #0a0c0f)" label="누적 분배 - 출자 (우축)" />
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: '#fff',
+          border: '1px solid var(--line, #e5e7eb)',
+          borderRadius: 6,
+          padding: 18,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setShowKeaSchedule(!showKeaSchedule)}
+          style={{
+            ...collapseHeaderStyle,
+            margin: 0,
+            padding: 0,
+            border: 'none',
+            background: 'transparent',
+          }}
+          aria-expanded={showKeaSchedule}
+        >
+          <span style={{ fontSize: 15, fontWeight: 600 }}>KEA 융자금 상환 일정</span>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            {result.kea_loan_schedule.length}년 ({showKeaSchedule ? '▾' : '▸'})
+          </span>
+        </button>
+        {showKeaSchedule && result.kea_loan_schedule.length > 0 && (
+          <div style={{ marginTop: 12, maxHeight: 320, overflow: 'auto', border: '1px solid var(--line)', borderRadius: 4 }}>
+            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#fafafa', borderBottom: '1px solid var(--line)' }}>
+                <tr>
+                  <th style={thStyle}>연차</th>
+                  <th style={thStyleRight}>이자</th>
+                  <th style={thStyleRight}>원금</th>
+                  <th style={thStyleRight}>잔액</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.kea_loan_schedule.map((row) => (
+                  <tr key={row.year} style={{ borderBottom: '1px solid var(--line)' }}>
+                    <td style={tdStyle}>{row.year}년</td>
+                    <td style={tdStyleNum}>{row.interest.toLocaleString('ko-KR')}원</td>
+                    <td style={tdStyleNum}>{row.principal.toLocaleString('ko-KR')}원</td>
+                    <td style={tdStyleNum}>{row.remaining_balance.toLocaleString('ko-KR')}원</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Disclaimers (FR-O-006 §처리-12 — both lines mandatory)
+// ────────────────────────────────────────────────────────────────────────────
+
+function Disclaimers(): JSX.Element {
+  return (
+    <section
+      style={{
+        marginTop: 24,
+        padding: 16,
+        background: '#fff7ed',
+        borderLeft: '3px solid #f59e0b',
+        fontSize: 12,
+        color: '#7c2d12',
+        lineHeight: 1.6,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 6 }}>중요 고지사항</div>
+      <ul style={{ paddingLeft: 18, margin: 0 }}>
+        <li>본 시뮬레이션은 가정 기반이며 실제 수익을 보장하지 않습니다.</li>
+        <li>재생에너지지원사업 융자금 적용은 한국에너지공단 심사 후 확정됩니다.</li>
+      </ul>
+    </section>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Form primitives
+// ────────────────────────────────────────────────────────────────────────────
+
+function InputCard({
+  title,
+  children,
+  warning,
+}: {
+  title: string;
+  children: React.ReactNode;
+  warning?: string;
+}): JSX.Element {
+  return (
+    <div
+      style={{
+        background: '#fff',
+        border: `1px solid ${warning ? '#fca5a5' : 'var(--line, #e5e7eb)'}`,
+        borderRadius: 6,
+        padding: 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{title}</div>
+      {children}
+      {warning && (
+        <div style={{ fontSize: 11, color: '#b91c1c', background: '#fef2f2', padding: '6px 8px', borderRadius: 3 }}>
+          {warning}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SliderRow({
+  label,
+  hint,
+  value,
+  min,
+  max,
+  step,
+  format,
+  onChange,
+}: {
   label: string;
+  hint?: string;
   value: number;
-  unit: string;
   min: number;
   max: number;
   step: number;
   format: (v: number) => string;
   onChange: (v: number) => void;
-}
-
-function Slider({ label, value, unit, min, max, step, format, onChange }: SliderProps) {
+}): JSX.Element {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={panelLabelStyle}>{label}</span>
-        <span
-          className="num"
-          style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}
-        >
-          {format(value)}
-          {unit && (
-            <span style={{ marginLeft: 4, fontSize: 11, color: 'var(--muted-2)', fontWeight: 500 }}>
-              {unit}
-            </span>
-          )}
+        <span style={labelStyle}>
+          {label}
+          {hint && <span style={{ color: 'var(--muted-2, #8A93A0)', marginLeft: 4 }}>· {hint}</span>}
         </span>
+        <span className="num" style={{ fontSize: 12, fontWeight: 700 }}>{format(value)}</span>
       </div>
       <input
         type="range"
@@ -630,756 +880,219 @@ function Slider({ label, value, unit, min, max, step, format, onChange }: Slider
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{
-          width: '100%',
-          accentColor: 'var(--ink)',
-          height: 4,
-        }}
+        onChange={(e) => onChange(Number.parseFloat(e.target.value))}
+        style={{ width: '100%', accentColor: 'var(--ink, #0a0c0f)' }}
       />
     </label>
   );
 }
 
-/* ===================================================================== *
- * Roof visualization — SVG showing panel grid on a roof rectangle        *
- * ===================================================================== */
-
-function RoofVisualizationCard({ model }: { model: Model }) {
-  // Roof rectangle viewbox: assume 1.5:1 aspect.
-  const aspect = 1.5;
-  const vbW = 600;
-  const vbH = vbW / aspect;
-  const setbackPct = 0.06;
-  const inner = {
-    x: vbW * setbackPct,
-    y: vbH * setbackPct,
-    w: vbW * (1 - 2 * setbackPct),
-    h: vbH * (1 - 2 * setbackPct),
-  };
-
-  const cols = model.panelGridCols;
-  const rows = model.panelGridRows;
-  const remainder = model.numPanels - (rows - 1) * cols;
-  const panelW = cols > 0 ? inner.w / cols : 0;
-  const panelH = rows > 0 ? inner.h / rows : 0;
-  const padding = Math.min(panelW, panelH) * 0.08;
-
-  return (
-    <section
-      className="card card-pad"
-      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-    >
-      <SectionHead
-        overline="배치 시각화"
-        title={`${model.panel.id} 모듈 ${model.numPanels.toLocaleString('ko-KR')}장`}
-        meta={`${model.usableArea.toFixed(0)} m² 가용`}
-      />
-
-      <div
-        style={{
-          background: '#FAFAFA',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--r-sm)',
-          padding: 16,
-        }}
-      >
-        <svg
-          viewBox={`0 0 ${vbW} ${vbH}`}
-          style={{ width: '100%', height: 'auto', display: 'block' }}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {/* Roof outline */}
-          <rect
-            x={1}
-            y={1}
-            width={vbW - 2}
-            height={vbH - 2}
-            fill="#FFFFFF"
-            stroke="var(--line-2)"
-            strokeWidth={1.5}
-            strokeDasharray="4 3"
-          />
-          {/* Setback shading */}
-          <rect
-            x={inner.x}
-            y={inner.y}
-            width={inner.w}
-            height={inner.h}
-            fill="#F4F5F7"
-            stroke="none"
-          />
-          {/* Panel grid */}
-          {Array.from({ length: rows }).flatMap((_, r) =>
-            Array.from({ length: cols }).map((_, c) => {
-              const idx = r * cols + c;
-              if (idx >= model.numPanels) return null;
-              return (
-                <rect
-                  key={`${r}-${c}`}
-                  x={inner.x + c * panelW + padding}
-                  y={inner.y + r * panelH + padding}
-                  width={panelW - padding * 2}
-                  height={panelH - padding * 2}
-                  fill="var(--ink)"
-                  rx={1}
-                />
-              );
-            }),
-          )}
-          {/* North arrow */}
-          <g transform={`translate(${vbW - 50}, 28)`}>
-            <circle cx={0} cy={0} r={14} fill="#fff" stroke="var(--line-2)" />
-            <path d="M0 -10 L4 6 L0 2 L-4 6 Z" fill="var(--ink)" />
-            <text
-              x={0}
-              y={-18}
-              textAnchor="middle"
-              fontSize={9}
-              fontFamily="Geist Mono, monospace"
-              fill="var(--muted)"
-            >
-              N
-            </text>
-          </g>
-          {/* Capacity badge */}
-          <g transform={`translate(${vbW - 130}, ${vbH - 36})`}>
-            <rect
-              x={0}
-              y={0}
-              width={120}
-              height={26}
-              fill="var(--ink)"
-              rx={4}
-            />
-            <text
-              x={60}
-              y={17}
-              textAnchor="middle"
-              fontSize={11}
-              fontWeight={700}
-              fontFamily="Geist Mono, monospace"
-              fill="#fff"
-              letterSpacing="-0.02em"
-            >
-              {model.installedKw.toFixed(1)} kWp
-            </text>
-          </g>
-        </svg>
-      </div>
-
-      <div className="grid-stats" style={{ borderRadius: 'var(--r-sm)' }}>
-        <Cell label="모듈 수" value={fmt.n(model.numPanels)} unit="장" />
-        <Cell label="모듈 면적" value={(model.panelArea).toFixed(2)} unit="m²/장" />
-        <Cell label="배열 (행 × 열)" value={`${model.panelGridRows} × ${model.panelGridCols}`} unit="" />
-        <Cell label="설치 밀도" value={(model.installedKw / Math.max(1, model.usableArea) * 1000).toFixed(0)} unit="W/m²" />
-      </div>
-      {remainder !== model.panelGridCols && model.numPanels > 0 && (
-        <div style={{ fontSize: 11, color: 'var(--muted-2)' }}>
-          마지막 행 {remainder}장 · 잔여 공간은 점검 통로 · 안전구역으로 활용.
-        </div>
-      )}
-    </section>
-  );
-}
-
-/* ===================================================================== *
- * CAPEX breakdown — stacked horizontal bar with line items               *
- * ===================================================================== */
-
-function CapexCard({
-  model,
-  params,
-  update,
+function CapitalSlider({
+  label,
+  hint,
+  value,
+  max,
+  tone,
+  onChange,
 }: {
-  model: Model;
-  params: Params;
-  update: <K extends keyof Params>(key: K, value: Params[K]) => void;
-}) {
-  const total = model.totalCapex;
+  label: string;
+  hint?: string;
+  value: number;
+  max: number;
+  tone: string;
+  onChange: (v: number) => void;
+}): JSX.Element {
   return (
-    <section
-      className="card card-pad"
-      style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
-    >
-      <SectionHead
-        overline="투자비 (CAPEX)"
-        title={`₩${(total / 1_000_000).toFixed(1)}M`}
-        meta={`₩${fmt.n(model.capexPerKw)}/kWp`}
-      />
-
-      {/* Stacked bar */}
-      <div
-        style={{
-          display: 'flex',
-          height: 24,
-          borderRadius: 'var(--r-sm)',
-          overflow: 'hidden',
-          border: '1px solid var(--line)',
-        }}
-      >
-        {model.capexLines.map((line, i) => {
-          const pct = total > 0 ? (line.cost / total) * 100 : 0;
-          return (
-            <div
-              key={line.id}
-              title={`${line.label} ₩${fmt.n(line.cost)} (${pct.toFixed(1)}%)`}
-              style={{
-                width: `${pct}%`,
-                background: capexLineColor(i),
-                borderRight: i < model.capexLines.length - 1 ? '1px solid #fff' : 'none',
-              }}
-            />
-          );
-        })}
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={labelStyle}>
+          <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: tone, marginRight: 6, verticalAlign: 'middle' }} />
+          {label}
+          {hint && <span style={{ color: 'var(--muted-2, #8A93A0)', marginLeft: 4, fontSize: 10.5 }}>· {hint}</span>}
+        </span>
+        <span className="num" style={{ fontSize: 12, fontWeight: 700, color: tone }}>{value.toFixed(1)}%</span>
       </div>
-
-      {/* Line items */}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {model.capexLines.map((line, i) => {
-          const pct = total > 0 ? (line.cost / total) * 100 : 0;
-          return (
-            <div
-              key={line.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '12px 1fr auto auto',
-                gap: 10,
-                alignItems: 'center',
-                padding: '8px 0',
-                borderBottom: i < model.capexLines.length - 1 ? '1px solid var(--line)' : 'none',
-              }}
-            >
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  background: capexLineColor(i),
-                  display: 'inline-block',
-                }}
-              />
-              <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{line.label}</span>
-              <span className="num" style={{ fontSize: 11.5, color: 'var(--muted)' }}>
-                {pct.toFixed(1)}%
-              </span>
-              <span
-                className="num"
-                style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', minWidth: 96, textAlign: 'right' }}
-              >
-                ₩{fmt.n(line.cost)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <Slider
-        label="CAPEX 조정 (벤치마크 대비)"
-        value={params.capexAdjust}
-        unit="×"
-        min={0.7}
-        max={1.3}
-        step={0.01}
-        format={(v) => v.toFixed(2)}
-        onChange={(v) => update('capexAdjust', v)}
+      <input
+        type="range"
+        min={0}
+        max={max}
+        step={0.5}
+        value={value}
+        onChange={(e) => onChange(Number.parseFloat(e.target.value))}
+        style={{ width: '100%', accentColor: tone }}
       />
-    </section>
+    </label>
   );
 }
 
-function capexLineColor(i: number): string {
-  const palette = [
-    'var(--ink)',
-    'var(--ink-2)',
-    '#3A4350',
-    '#5C6470',
-    '#8A93A0',
-    '#A8AFB9',
-    'var(--accent-ink)',
-    'var(--accent)',
-  ] as const;
-  return palette[i % palette.length] ?? 'var(--ink)';
-}
-
-/* ===================================================================== *
- * Revenue / tariff card — year 1 numbers with tariff sliders             *
- * ===================================================================== */
-
-function RevenueCard({
-  model,
-  params,
-  update,
+function NumberInput({
+  label,
+  suffix,
+  value,
+  min,
+  max,
+  step,
+  format,
+  onChange,
 }: {
-  model: Model;
-  params: Params;
-  update: <K extends keyof Params>(key: K, value: Params[K]) => void;
-}) {
+  label: string;
+  suffix: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format: (v: number) => string;
+  onChange: (v: number) => void;
+}): JSX.Element {
   return (
-    <section
-      className="card card-pad"
-      style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
-    >
-      <SectionHead
-        overline="연간 매출 · 1년차"
-        title={`₩${(model.yearOneRevenue / 1_000_000).toFixed(2)}M`}
-        meta={`${fmt.n(Math.round(model.yearOneGeneration))} kWh`}
-      />
-
-      <div className="grid-stats" style={{ borderRadius: 'var(--r-sm)' }}>
-        <Cell label="발전량" value={fmt.n(Math.round(model.yearOneGeneration))} unit="kWh/년" />
-        <Cell label="유효 단가" value={fmt.n(Math.round(model.effectiveTariff))} unit="원/kWh" />
-        <Cell
-          label="수율 (원/kWp)"
-          value={fmt.n(Math.round(model.yearOneRevenue / Math.max(1, model.installedKw)))}
-          unit="원"
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={labelStyle}>{label}</span>
+        <span className="num" style={{ fontSize: 13, fontWeight: 700 }}>{format(value)}</span>
+      </div>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <input
+          type="number"
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          onChange={(e) => {
+            const n = Number.parseInt(e.target.value, 10);
+            if (Number.isFinite(n)) onChange(Math.max(min, Math.min(max, n)));
+          }}
+          style={{
+            flex: 1,
+            padding: '6px 8px',
+            border: '1px solid var(--line, #e5e7eb)',
+            borderRadius: 3,
+            fontSize: 12,
+            fontFamily: 'Geist Mono, monospace',
+          }}
         />
+        <span style={{ fontSize: 11, color: 'var(--muted)' }}>{suffix}</span>
       </div>
-
-      <Slider
-        label="SMP 단가"
-        value={params.smpPrice}
-        unit="원/kWh"
-        min={80}
-        max={250}
-        step={1}
-        format={(v) => v.toFixed(0)}
-        onChange={(v) => update('smpPrice', v)}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number.parseFloat(e.target.value))}
+        style={{ width: '100%', accentColor: 'var(--ink, #0a0c0f)' }}
       />
-      <Slider
-        label="REC 단가"
-        value={params.recPrice}
-        unit="원/kWh"
-        min={20}
-        max={120}
-        step={1}
-        format={(v) => v.toFixed(0)}
-        onChange={(v) => update('recPrice', v)}
-      />
-      <Slider
-        label="REC 가중치"
-        value={params.recWeight}
-        unit="×"
-        min={0.7}
-        max={1.5}
-        step={0.05}
-        format={(v) => v.toFixed(2)}
-        onChange={(v) => update('recWeight', v)}
-      />
-
-      <div
-        style={{
-          padding: 12,
-          background: 'var(--accent-soft)',
-          borderRadius: 'var(--r-sm)',
-          fontSize: 11.5,
-          color: 'var(--accent-ink)',
-          lineHeight: 1.55,
-        }}
-      >
-        SMP({params.smpPrice}) + REC({params.recPrice})×가중치({params.recWeight.toFixed(2)}) ={' '}
-        <span className="num" style={{ fontWeight: 700 }}>
-          {Math.round(model.effectiveTariff)}
-        </span>{' '}
-        원/kWh
-      </div>
-    </section>
+    </label>
   );
 }
 
-/* ===================================================================== *
- * 25-year cashflow chart — bar = annual net, line = cumulative           *
- * ===================================================================== */
-
-function CashflowCard({
-  model,
-  params,
-  update,
-}: {
-  model: Model;
-  params: Params;
-  update: <K extends keyof Params>(key: K, value: Params[K]) => void;
-}) {
-  // Tooltip-friendly chart data — drop year 0 outflow from the bar series so it
-  // doesn't dominate the chart, but show it as a reference at start.
-  const chartData = model.years.map((r) => ({
-    year: r.year,
-    netCashflow: r.year === 0 ? 0 : r.netCashflow / 1_000_000, // millions
-    cumulative: r.cumulative / 1_000_000,
-    revenue: r.revenue / 1_000_000,
-  }));
-
-  return (
-    <section
-      className="card card-pad"
-      style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <SectionHead
-          overline="현금흐름"
-          title={`${params.horizon}년 누적 시뮬레이션`}
-          meta={`회수기간 ${model.paybackYears != null ? model.paybackYears.toFixed(1) + '년' : '회수불가'}`}
-        />
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Pill tone={model.npv >= 0 ? 'green' : 'rose'} dot>
-            NPV {model.npv >= 0 ? '+' : '−'}₩{Math.abs(model.npv / 1_000_000).toFixed(1)}M
-          </Pill>
-          <Pill tone="neutral" dot>
-            IRR {model.irr != null ? `${(model.irr * 100).toFixed(2)}%` : '—'}
-          </Pill>
-          <Pill tone="neutral" dot>
-            LCOE {model.lcoe.toFixed(0)}원/kWh
-          </Pill>
-        </div>
-      </div>
-
-      <div style={{ width: '100%', height: 320, minWidth: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke="var(--line)" strokeDasharray="2 4" vertical={false} />
-            <XAxis
-              dataKey="year"
-              axisLine={{ stroke: 'var(--line-2)' }}
-              tickLine={false}
-              tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
-              tickFormatter={(v) => (v === 0 ? '투자' : `${v}년`)}
-            />
-            <YAxis
-              yAxisId="left"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
-              tickFormatter={(v) => `${v}M`}
-              width={50}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 11, fill: 'var(--muted-2)' }}
-              tickFormatter={(v) => `${v}M`}
-              width={50}
-            />
-            <Tooltip
-              contentStyle={{
-                borderRadius: 4,
-                border: '1px solid var(--line-2)',
-                fontSize: 11.5,
-                boxShadow: 'none',
-                padding: '8px 10px',
-                fontFamily: 'Geist Mono, monospace',
-              }}
-              formatter={(v: unknown, name: string) => {
-                const num = (v as number).toFixed(2);
-                const labels: Record<string, string> = {
-                  netCashflow: '연간 순현금흐름',
-                  cumulative: '누적 현금흐름',
-                };
-                return [`${num} M원`, labels[name] ?? name];
-              }}
-              labelFormatter={(v) => (v === 0 ? '투자 시점 (Year 0)' : `${v}년차`)}
-            />
-            <ReferenceLine
-              y={0}
-              yAxisId="right"
-              stroke="var(--ink-2)"
-              strokeWidth={1}
-            />
-            <Bar
-              dataKey="netCashflow"
-              yAxisId="left"
-              fill="var(--accent)"
-              maxBarSize={18}
-              radius={[2, 2, 0, 0]}
-            />
-            <Line
-              dataKey="cumulative"
-              yAxisId="right"
-              type="monotone"
-              stroke="var(--ink)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: 'var(--ink)' }}
-            />
-            {model.paybackYears != null && (
-              <ReferenceLine
-                x={model.paybackYears}
-                yAxisId="right"
-                stroke="var(--accent-ink)"
-                strokeDasharray="3 3"
-                label={{
-                  value: '회수',
-                  position: 'top',
-                  fill: 'var(--accent-ink)',
-                  fontSize: 10,
-                  fontFamily: 'Geist Mono, monospace',
-                }}
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div
-        style={{
-          fontSize: 11,
-          color: 'var(--muted-2)',
-          display: 'flex',
-          gap: 18,
-          flexWrap: 'wrap',
-          paddingTop: 4,
-        }}
-      >
-        <LegendDot color="var(--accent)" label="연간 순현금흐름 (좌축)" />
-        <LegendDot color="var(--ink)" label="누적 현금흐름 (우축)" />
-        <LegendDot color="var(--accent-ink)" label="회수 시점" dashed />
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gap: 14,
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          paddingTop: 12,
-          borderTop: '1px solid var(--line)',
-        }}
-      >
-        <Slider
-          label="할인율 (WACC)"
-          value={params.discountRate}
-          unit="%"
-          min={0.01}
-          max={0.15}
-          step={0.005}
-          format={(v) => (v * 100).toFixed(2)}
-          onChange={(v) => update('discountRate', v)}
-        />
-        <Slider
-          label="모듈 출력 저하율"
-          value={params.degradation}
-          unit="%/년"
-          min={0.002}
-          max={0.015}
-          step={0.0005}
-          format={(v) => (v * 100).toFixed(2)}
-          onChange={(v) => update('degradation', v)}
-        />
-        <Slider
-          label="단가 상승률"
-          value={params.tariffEscalation}
-          unit="%/년"
-          min={0}
-          max={0.05}
-          step={0.0025}
-          format={(v) => (v * 100).toFixed(2)}
-          onChange={(v) => update('tariffEscalation', v)}
-        />
-        <Slider
-          label="O&M 비용"
-          value={params.opexPerKw}
-          unit="원/kWp/년"
-          min={20_000}
-          max={80_000}
-          step={1_000}
-          format={(v) => fmt.n(v)}
-          onChange={(v) => update('opexPerKw', v)}
-        />
-        <Slider
-          label="시뮬레이션 기간"
-          value={params.horizon}
-          unit="년"
-          min={10}
-          max={30}
-          step={1}
-          format={(v) => v.toFixed(0)}
-          onChange={(v) => update('horizon', v)}
-        />
-      </div>
-    </section>
-  );
-}
-
-function LegendDot({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+function LegendDot({ color, label }: { color: string; label: string }): JSX.Element {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span
-        style={{
-          width: 14,
-          height: 2,
-          background: dashed ? 'transparent' : color,
-          borderTop: dashed ? `2px dashed ${color}` : 'none',
-          display: 'inline-block',
-        }}
-      />
+      <span style={{ width: 14, height: 2, background: color, display: 'inline-block' }} />
       <span>{label}</span>
     </span>
   );
 }
 
-/* ===================================================================== *
- * Settlement split — FR-S-004 anchors mapped over year-1 revenue          *
- * ===================================================================== */
+// ────────────────────────────────────────────────────────────────────────────
+// Styles
+// ────────────────────────────────────────────────────────────────────────────
 
-function SettlementSplitCard({ model }: { model: Model }) {
-  return (
-    <section
-      className="card card-pad"
-      style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}
-    >
-      <SectionHead
-        overline="가상공유거래 분배 · FR-S-004"
-        title="1년차 매출 분배 anchors"
-        meta="LH 64.2 / 국민임대 10.9 / 에너지소외 35.8"
-      />
+const labelStyle: React.CSSProperties = {
+  fontSize: 11.5,
+  color: 'var(--muted, #5C6470)',
+  fontWeight: 500,
+};
 
-      <div
-        style={{
-          display: 'flex',
-          height: 36,
-          borderRadius: 'var(--r-sm)',
-          overflow: 'hidden',
-          border: '1px solid var(--line)',
-        }}
-      >
-        {model.yearOneSplit.map((s) => (
-          <div
-            key={s.id}
-            style={{
-              flex: s.amount,
-              minWidth: 0,
-              background: s.color,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              borderRight: '1px solid #fff',
-            }}
-          >
-            {s.label}
-          </div>
-        ))}
-      </div>
+const summaryRowStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  fontSize: 12,
+  paddingTop: 8,
+  borderTop: '1px solid var(--line, #e5e7eb)',
+};
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, border: '1px solid var(--line)', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
-        {model.yearOneSplit.map((s, i) => (
-          <div
-            key={s.id}
-            style={{
-              padding: 16,
-              borderLeft: i > 0 ? '1px solid var(--line)' : 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              background: 'var(--panel)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
-              <span className="overline">{s.label}</span>
-            </div>
-            <div className="kpi-metric" style={{ fontSize: 24 }}>
-              ₩{fmt.n(Math.round(s.amount))}
-            </div>
-            <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
-              비중 <span className="num" style={{ fontWeight: 700, color: 'var(--ink)' }}>
-                {(SETTLEMENT_ANCHORS[i]?.pct ?? 0) * 100}%
-              </span>{' '}
-              · 월 평균 ₩{fmt.n(Math.round(s.amount / 12))}
-            </div>
-          </div>
-        ))}
-      </div>
+const collapseHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+  padding: '6px 0',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: 12,
+  fontWeight: 600,
+  color: 'var(--ink, #0a0c0f)',
+  marginTop: 4,
+};
 
-      <div style={{ fontSize: 11, color: 'var(--muted-2)', lineHeight: 1.55 }}>
-        * 위 분배 비율은 FR-S-004 기준 anchors입니다. 실제 정산은 정산 엔진에서 매 정산
-        주기별로 계산되며, 본 시뮬레이터는 사전 계획 수치만 제공합니다.
-      </div>
-    </section>
-  );
+function scenarioBtnStyle(active: boolean, tone: string): React.CSSProperties {
+  return {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    alignItems: 'center',
+    padding: '8px 4px',
+    border: `1px solid ${active ? tone : 'var(--line, #e5e7eb)'}`,
+    borderRadius: 4,
+    background: active ? tone : '#fff',
+    color: active ? '#fff' : 'var(--ink, #0a0c0f)',
+    cursor: 'pointer',
+  };
 }
 
-/* ===================================================================== *
- * Helpers — section head + grid-stat cell                                *
- * ===================================================================== */
+const primaryBtnStyle: React.CSSProperties = {
+  flex: 1,
+  padding: '10px 12px',
+  background: 'var(--ink, #0a0c0f)',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 4,
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
+};
 
-function SectionHead({
-  overline,
-  title,
-  meta,
-}: {
-  overline: string;
-  title: string;
-  meta?: string;
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span className="overline">{overline}</span>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <span
-          className="kpi-metric"
-          style={{ fontSize: 22, letterSpacing: '-0.025em' }}
-        >
-          {title}
-        </span>
-        {meta && (
-          <span
-            className="num"
-            style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600 }}
-          >
-            {meta}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+const secondaryBtnStyle: React.CSSProperties = {
+  padding: '10px 12px',
+  background: '#fff',
+  color: 'var(--ink, #0a0c0f)',
+  border: '1px solid var(--line, #e5e7eb)',
+  borderRadius: 4,
+  fontSize: 12,
+  cursor: 'pointer',
+};
 
-function Cell({ label, value, unit }: { label: string; value: string; unit: string }) {
-  return (
-    <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <span className="overline">{label}</span>
-      <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-        <span className="kpi-metric" style={{ fontSize: 18 }}>
-          {value}
-        </span>
-        {unit && (
-          <span style={{ fontSize: 11, color: 'var(--muted-2)', fontWeight: 500 }}>
-            {unit}
-          </span>
-        )}
-      </span>
-    </div>
-  );
-}
+const errorBoxStyle: React.CSSProperties = {
+  padding: 16,
+  background: '#fef2f2',
+  border: '1px solid #fecaca',
+  borderRadius: 4,
+  color: '#991b1b',
+  fontSize: 13,
+};
 
-function Footnote() {
-  return (
-    <div
-      style={{
-        marginTop: 16,
-        paddingTop: 16,
-        borderTop: '1px solid var(--line)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '6px 16px',
-        fontSize: 11,
-        color: 'var(--muted-2)',
-        letterSpacing: '-0.005em',
-      }}
-    >
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-        <span>벤치마크: 한국 옥상형 PV 1,550,000원/kWp · 일조량 1,380kWh/kWp/년</span>
-        <span>FR-S-004 · FR-O-003 anchors</span>
-      </div>
-      <div className="mono" style={{ fontSize: 10.5 }}>
-        sim v1.0 · pre-CAPEX planning surface
-      </div>
-    </div>
-  );
-}
+const thStyle: React.CSSProperties = {
+  textAlign: 'left',
+  fontSize: 11,
+  fontWeight: 700,
+  color: 'var(--muted, #5C6470)',
+  padding: '8px 10px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const thStyleRight: React.CSSProperties = { ...thStyle, textAlign: 'right' };
+
+const tdStyle: React.CSSProperties = {
+  padding: '6px 10px',
+  fontSize: 12,
+};
+
+const tdStyleNum: React.CSSProperties = {
+  ...tdStyle,
+  textAlign: 'right',
+  fontFamily: 'Geist Mono, monospace',
+  fontVariantNumeric: 'tabular-nums',
+};

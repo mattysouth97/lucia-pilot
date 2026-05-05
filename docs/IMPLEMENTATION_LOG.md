@@ -36,13 +36,13 @@ checked, "·" = open. Gate codes: `P` processing-steps coded, `A` AC verified
 
 | FR | Domain | Priority | Wave | P | A | R | G | Q | M | Commit(s) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| FR-R-002 | Investor catalog | Must | 2C | · | · | · | · | · | · | — |
+| FR-R-002 | Investor catalog | Must | 2C | C | C | C | · | C | C | `509de31` (URL-state filters/sort/pagination, Pilot Uljin pinning, public /invest/projects + :siteId) |
 | FR-R-003 | RE100 onboarding | Must | 2D | · | · | · | · | · | · | — |
 | FR-R-004 | Retail onboarding | Should | 2E | · | · | · | · | · | · | — |
 | FR-R-005 | LOI module | Must | 2A | C | C | · | · | C | C | `ee6bf47`, `1648ef6`, `e27cbb3` (logic layer; UI defers to Wave 4) |
 | FR-R-006 | Investor portfolio | Should | 2F | · | · | · | · | · | · | — |
 | FR-O-005 | Kakao Maps explorer | Should | 2G | · | · | · | · | · | · | — |
-| FR-O-006 | Financial simulator | Must | 2B | C | C | · | · | C | C | `37a6da9` (Slice 1 — @lucia/finance pure model + 31 tests; React UI Slice 2 pending) |
+| FR-O-006 | Financial simulator | Must | 2B | C | C | C | · | C | C | `37a6da9` (Slice 1: @lucia/finance + 31 tests), Slice 2: React UI investor-equity rewrite at /simulator + public /invest/simulator (3-slider capital structure auto-balance, KEA loan, scenarios, sensitivity, 4 metric cards, capital donut, 30yr cashflow chart, KEA repayment table, mandatory dual disclaimer + window.print PDF) |
 | FR-M-009 | ESG impact dashboard | Should | 3A | · | · | · | · | · | · | — |
 | FR-M-010 | Community feed | Should | 3B | · | · | · | · | · | · | — |
 
@@ -228,6 +228,9 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 | `1648ef6` | feat | Wave 2A Slice 2 — LOI HTML templates + generator (12 tests) | `feat/v1.3-strategic-pivot` |
 | `e27cbb3` | feat | Wave 2A Slice 3 — signature flow + blockchain hash registration (17 tests) | `feat/v1.3-strategic-pivot` |
 | `37a6da9` | feat | Wave 2B Slice 1 — @lucia/finance investor-model + assumptions (31 tests) | `feat/v1.3-strategic-pivot` |
+| `d06f552` | docs | IMPLEMENTATION_LOG.md — Wave 2A complete + Wave 2B Slice 1 reflected | `feat/v1.3-strategic-pivot` |
+| `509de31` | feat | Wave 2C — FR-R-002 v1.3 investor catalog at /invest/projects | `feat/v1.3-strategic-pivot` |
+| `<pending>` | feat | Wave 2B Slice 2 — FR-O-006 v1.3.1 investor-equity simulator React UI | `feat/v1.3-strategic-pivot` |
 
 ## Wave 1 quality-gate result (workspace-wide)
 

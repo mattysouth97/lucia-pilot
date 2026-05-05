@@ -121,6 +121,7 @@ function AppInner() {
                 <Route path="/" element={<Landing />} />
                 <Route path="projects" element={<ProjectsCatalog />} />
                 <Route path="projects/:siteId" element={<SiteDetail />} />
+                <Route path="simulator" element={<InstallSimulator />} />
                 <Route path="onboarding" element={<OnboardingPage />} />
                 <Route path="disclosures/*" element={<DisclosurePages />} />
               </Routes>
