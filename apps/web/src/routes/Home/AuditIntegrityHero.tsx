@@ -44,7 +44,7 @@ export function AuditIntegrityHero(props: AuditIntegrityHeroProps) {
   const honorificSuffix = greeting.honorific ? ` ${greeting.honorific}님` : '님';
   const greetingLine = `안녕하세요, ${greeting.displayName}${honorificSuffix}`;
 
-  const numeral = isLoading ? '—' : String(data?.tampering_attempts ?? 0);
+  const numeral = isLoading || !data ? '—' : String(data.tampering_attempts);
   const numeralColor = muted ? 'var(--muted)' : 'var(--ink)';
 
   return (

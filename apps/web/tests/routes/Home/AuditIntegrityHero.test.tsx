@@ -3,6 +3,17 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { AuditIntegrityHero } from '@/routes/Home/AuditIntegrityHero';
 
+const FRESH_DATA = {
+  tampering_attempts: 0,
+  attempts_rejected: 0,
+  block_height: 184729,
+  validators_active: 4,
+  validators_total: 4,
+  unsettled_count: 0,
+  pending_anomalies: 0,
+  last_verified_at: '2026-04-30T13:24:18+09:00',
+} as const;
+
 afterEach(cleanup);
 
 describe('AuditIntegrityHero', () => {
@@ -12,6 +23,7 @@ describe('AuditIntegrityHero', () => {
         greeting={{ displayName: '김지호', honorific: '처장' }}
         period="2026-04"
         state="fresh"
+        data={FRESH_DATA}
       />,
     );
     expect(screen.getByText(/안녕하세요, 김지호 처장님/)).toBeInTheDocument();
@@ -24,6 +36,7 @@ describe('AuditIntegrityHero', () => {
         greeting={{ displayName: '김지호', honorific: '처장' }}
         period="2026-04"
         state="fresh"
+        data={FRESH_DATA}
       />,
     );
     expect(screen.getByLabelText(/이번 달 변조 시도/)).toHaveTextContent('0');
@@ -59,6 +72,7 @@ describe('AuditIntegrityHero', () => {
         greeting={{ displayName: '김지호', honorific: '처장' }}
         period="2026-04"
         state="fresh"
+        data={FRESH_DATA}
       />,
     );
     const cta = screen.getByRole('button', { name: /감사 보고서/ });
