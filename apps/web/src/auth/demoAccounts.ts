@@ -2,7 +2,7 @@
 import type { AuthUser, Role } from './types';
 
 export const DEMO_ACCOUNTS: ReadonlyArray<AuthUser> = [
-  { id: 'u_analyst_kim',  role: 'analyst',  displayName: '김지호 처장',  subtitle: 'LH ESG 경영실' },
+  { id: 'u_analyst_kim',  role: 'analyst',  displayName: '김지호',  subtitle: 'LH ESG 경영실', honorific: '처장' },
   { id: 'u_operator_spc', role: 'operator', displayName: 'SPC 운영팀',   subtitle: '울진 매입임대 운영' },
   { id: 'h0001',          role: 'resident', displayName: '홍*동',       subtitle: 'ULJN-001 거주 · LH 매입임대 (1,643세대)' },
   { id: 'k0014',          role: 'resident', displayName: '김*수',       subtitle: 'YESN-014 거주 · 국민임대 (280세대)' },

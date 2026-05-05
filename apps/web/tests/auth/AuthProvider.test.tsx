@@ -2,9 +2,10 @@
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, test } from 'vitest';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { DEMO_ACCOUNTS } from '@/auth/demoAccounts';
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter><AuthProvider>{children}</AuthProvider></MemoryRouter>
@@ -48,5 +49,12 @@ describe('AuthProvider', () => {
     act(() => { result.current.logout(); });
     expect(result.current.user).toBeNull();
     expect(sessionStorage.getItem('lucia.auth.userId')).toBeNull();
+  });
+});
+
+describe('AuthProvider — analyst honorific', () => {
+  test('analyst account exposes honorific 처장 for greeting render', () => {
+    const account = DEMO_ACCOUNTS.find(a => a.id === 'u_analyst_kim');
+    expect(account?.honorific).toBe('처장');
   });
 });

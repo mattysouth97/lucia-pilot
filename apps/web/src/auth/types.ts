@@ -6,6 +6,9 @@ export interface AuthUser {
   readonly role: Role;
   readonly displayName: string;
   readonly subtitle?: string;
+  /** Korean honorific suffix (e.g. '처장' → '김지호 처장님'). Optional;
+   *  rendered as `${displayName} ${honorific}님` when present. */
+  readonly honorific?: string;
 }
 
 export interface AuthState {
