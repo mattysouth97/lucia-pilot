@@ -121,47 +121,59 @@ in `Decisions` below and called out in the relevant commit.
 
 ## Open risks
 
-### R-V13-1: Financial model xlsx not reconciled (FR-O-006)
+### R-V13-1: ~~Financial model xlsx not reconciled~~ → De-risked by v1.3.1 prompt update (commit `bdad922`)
 
-The prompt requires BM A vs BM B output to match `TheKIE_LH_재무모델.xlsx`
-within ±0.1%. That file path (`/mnt/user-data/uploads/...`) is a Claude.ai
-sandbox path — **not present on this Windows machine**. User authorized
-proceeding with prompt-stated constants:
+**Updated 2026-05-06 with v1.3.1 prompt revision.** Original concern was
+that FR-O-006 had to reconcile to BM A vs BM B sheets in
+`TheKIE_LH_재무모델.xlsx`. The v1.3.1 prompt update explicitly clarified:
 
-| Constant | Value | Source |
-|---|---|---|
-| SMP base (육지) | 119원/kWh | FRD FR-X-001 / 2026-04 average |
-| REC weight | 1.2 (지붕형 1.0 + 주민참여형 0.2) | FR-S-003 |
-| Daily generation hours | 3.6h × installed_kw | FR-D-001 |
-| Lucia SaaS | 50,000원/동/월 | FR-S-005 |
-| KIE-REMS SaaS | 30,000원/동/월 | FR-S-005 |
-| Module degradation | 0.5%/yr | prompt |
-| Housing-subsidy reservation | 41% of solar revenue | FR-S-004 / LH PDF p.4 |
-
-Unstated parameters required for full BM A vs BM B model — using
-industry-standard solar BM defaults, **explicitly cited** in
-`packages/finance/src/assumptions.ts` and re-exported with `// SOURCE: …`
-JSDoc lines:
+- **BM A vs BM B sheets are TheKIE-internal strategy comparison only —
+  forbidden to expose to investor-facing UI.** They are NOT the reference
+  for FR-O-006.
+- FR-O-006 is now strictly **investor-equity perspective** (Equity IRR,
+  Payback, ROI Multiple from the investor's standpoint).
+- v1.3.1 provides explicit defaults for every load-bearing parameter:
 
 | Parameter | Value | Source |
 |---|---|---|
-| EPC CAPEX rate | 1,400,000원/kW (KEPCO 2024 report avg) | TBD-1 |
-| Land lease (LH 건물 옥상) | 0원 — LH 협약 매입임대 모델 (PDF p.4) | TBD-2 |
-| OPEX | 1.5% of CAPEX/yr | TBD-3 (industry mid) |
-| Insurance | 0.3% of CAPEX/yr | TBD-3 |
-| Tax (corporate) | 22% | Korean corporate flat |
-| Discount rate (WACC) | 6.5% | TBD-4 (Korean utility-scale solar 2024) |
-| Inflation | 2% | TBD-5 |
-| Loan ratio | 70% (BM B), 0% (BM A simplified) | TBD-6 |
-| Loan rate | 5.5%/yr | TBD-7 |
-| Loan tenor | 15 yr | TBD-7 |
+| SMP base (육지) | 119원/kWh | v1.3.1 BASE_ASSUMPTIONS |
+| REC unit price | 70,000원/MWh | v1.3.1 |
+| REC weight | 1.2 | FR-S-003 |
+| Daily generation hours | 3.6h × installed_kw | FR-D-001 |
+| Lucia SaaS | 50,000원/동/월 | (project-side cost, not in investor returns) |
+| KIE-REMS SaaS | 30,000원/동/월 | (project-side cost) |
+| O&M | 5.0% of revenue | v1.3.1 |
+| Module degradation | 0.5%/yr | v1.3.1 |
+| Housing-subsidy reservation | 41% of revenue | FR-S-004 / LH PDF p.4 |
+| **KEA 융자금 default rate** | **1.75%** | v1.3.1 (overridable 0~5%) |
+| **KEA 융자금 grace period** | **5 years (interest-only)** | v1.3.1 |
+| **KEA 융자금 repayment period** | **10 years (annuity)** | v1.3.1 |
+| **KEA 융자금 max ratio** | **80% of CAPEX** | v1.3.1 (한국에너지공단 한도) |
+| Other debt rate | 4.5% | v1.3.1 |
+| CAPEX | 4,000,000원/kW | v1.3.1 |
+| Scenarios | Conservative ×0.85 / Base / Optimistic ×1.15 | v1.3.1 |
 
-**Reconcile gate**: `packages/finance/src/__tests__/bm-model.reconcile.test.ts`
-exists as a `.skip` test that snapshots Year 1 / Year 5 / Year 20 / NPV / ROE
-/ payback for BM A and BM B. Once xlsx values are pasted into chat, the
-snapshot file gets created from those numbers and the test is un-skipped.
-Without that step, the simulator output is **plausible, not reconciled** —
-disclaimer language in the FR-O-006 PDF makes this clear, per FRD AC.
+All values now cited inline in `packages/finance/src/assumptions.ts` as
+`BASE_ASSUMPTIONS` + `SCENARIOS` constants per the v1.3.1 prompt spec.
+
+**Mandatory disclaimers** (PDF + UI):
+1. `"본 시뮬레이션은 가정 기반이며 실제 수익을 보장하지 않습니다."`
+2. `"재생에너지지원사업 융자금 적용은 한국에너지공단 심사 후 확정됩니다."`
+
+**Forbidden in this UI** (anti-pattern enforcement):
+- BM A/B comparison chart
+- "BM A" / "BM B" terminology in any investor-facing copy
+- Including TheKIE Lucia SaaS / KIE-REMS revenue in investor distribution
+- Permitting KEA loan ratio > 80% (UI must cap)
+- Omitting either disclaimer in the PDF output
+
+**Module renaming**: original plan was `bm-model.ts`. v1.3.1 renames to
+`investor-model.ts` (semantically accurate — name signals investor scope,
+not BM strategy comparison).
+
+The risk is **closed**: implementation can proceed with confidence. No
+xlsx reconcile snapshot test is needed since the investor model is fully
+specified by the v1.3.1 prompt.
 
 ### R-V13-2: Kakao Maps API key not yet provisioned (FR-O-005)
 
@@ -194,6 +206,8 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 | 2026-05-05 | Use prompt-stated constants for FR-O-006; defer xlsx reconcile to user-paste step | Anti-pattern #4 forbids invented values; prompt constants are spec-stated, not arbitrary; reconcile gate stays as `.skip` snapshot test |
 | 2026-05-05 | Choose **Kakao Maps SDK** for FR-O-005 over Naver/MapLibre | Best Korean admin boundaries + address labels; free dev tier sufficient for Pilot demo |
 | 2026-05-05 | Relax `Building.building_id` regex from `/^ULJN-\d{3}$/` to permit multi-region prefixes | Required by 9,354-catalog FR-R-002; additive-permissive (no values invalidated); ULJN fixtures still pass |
+| 2026-05-06 | Accept v1.3.1 prompt update — FR-O-006 reframed as investor-equity perspective only; BM A/B comparison forbidden in this UI | User-supplied. Resolves R-V13-1 by providing explicit defaults for every load-bearing parameter (KEA loan rate/grace/repay, OPEX, scenarios, max ratio). xlsx BM sheets confirmed as wrong reference (TheKIE-internal strategy doc). |
+| 2026-05-06 | Rename `bm-model.ts` → `investor-model.ts` per v1.3.1 | Module name should signal investor-equity scope, not BM strategy comparison. Helps enforce anti-pattern: BM A/B labels must not leak into investor UI. |
 
 ---
 
@@ -207,6 +221,9 @@ mirror**. Default mirror path: `C:/Users/Nam/lucia-build` (override with
 | `94f3451` | feat | Wave 1A — nationwide 9,354-building catalog (region-office + Building extension) | `feat/v1.3-strategic-pivot` |
 | `4496ef7` | feat | Wave 1B — 6 new domain entities (Investor/LOI/Sim/ESG/Event/RSVP) | `feat/v1.3-strategic-pivot` |
 | `2865041` | feat | Wave 1C — demo fixtures (5 investors / 3 LOI / 2 events / 9 ESG snapshots) | `feat/v1.3-strategic-pivot` |
+| `984f7f4` | docs | Wave 1 quality-gate result + commit history update | `feat/v1.3-strategic-pivot` |
+| `ee6bf47` | feat | Wave 2A Slice 1 — FR-R-005 LOI data layer (sha256 + store + 16 tests) | `feat/v1.3-strategic-pivot` |
+| `bdad922` | docs | v1.3.1 prompt update — FR-O-006 refocused on investor-equity perspective | `feat/v1.3-strategic-pivot` |
 
 ## Wave 1 quality-gate result (workspace-wide)
 
