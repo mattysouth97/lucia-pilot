@@ -81,6 +81,46 @@ After `make up` the following services are available:
 
 ---
 
+## Demo accounts (v1.3)
+
+Sign in at `/login` and pick any of the eight pre-seeded accounts. Authentication
+is mock-token (FR-A-001) — no real credentials required.
+
+| Account ID         | Role     | Persona                           | Lands on              |
+|--------------------|----------|-----------------------------------|-----------------------|
+| `u_analyst_kim`    | analyst  | LH ESG 경영실 김지호 처장         | `/` (KIE-REMS dash)   |
+| `u_operator_spc`   | operator | 울진 매입임대 SPC 운영팀          | `/` (KIE-REMS dash)   |
+| `h0001`            | resident | 홍*동 (ULJN-001 · LH 매입임대)    | `/portal/h0001`       |
+| `k0014`            | resident | 김*수 (YESN-014 · 국민임대)       | `/portal/k0014`       |
+| `e0042`            | resident | 이*경 (BSAN-042 · 에너지소외)     | `/portal/e0042`       |
+| `u_investor_a01`   | investor | SK하이닉스 ESG실 (RE100, 약정 PPA)| `/invest/dashboard`   |
+| `i0002`            | investor | 삼성전자 ESG팀 (RE100, 80,000 MWh)| `/invest/dashboard`   |
+| `i0003`            | investor | 김투자 (Retail, 1천~5천만원)     | `/invest/dashboard`   |
+
+The full account roster lives in `apps/web/src/auth/demoAccounts.ts`. The
+demo-investor onboarding wizards (`/invest/onboarding/{re100,retail}`) accept
+arbitrary mock SMS codes — any 6 digits + valid Korean phone format passes.
+
+### Public surfaces (no login)
+
+These v1.3 marketing/sales pages are open to crawlers and direct visitors:
+
+| Path                                  | FR        | Highlights                                                      |
+|---------------------------------------|-----------|-----------------------------------------------------------------|
+| `/invest`                             | FR-R-001  | Landing                                                         |
+| `/invest/projects`                    | FR-R-002  | 9,354-building catalog with region filters / sort / pagination  |
+| `/invest/projects/:siteId`            | FR-R-002  | Site detail with simulator + onboarding CTAs                    |
+| `/invest/simulator?site=…`            | FR-O-006  | Investor-equity simulator (capital structure + KEA 융자금)        |
+| `/invest/onboarding/re100?site=…`     | FR-R-003  | 5-step RE100 corporate onboarding wizard                        |
+| `/invest/onboarding/retail?site=…`    | FR-R-004  | 3-step retail individual onboarding wizard (비구속력)            |
+| `/invest/portfolio?investor=…`        | FR-R-006  | 4-tab investor portfolio dashboard                              |
+
+Auth-gated v1.3 routes (`/admin/loi`, `/admin/loi/:loi_id`, `/portal/:user_id/esg`,
+`/portal/:user_id/community`, `/invest/dashboard`) carry `X-Robots-Tag: noindex,
+nofollow` per `vercel.json`.
+
+---
+
 ## FR-O-001 load test (AWS)
 
 The 9,354-building load test runs on AWS and is the PM's responsibility (not autopilot).

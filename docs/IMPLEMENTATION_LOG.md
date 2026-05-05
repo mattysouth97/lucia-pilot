@@ -68,11 +68,11 @@ Cross-cutting (after all per-FR rows are green):
 
 | Item | Status | Commit |
 |---|---|---|
-| App.tsx route table updated for 12 new paths | ✅ done | spread across `c0dcca0`, `717207f`, `f64fa93`, `<final>` |
-| `vercel.json` X-Robots-Tag noindex for protected routes | open | — (Phase 2 SEO polish) |
-| Topbar tab set per role updated | partial | new `/invest/*` paths sit in LandingShell (no Topbar). AppShell tabs unchanged for analyst/operator |
-| README.md demo-accounts section refreshed | open | — |
-| `.env.example` has `VITE_KAKAO_MAPS_API_KEY` placeholder | open | — (R-V13-2 — fallback active via mapbox-gl) |
+| App.tsx route table updated for 12 new paths | ✅ done | spread across `c0dcca0`, `717207f`, `f64fa93`, `6625859` |
+| `vercel.json` X-Robots-Tag noindex for protected routes | ✅ done | `<commit-pending>` — added `/admin/:path*` (covers /admin/loi + /admin/loi/:loi_id) and `/invest/dashboard`; existing /portal/, /admin, /simulator, /map, /buildings/ rules preserved |
+| Topbar tab set per role updated | partial | new `/invest/*` paths sit in LandingShell (no Topbar). AppShell tabs unchanged for analyst/operator. Investor-tab augmentation deferred — InvestorHome at /invest/dashboard already covers role-home concern |
+| README.md demo-accounts section refreshed | ✅ done | `<commit-pending>` — full 8-account roster table (3 system + 3 residents + 3 investors incl. i0002, i0003) + public surfaces table |
+| `.env.example` has `VITE_KAKAO_MAPS_API_KEY` placeholder | ✅ done | `<commit-pending>` — empty value with R-V13-2 explainer + Kakao Developers signup steps |
 | Final 5-scenario regression manual run | partial | typecheck/lint/test all green via mirror; 65/68 tests pass (3 pre-existing parent-branch failures, no new regressions). Manual viewport check 480/768/1280 deferred to demo-day rehearsal. |
 
 ---
