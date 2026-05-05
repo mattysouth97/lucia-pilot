@@ -5,6 +5,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 
 import App from '../src/App.js';
 import { AuthProvider } from '../src/auth/AuthProvider';
+
 import { loginAsForTest, logoutForTest } from './helpers/auth';
 
 function makeQueryClient() {
