@@ -68,6 +68,29 @@ export function Topbar({ onInquiryClick }: TopbarProps) {
         </a>
       </div>
 
+      <nav
+        aria-label="메뉴"
+        className="show-md+"
+        style={{
+          marginLeft: 24,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 18,
+        }}
+      >
+        {NAV.menuItems.map(item => (
+          <a
+            key={item.href}
+            href={item.href}
+            style={menuLinkStyle}
+            onMouseEnter={e => (e.currentTarget.style.color = '#FFFFFF')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.72)')}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
       <div style={{ marginLeft: 'auto' }}>
         <button
           type="button"
@@ -104,3 +127,12 @@ function tabStyle(active: boolean): CSSProperties {
     cursor: 'pointer',
   };
 }
+
+const menuLinkStyle: CSSProperties = {
+  fontSize: 13.5,
+  fontWeight: 500,
+  color: 'rgba(255,255,255,0.72)',
+  letterSpacing: '-0.01em',
+  whiteSpace: 'nowrap',
+  transition: 'color 120ms ease-out',
+};

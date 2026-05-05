@@ -12,6 +12,11 @@ export const NAV = {
   tabLh: 'LH 햇빛발전소',
   tabEnergy: 'LuciaEnergy',
   ctaInquiry: '사업 문의',
+  menuItems: [
+    { label: '발전소 연동하기', href: '#multi-asset-heading' },
+    { label: '전력거래',       href: '#blockchain-heading' },
+    { label: '매각중개',       href: '#inquiry-heading' },
+  ] as ReadonlyArray<{ label: string; href: string }>,
 } as const;
 
 export const HERO = {
