@@ -12,7 +12,10 @@ interface TopbarProps {
 
 export function Topbar({ onInquiryClick }: TopbarProps) {
   const investUrl =
-    import.meta.env.VITE_LUCIA_INVEST_URL ?? 'http://localhost:5173/invest';
+    import.meta.env.VITE_LUCIA_INVEST_URL ??
+    (import.meta.env.PROD
+      ? 'https://lucia-pilot.vercel.app/invest'
+      : 'http://localhost:5173/invest');
 
   return (
     <header
