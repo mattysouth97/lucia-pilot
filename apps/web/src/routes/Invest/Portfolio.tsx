@@ -359,20 +359,20 @@ function ImpactTab({ lois }: { lois: LOI[] }): JSX.Element {
       />
       <ImpactCard
         label="CO₂ 회피"
-        value={`${equivalents.co2_avoided_tco2e.toFixed(2)} tCO₂e`}
-        sub="0.4663 kg/kWh"
+        value={`${(equivalents.co2_saved_kg / 1000).toFixed(2)} tCO₂e`}
+        sub="0.4244 kg/kWh"
         accent="#10b981"
       />
       <ImpactCard
         label="등가 잣나무 식수"
         value={`${equivalents.equivalent_trees.toLocaleString('ko-KR')}그루`}
-        sub="20.5 kgCO₂/tree/yr"
+        sub="22 kgCO₂/tree/yr"
         accent="#10b981"
       />
       <ImpactCard
         label="등가 자동차 운행 회피"
-        value={`${(equivalents.equivalent_car_km / 1000).toFixed(0)}천 km`}
-        sub="156 g CO₂/km 기준"
+        value={`${(equivalents.equivalent_km / 1000).toFixed(0)}천 km`}
+        sub="0.21 kgCO₂/km 기준"
       />
     </div>
   );

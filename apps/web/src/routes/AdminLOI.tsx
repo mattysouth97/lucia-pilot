@@ -53,7 +53,6 @@ export function AdminLOIList(): JSX.Element {
       transitionLOI(id, to);
       setVersion((v) => v + 1);
     } catch (e) {
-      // eslint-disable-next-line no-alert
       alert(e instanceof Error ? e.message : '상태 전환 실패');
     }
   };

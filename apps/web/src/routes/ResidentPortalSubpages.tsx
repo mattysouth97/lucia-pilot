@@ -34,7 +34,7 @@ export function ResidentESGDashboard(): JSX.Element {
 
   const snapshots = DEMO_ESG_IMPACTS
     .filter((s) => s.resident_id === residentId)
-    .sort((a, b) => a.month_yyyy_mm.localeCompare(b.month_yyyy_mm));
+    .sort((a, b) => a.period.localeCompare(b.period));
 
   const latest = snapshots[snapshots.length - 1];
   const cumKwh = snapshots.reduce((s, x) => s + x.kwh_generated, 0);
@@ -96,8 +96,8 @@ export function ResidentESGDashboard(): JSX.Element {
             />
             <ImpactCell
               label="등가 자동차 운행"
-              value={`${(cumEquivalents.equivalent_car_km / 1000).toFixed(0)}천 km`}
-              sub="156 g CO₂/km 기준"
+              value={`${(cumEquivalents.equivalent_km / 1000).toFixed(0)}천 km`}
+              sub="0.21 kgCO₂/km 기준"
             />
           </section>
 
@@ -124,7 +124,7 @@ export function ResidentESGDashboard(): JSX.Element {
               }}
             >
               <div style={{ fontSize: 11, color: '#065f46', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {latest.month_yyyy_mm} 월간 리포트
+                {latest.period} 월간 리포트
               </div>
               <p style={{ fontSize: 13, color: '#064e3b', lineHeight: 1.55, marginTop: 8 }}>
                 이 달, {maskedName}님이 거주하시는 단지의 햇빛발전소는{' '}
@@ -197,9 +197,9 @@ function MonthlyBars({ snapshots }: { snapshots: readonly ESGImpactSnapshot[] })
       {snapshots.map((s) => {
         const pct = (s.kwh_generated / maxKwh) * 100;
         return (
-          <div key={s.month_yyyy_mm}>
+          <div key={s.period}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginBottom: 4 }}>
-              <span className="num" style={{ color: '#6b7280', fontFamily: 'monospace' }}>{s.month_yyyy_mm}</span>
+              <span className="num" style={{ color: '#6b7280', fontFamily: 'monospace' }}>{s.period}</span>
               <span className="num" style={{ fontWeight: 600 }}>
                 {(s.kwh_generated / 1000).toFixed(2)} MWh · CO₂ {(s.co2_saved_kg / 1000).toFixed(2)}t
               </span>
@@ -254,11 +254,10 @@ export function ResidentCommunity(): JSX.Element {
   const [rsvp, setRsvp] = useState<RSVPState>(() => readRSVP());
 
   const sortedEvents = [...DEMO_EVENTS].sort((a, b) =>
-    a.starts_at.localeCompare(b.starts_at),
+    a.datetime.localeCompare(b.datetime),
   );
-  const now = new Date().toISOString();
-  const upcoming = sortedEvents.filter((e) => e.starts_at >= now);
-  const past = sortedEvents.filter((e) => e.starts_at < now);
+  const upcoming = sortedEvents.filter((e) => e.status === 'upcoming');
+  const past = sortedEvents.filter((e) => e.status === 'past');
 
   const toggleRSVP = (id: string): void => {
     const next: RSVPState = { ...rsvp, [id]: !rsvp[id] };
@@ -340,7 +339,7 @@ function EventCard({
   onToggle: () => void;
   past: boolean;
 }): JSX.Element {
-  const startsAt = new Date(event.starts_at);
+  const startsAt = new Date(event.datetime);
   const dateLabel = `${startsAt.getFullYear()}년 ${startsAt.getMonth() + 1}월 ${startsAt.getDate()}일`;
   return (
     <div
@@ -369,9 +368,6 @@ function EventCard({
           >
             {past ? '지난 행사' : '모집 중'}
           </span>
-          <span style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {event.event_type}
-          </span>
         </div>
         <h3 style={{ fontSize: 16, margin: 0 }}>{event.title}</h3>
         <p style={{ fontSize: 12.5, color: '#6b7280', margin: '6px 0 0', lineHeight: 1.55 }}>
@@ -380,8 +376,8 @@ function EventCard({
         <div style={{ display: 'flex', gap: 16, fontSize: 11.5, color: '#9ca3af', marginTop: 10 }}>
           <span>📅 {dateLabel}</span>
           <span>📍 {event.location}</span>
-          {event.target_buildings.length > 0 && (
-            <span>🏢 {event.target_buildings.length}개 단지</span>
+          {event.beneficiary_groups.length > 0 && (
+            <span>🏢 {event.beneficiary_groups.length}개 입주 그룹</span>
           )}
         </div>
       </div>
