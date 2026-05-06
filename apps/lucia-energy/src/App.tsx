@@ -10,10 +10,12 @@ import { ComparisonMatrix } from './sections/ComparisonMatrix';
 import { Hero } from './sections/Hero';
 import { InquirySplit } from './sections/InquirySplit';
 import { MultiAssetDER } from './sections/MultiAssetDER';
+import { NumbersBand } from './sections/NumbersBand';
 import { PublicCitizen } from './sections/PublicCitizen';
 import { Roadmap } from './sections/Roadmap';
 import { SecurityCertifications } from './sections/SecurityCertifications';
 import { StandardsStrip } from './sections/StandardsStrip';
+import { WhoWeAre } from './sections/WhoWeAre';
 
 // Maps the chip-displayed Korean label to the PersonaEnum key used in the inquiry form.
 // Kept inline (rather than in copy.ts) to keep the runtime ↔ schema link explicit.
@@ -51,6 +53,8 @@ export default function App() {
       <Topbar onInquiryClick={scrollToInquiry} />
       <main>
         <Hero onPrimaryClick={scrollToInquiry} onSecondaryClick={scrollToAutomation} />
+        <WhoWeAre />
+        <NumbersBand />
         <div ref={automationRef}>
           <AutomationMatrix />
         </div>

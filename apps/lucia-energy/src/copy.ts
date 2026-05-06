@@ -22,12 +22,37 @@ export const NAV = {
 
 export const HERO = {
   overline: 'LUCIA ENERGY · 통합 DER 플랫폼',
+  pillLabel: 'ABOUT',
   headlineLine1: '사람 손 없이도,',
   headlineLine2: '발전소는 멈추지 않습니다.',
   sub:
-    'AI가 24시간 자동 수행하는 8개 운영 영역 — 발전량 예측·이상 탐지·매전 입찰·정산까지.',
+    '루시아에너지는 PV·ESS·EV·히트펌프·소수력·연료전지 6대 자산을 한 화면에서 운영하는 통합 DER 플랫폼입니다.',
   ctaPrimary: '사업 문의하기',
   ctaSecondary: '차별화 살펴보기',
+} as const;
+
+export const WHO_WE_ARE = {
+  overline: 'WHO WE ARE?',
+  body:
+    '루시아에너지는 분산된 신재생 자원을 한 정산 단위로 묶는 통합 DER 플랫폼 기업입니다. 6대 자산을 한 화면에서 운영합니다.',
+  statementBefore: '우리는 흩어진 자원을 ',
+  statementHighlight: '하나의 발전소',
+  statementAfter: '로 묶습니다.',
+  photoCaption: '한 화면에서 6대 자산을, 한 정산 단위로.',
+} as const;
+
+export const NUMBERS = {
+  overline: 'NUMBERS',
+  statementBefore: '',
+  statementHighlight: '발전이 멈추지 않는',
+  statementAfter: ' 곳을 위해.',
+  stats: [
+    { value: '1,000+', label: '운영 목표 발전소', aspirational: true },
+    { value: '0.3 GW', label: 'AI 운영 용량',     aspirational: true },
+    { value: 'AI 우선', label: '자동 디스패치 정책', aspirational: false },
+    { value: '24/7',    label: '실시간 모니터링',   aspirational: false },
+  ],
+  asteriskNote: '* Phase 1 목표치 — 분기별로 달성치를 갱신 공시합니다.',
 } as const;
 
 export const AUTOMATION_MATRIX = {
@@ -202,4 +227,39 @@ export const INQUIRY = {
 
 export const FOOTER = {
   copyright: '© 2026 Lucia. 본 페이지는 사업 소개용이며 투자 권유가 아닙니다.',
+  about:
+    '루시아에너지는 흩어진 신재생 자원을 한 화면, 한 정산 단위로 묶는 통합 DER 플랫폼입니다.',
+  cols: [
+    {
+      title: '회사',
+      links: [
+        { label: '소개',     href: '#whoweare-heading' },
+        { label: '채용',     href: '#inquiry-heading' },
+        { label: '보도자료', href: '#inquiry-heading' },
+        { label: '문의',     href: '#inquiry-heading' },
+      ],
+    },
+    {
+      title: '플랫폼',
+      links: [
+        { label: '발전소 통합운영', href: '#multi-asset-heading' },
+        { label: 'AI 자동화',       href: '#automation-heading' },
+        { label: '온체인 정산',     href: '#blockchain-heading' },
+        { label: '공공·시민',       href: '#public-citizen-heading' },
+      ],
+    },
+    {
+      title: '자료',
+      links: [
+        { label: '단계별 로드맵', href: '#roadmap-heading' },
+        { label: '비교',         href: '#comparison-heading' },
+        { label: '보안·인증',    href: '#security-heading' },
+        { label: '표준 호환',    href: '#standards-heading' },
+      ],
+    },
+  ] as ReadonlyArray<{
+    title: string;
+    links: ReadonlyArray<{ label: string; href: string }>;
+  }>,
+  wordmark: 'Lucia.',
 } as const;

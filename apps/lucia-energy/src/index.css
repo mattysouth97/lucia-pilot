@@ -1,21 +1,23 @@
 :root {
-  /* Surface — cream/off-white photographic register, per reference image */
-  --bg: #F5F1EB;
+  /* Surface — editorial cream, deeper than apps/web's warm neutral */
+  --bg: #F4F0E8;
   --bg-elevated: #FFFFFF;
   --bg-warm: #FAF6EE;
   --ink: #0A0A0A;
   --ink-2: rgba(10,10,10,0.72);
   --ink-3: rgba(10,10,10,0.48);
-  --line: #E8E2D7;
-  --line-soft: #EFEAE0;
+  --line: #E4DDD0;
+  --line-soft: #ECE6D9;
 
   /* Brand — industrial deep teal accent (locked from brainstorm Q6) */
   --accent: #0F766E;
   --accent-ink: #0D5A52;
-  --accent-soft: rgba(15,118,110,0.08);
+  --accent-soft: #DCEFEC;       /* tinted mint for ABOUT-pill backgrounds */
+  --accent-deep: #064E3B;       /* dark green for stat/CTA cards */
+  --accent-deep-2: #052E22;     /* deepest green — gradient stop */
+  --soft-blue: #DEE9F0;         /* secondary accent — knowledge-base style card */
 
-  /* Topbar — floating white card, NOT a sticky black bar */
-  --bar: #FFFFFF;
+  /* Topbar — flat, transparent (no floating pill) */
   --bar-ink: #0A0A0A;
   --bar-ink-2: rgba(10,10,10,0.62);
   --bar-line: rgba(0,0,0,0.06);
@@ -25,34 +27,40 @@
   --warn: #B45309;
   --alert: #B91C1C;
 
-  /* Radii — larger, photographic-card register */
-  --r-sm: 6px;
-  --r-md: 12px;
-  --r-lg: 20px;
-  --r-modal: 24px;
-  --r-hero: 28px;
+  /* Radii — small, editorial register */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 14px;
+  --r-card: 18px;       /* photo cards + stat card */
+  --r-pill: 999px;
 
-  /* Soft drop-shadows — service-y, not corporate */
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-floating: 0 2px 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.08);
-  --shadow-hover: 0 4px 12px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.10);
+  /* Soft drop-shadows */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.05);
+  --shadow-floating: 0 2px 6px rgba(0,0,0,0.04), 0 8px 22px rgba(0,0,0,0.06);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.06), 0 12px 28px rgba(0,0,0,0.10);
 
   /* Type */
   --display: 'Pretendard', system-ui, sans-serif;
   --num: 'JetBrains Mono', ui-monospace, monospace;
+  --serif: 'Times New Roman', 'Noto Serif KR', Georgia, serif;
 
-  /* Hero scale */
-  --hero-display: clamp(40px, 5.5vw, 76px);
+  /* Hero scale — heavier than apps/web; reference goes monumental */
+  --hero-display: clamp(48px, 7.5vw, 112px);
+  --statement-display: clamp(36px, 5.2vw, 76px);
   --kpi-display: clamp(36px, 4.5vw, 64px);
 
-  /* Layout — outer page padding for the floating-card composition */
+  /* Layout */
   --page-pad: 24px;
+  --max-w: 1280px;
+  --hero-min-h: 100vh;
+}
+
+@supports (min-height: 100dvh) {
+  :root { --hero-min-h: 100dvh; }
 }
 
 @media (min-width: 1024px) {
-  :root {
-    --page-pad: 32px;
-  }
+  :root { --page-pad: 32px; }
 }
 
 * { box-sizing: border-box; }
@@ -64,18 +72,37 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 button { font-family: inherit; }
 a { color: inherit; text-decoration: none; }
 
+/* Typography utilities */
 .num { font-family: var(--num); font-variant-numeric: tabular-nums; }
 .overline {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-3);
 }
+
+/* ABOUT-style pill — small mint-tinted overline pill */
+.about-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Card primitives */
 .card {
   background: var(--bg-elevated);
   border: 1px solid var(--line-soft);
@@ -84,10 +111,70 @@ a { color: inherit; text-decoration: none; }
 }
 .card-pad { padding: 24px; }
 
-/* Visibility helpers shared with apps/web LandingHeader pattern */
+.photo-card {
+  position: relative;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: #1F2937;
+}
+
+/* Page-level outer container */
+.page-shell {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+}
+
+/* Section wrapper — generous vertical rhythm to mirror the reference */
+.section-pad {
+  padding-top: clamp(64px, 8vw, 120px);
+  padding-bottom: clamp(64px, 8vw, 120px);
+}
+.section-pad-tight {
+  padding-top: clamp(40px, 5vw, 72px);
+  padding-bottom: clamp(40px, 5vw, 72px);
+}
+
+/* Visibility helpers */
 .show-md\+ { display: none; }
 .show-mobile { display: inline-flex; }
 @media (min-width: 768px) {
   .show-md\+ { display: inline-flex; }
   .show-mobile { display: none; }
+}
+
+/* Statement type — for editorial WHO WE ARE row */
+.statement {
+  font-size: var(--statement-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: var(--ink);
+  margin: 0;
+}
+.statement em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* Giant footer wordmark */
+.huge-wordmark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  font-size: clamp(112px, 24vw, 360px);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  user-select: none;
+  margin: 0;
+}
+
+/* Solar-grid CSS placeholder — used when /hero-solar.jpg is missing */
+.solar-grid-bg {
+  background:
+    linear-gradient(180deg, rgba(8,30,52,0) 0%, rgba(8,30,52,0.45) 100%),
+    repeating-linear-gradient(35deg, #1A3A5C 0 38px, #112A45 38px 40px),
+    repeating-linear-gradient(125deg, transparent 0 36px, rgba(255,255,255,0.04) 36px 38px),
+    linear-gradient(180deg, #5C8CB8 0%, #1A3A5C 60%);
 }
