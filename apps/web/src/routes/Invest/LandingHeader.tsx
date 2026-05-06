@@ -11,7 +11,10 @@ import { CTA_PRIMARY, NAV_ITEMS, NAV_LOGIN } from './copy';
 // Cross-link to apps/lucia-energy. Env-driven so subdomain vs path-prefix
 // stays an ops decision; defaults to dev port 3002.
 const LUCIA_ENERGY_URL =
-  import.meta.env.VITE_LUCIA_ENERGY_URL ?? 'http://localhost:3002';
+  import.meta.env.VITE_LUCIA_ENERGY_URL ??
+  (import.meta.env.PROD
+    ? 'https://lucia-energy.vercel.app'
+    : 'http://localhost:3002');
 
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
