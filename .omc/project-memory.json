@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1777854203881,
+  "lastScanned": 1778009437295,
   "projectRoot": "c:\\Users\\Nam\\Downloads\\정산-handoff",
   "techStack": {
     "languages": [
@@ -52,8 +52,8 @@
     "runtime": "Node.js 20.10.0"
   },
   "build": {
-    "buildCommand": "cd \"C:/Users/Nam/lucia-build\" && pnpm build 2>&1 | tail -5; echo \"BUILD:$?\"",
-    "testCommand": "cd \"C:/Users/Nam/Downloads/정산-handoff\" && bash sync-to-build-mirror.sh 2>&1 | tail -3 && cd \"C:/Users/Nam/lucia-build\" && pnpm test 2>&1 | grep -E \"✓|×|FAIL|passed|failed|Done\" | head -20; echo \"TEST_DONE:$?\"",
+    "buildCommand": "pnpm build",
+    "testCommand": "./sync-to-build-mirror.sh exec pnpm --filter web exec eslint tests/smoke.test.tsx 2>&1 | tail -8 && echo \"---TESTS---\" && ./sync-to-build-mirror.sh exec pnpm --filter web exec vitest run tests/smoke.test.tsx 2>&1 | tail -10",
     "lintCommand": "pnpm lint",
     "devCommand": "pnpm dev",
     "scripts": {
@@ -81,7 +81,8 @@
     "isMonorepo": true,
     "workspaces": [],
     "mainDirectories": [
-      "docs"
+      "docs",
+      "scripts"
     ],
     "gitBranches": null
   },
@@ -91,23 +92,30 @@
       "path": "apps",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1777854203822,
+      "lastAccessed": 1778009437256,
       "keyFiles": []
     },
     "chain": {
       "path": "chain",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1777854203835,
+      "lastAccessed": 1778009437264,
       "keyFiles": [
         "CLAUDE.md"
       ]
+    },
+    "C": {
+      "path": "C",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778009437264,
+      "keyFiles": []
     },
     "docker": {
       "path": "docker",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1777854203836,
+      "lastAccessed": 1778009437266,
       "keyFiles": [
         "docker-compose.yml",
         "README.md"
@@ -116,29 +124,40 @@
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 0,
-      "lastAccessed": 1777854203837,
-      "keyFiles": []
+      "fileCount": 1,
+      "lastAccessed": 1778009437267,
+      "keyFiles": [
+        "IMPLEMENTATION_LOG.md"
+      ]
     },
     "infra": {
       "path": "infra",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1777854203838,
+      "lastAccessed": 1778009437268,
       "keyFiles": []
     },
     "packages": {
       "path": "packages",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1777854203839,
+      "lastAccessed": 1778009437269,
       "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1778009437270,
+      "keyFiles": [
+        "build-frd.sh"
+      ]
     },
     "untitled": {
       "path": "untitled",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1777854203840,
+      "lastAccessed": 1778009437271,
       "keyFiles": [
         "README.md"
       ]
@@ -147,8 +166,8 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 56,
-      "lastAccessed": 1777583466633,
+      "accessCount": 59,
+      "lastAccessed": 1778009564287,
       "type": "directory"
     },
     {
